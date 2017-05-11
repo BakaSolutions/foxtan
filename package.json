@@ -1,0 +1,25 @@
+{
+  "name": "sobaka",
+  "version": "0.0.1",
+  "description": "The server-oriented BAKA",
+  "main": "sobaka.js",
+  "scripts": {
+    "install": "npm i",
+    "start": "node sobaka.js",
+    "start-dev": "NODE_ENV=development node sobaka.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://rngnrs@bitbucket.org/rngnrs/sobaka.git"
+  },
+  "keywords": [
+    "imageboard"
+  ],
+  "author": "rngnrs",
+  "license": "MIT",
+  "homepage": "https://bitbucket.org/rngnrs/sobaka#readme",
+  "dependencies": {
+    "express": "^4.15.2"
+  }
+}
