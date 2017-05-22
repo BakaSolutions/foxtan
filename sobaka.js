@@ -25,5 +25,6 @@ switch (config.server.output) {
 
 
 function onListening(address) {
-  console.log(`Sobaka says 'Rawr'! Where? Here: ${address}`);
+  console.log(`Sobaka! Where? Here: ${address}`);
+  console.log(`Try our CRUD-routing! ${address}/b/res/1337.json`);
 }

@@ -9,13 +9,13 @@ Our team thinks that next-gen imageboard must provide just unified API,  so many
 
 #### Install
 Dependencies:
-* Node with npm  
-* MySQL (or MariaDB/PostgreSQL, soon)  
-* sharp (for processing images, soon)  
-* ffmpeg (for processing videos, soon)  
+* Node with npm
+* MySQL (or MariaDB/PostgreSQL, soon)
+* sharp (for processing images, soon)
+* ffmpeg (for processing videos, soon)
 
 Optional dependencies:
-* SQLite libraries (for geolocation and/or keeping main data)  
+* SQLite libraries (for geolocation and/or keeping main data)
 
 Commands:
 ```
