@@ -1,25 +1,21 @@
 const fs = require('fs');
 const path = require('path');
 
-var tools = {},
+var tools = module.exports = {},
   toString = Object.prototype.toString;
 
 tools.requireAll = async function(src, mask) {
-  var filePath = path.join(__dirname.split("/").pop(), src),
-    files = await fs.readdir(filePath),
-    out = {};
-  files.forEach(function(file){
-    if(mask && !mask.test(file))
-      return false;
-    delete require.cache[require.resolve(filePath)];
-    out[out.length] = require(filePath);
-  });
-  return out;
+  var filePath = path.join(__dirname + '/../', src) + '/',
+    files = await fs.readdir(filePath);
+  return requireAll(mask, files, filePath);
 };
 tools.requireAllSync = function(src, mask) {
   var filePath = path.join(__dirname + '/../', src) + '/',
-    files = fs.readdirSync(filePath),
-    o = [];
+      files = fs.readdirSync(filePath);
+  return requireAll( mask, files, filePath);
+};
+function requireAll( mask, files, filePath) {
+  var o = [];
   files.forEach(function(file){
     if(mask && !mask.test(file))
       return false;
@@ -27,7 +23,7 @@ tools.requireAllSync = function(src, mask) {
     o[o.length] = tools.requireWrapper(require(filePath + file));
   });
   return o;
-};
+}
 tools.requireWrapper = function (m) {
   return (m && m.default) || m;
 };
@@ -53,4 +49,3 @@ tools.merge = function (target) {
   });
   return target;
 };
-module.exports = tools;

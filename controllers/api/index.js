@@ -1,4 +1,4 @@
-var router = require('express').Router();
+var router = module.exports = require('express').Router();
 
 router.get("/", (req, res) => {
   var r = {
@@ -6,5 +6,3 @@ router.get("/", (req, res) => {
   };
   res.json(r);
 });
-
-module.exports = router;
