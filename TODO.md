@@ -3,14 +3,14 @@
 * ~~Make simple HTTP-server~~
 
 ##### Config
-* Add configuration module
+* Add configuration module (in progress)
 
 ##### Database
 * Implement database module
 * Write database adapters
 
 ##### Logic
-* Add simple API controllers
+* ~~Add simple API controllers~~
 * Write CRUD-logic
   * Boards
   * Threads
