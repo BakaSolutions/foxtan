@@ -3,7 +3,7 @@
 * ~~Make simple HTTP-server~~
 
 ##### Config
-* Add configuration module (in progress)
+* ~~Add configuration module~~
 
 ##### Database
 * Implement database module

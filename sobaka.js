@@ -1,28 +1,17 @@
 const express = require('express'),
-
+  config = require('./helpers/config'),
   controllers = require('./controllers'),
-
-  app = express(),
-  config = {
-    "server": {
-      "output": "port", // "unix" for socket or nuff for HTTP
-      "port": 1337,
-      "address": "127.0.0.1",
-      "socket": "/tmp/sock"
-    }
-  };
-
+  app = express();
 
 controllers.init(app);
-switch (config.server.output) {
+switch (config('server.output')) {
   case 'unix':
-    app.listen(config.server.socket, onListening(config.server.socket));
+    app.listen(config('server.socket'), onListening(config('server.socket')));
     break;
   default:
-    app.listen(config.server.port, config.server.address, onListening(`http://${config.server.address}:${config.server.port}`));
+    app.listen(config('server.port'), config('server.host'), onListening(`http://${config('server.host')}:${config('server.port')}`));
     break;
 }
-
 
 function onListening(address) {
   console.log(`Sobaka! Where? Here: ${address}`);
