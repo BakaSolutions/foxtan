@@ -3,6 +3,11 @@ const Tools = require('./tools');
 const FS = require('fs');
 
 let config = new Map([
+  ['db', 'mysql'], // 'mysql' | 'sqlite' | 'postgres' | 'mssql'
+  ['db.mysql.username', 'root'],
+  ['db.mysql.password', ''],
+  ['db.mysql.hostname', 'localhost'],
+
   ['server.host', 'localhost'],
   ['server.output', 'port'],
   ['server.port', 1337],

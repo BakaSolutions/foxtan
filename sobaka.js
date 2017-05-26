@@ -1,9 +1,17 @@
 const express = require('express'),
   config = require('./helpers/config'),
   controllers = require('./controllers'),
+  db = require('./models/sql'),
   app = express();
 
 controllers.init(app);
+db.authenticate()
+  .then(() => {
+    console.log('Connection has been established successfully.');
+  })
+  .catch(err => {
+    console.error('Unable to connect to the database:', err);
+  });
 switch (config('server.output')) {
   case 'unix':
     app.listen(config('server.socket'), onListening(config('server.socket')));
