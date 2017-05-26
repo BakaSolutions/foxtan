@@ -1,7 +1,6 @@
-const Common = require('../common'),
-    Tools = require('../../helpers/tools.js');
+const Common = require('../common');
 
-var router = module.exports = require('express').Router();
+let router = module.exports = require('express').Router();
 
 router.get("/post.json", (req, res) => {
   // boardName & postNumber

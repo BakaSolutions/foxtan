@@ -1,7 +1,7 @@
 const Common = require('../common'),
   Tools = require('../../helpers/tools.js');
 
-var router = module.exports = require('express').Router();
+let router = module.exports = require('express').Router();
 
 router.get("/boards.json", (req, res) => {
   Common.throw(res, 501);

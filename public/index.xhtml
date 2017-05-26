@@ -1,0 +1,35 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8" />
+  <title>Debug forms &mdash; sobaka</title>
+</head>
+<body>
+  <form action="/create/thread" method="post">
+    <table>
+      <tr>
+        <td><b>Name:</b></td>
+        <td><input id="name" name="name" /></td>
+      </tr>
+      <tr>
+        <td><b>Subject:</b></td>
+        <td><input name="subject" maxlength="150" /></td>
+      </tr>
+      <tr>
+        <td><b>Text:</b></td>
+        <td>
+          <textarea name="text" cols="24" rows="4"/>
+        </td>
+      </tr>
+      <tr>
+        <td><b>Password:</b></td>
+        <td>
+          <input type="password" name="password" />
+        </td>
+      </tr>
+    </table>
+    <button>Submit</button>
+  </form>
+</body>
+</html>

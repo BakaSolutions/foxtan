@@ -20,7 +20,8 @@
   "license": "MIT",
   "homepage": "https://bitbucket.org/rngnrs/sobaka#readme",
   "dependencies": {
-    "express": "^4.15.2",
+    "body-parser": "^1.17.2",
+    "express": "^4.15.3",
     "sequelize": "^3.30.4"
   }
 }

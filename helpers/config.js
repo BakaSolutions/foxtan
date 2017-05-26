@@ -7,6 +7,7 @@ let config = new Map([
   ['db.mysql.username', 'root'],
   ['db.mysql.password', ''],
   ['db.mysql.hostname', 'localhost'],
+  ['db.mysql.database', 'sobaka'],
 
   ['server.host', 'localhost'],
   ['server.output', 'port'],

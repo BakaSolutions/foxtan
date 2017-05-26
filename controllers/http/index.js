@@ -1,9 +1,8 @@
-const Common = require('../common');
-var router = module.exports = require('express').Router();
+let router = module.exports = require('express').Router();
 
-router.get("/", (req, res) => {
-  var r = {
-    "message": "*catching* :3"
+router.get("/ping", (req, res) => {
+  let r = {
+    "message": "*pong*"
   };
   res.json(r);
 });

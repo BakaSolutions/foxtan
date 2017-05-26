@@ -20,7 +20,7 @@
 * Implement validators for ALL inputs
 
 ##### Debug
-* Create simple static post form
+* ~~Create simple static post form~~
 
 Do it and then go back for a great reward! :3
 
