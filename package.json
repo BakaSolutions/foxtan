@@ -4,7 +4,6 @@
   "description": "The server-oriented BAKA",
   "main": "sobaka.js",
   "scripts": {
-    "install": "npm i",
     "start": "node sobaka.js",
     "start-dev": "NODE_ENV=development node sobaka.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -22,6 +21,6 @@
   "dependencies": {
     "body-parser": "^1.17.2",
     "express": "^4.15.3",
-    "sequelize": "^3.30.4"
+    "mysql": "^2.13.0"
   }
 }

@@ -3,14 +3,19 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="UTF-8" />
-  <title>Debug forms &mdash; sobaka</title>
+  <title>Debugging &mdash; sobaka</title>
 </head>
 <body>
+  <h1>Create thread</h1>
   <form action="/create/thread" method="post">
     <table>
       <tr>
+        <td><b>[Hidden] Reply to board:</b></td>
+        <td><input name="boardName" value="test" /></td>
+      </tr>
+      <tr>
         <td><b>Name:</b></td>
-        <td><input id="name" name="name" /></td>
+        <td><input name="name" /></td>
       </tr>
       <tr>
         <td><b>Subject:</b></td>
@@ -26,6 +31,56 @@
         <td><b>Password:</b></td>
         <td>
           <input type="password" name="password" />
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <label>
+            <input type="checkbox" name="sageru" value="true" />
+            Sage!!1
+          </label>
+        </td>
+      </tr>
+    </table>
+    <button>Submit</button>
+  </form>
+  <h1>Create post</h1>
+  <form action="/create/post" method="post">
+    <table>
+      <tr>
+        <td><b>[Hidden] Reply to board:</b></td>
+        <td><input name="boardName" value="test" /></td>
+      </tr>
+      <tr>
+        <td><b>[Hidden] Reply to thread:</b></td>
+        <td><input name="threadNumber" /></td>
+      </tr>
+      <tr>
+        <td><b>Name:</b></td>
+        <td><input name="name" /></td>
+      </tr>
+      <tr>
+        <td><b>Subject:</b></td>
+        <td><input name="subject" maxlength="150" /></td>
+      </tr>
+      <tr>
+        <td><b>Text:</b></td>
+        <td>
+          <textarea name="text" cols="24" rows="4"/>
+        </td>
+      </tr>
+      <tr>
+        <td><b>Password:</b></td>
+        <td>
+          <input type="password" name="password" />
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <label>
+            <input type="checkbox" name="sageru" value="true" />
+            Sage!!1
+          </label>
         </td>
       </tr>
     </table>
