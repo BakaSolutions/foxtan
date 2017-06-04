@@ -30,7 +30,7 @@ post.update = function(board, thread_id, post_id) {
 
 post.delete = function(board, id) {
   return db.promisify((r, j) => {
-    db.query('DELETE FROM ?? WHERE `posts_id` = ?', ['posts_' + board, id, id], function (err, result) {
+    db.query('DELETE FROM ?? WHERE (`posts_id` = ? AND `posts_thread` IS NOT NULL)', ['posts_' + board, id], function (err, result) {
       if (err) j(err);
       r(result);
     });

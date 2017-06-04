@@ -7,7 +7,7 @@
 </head>
 <body>
   <h1>Create thread</h1>
-  <form action="/create/thread" method="post">
+  <form action="/api/thread.create" method="post">
     <table>
       <tr>
         <td><b>[Hidden] Reply to board:</b></td>
@@ -37,7 +37,11 @@
         <td colspan="2">
           <label>
             <input type="checkbox" name="sageru" value="true" />
-            Sage!!1
+            Sage
+          </label>
+          <label>
+            <input type="checkbox" name="redirect" value="true" />
+            Noko (redirect to thread)
           </label>
         </td>
       </tr>
@@ -45,7 +49,7 @@
     <button>Submit</button>
   </form>
   <h1>Create post</h1>
-  <form action="/create/post" method="post">
+  <form action="/api/post.create" method="post">
     <table>
       <tr>
         <td><b>[Hidden] Reply to board:</b></td>
@@ -96,6 +100,20 @@
       <tr>
         <td><b>Name:</b></td>
         <td><input type="number" name="postNumber" value="1" /></td>
+      </tr>
+    </table>
+    <button>Submit</button>
+  </form>
+  <h1>Delete thread or post [post]</h1>
+  <form action="/api/thread.delete" method="post">
+    <table>
+      <tr>
+        <td><b>Board:</b></td>
+        <td><input name="boardName" value="test" /></td>
+      </tr>
+      <tr>
+        <td><b>Name:</b></td>
+        <td><input type="number" name="postNumber" value="3" /></td>
       </tr>
     </table>
     <button>Submit</button>

@@ -3,14 +3,14 @@ const Common = require('../common'),
 
 let router = module.exports = require('express').Router();
 
-router.get("/boards.json", (req, res) => {
+router.get("/boards.json", function (req, res) {
   Common.throw(res, 501);
 });
 
-router.get("/boards/:board.json", (req, res) => {
+router.get("/boards/:board.json", function (req, res) {
   res.json(Tools.merge({}, req.params, req.query));
 });
 
-router.post("/create/board", (req, res) => {
+router.post("/create/board", function (req, res) {
   Common.throw(res, 501);
 });

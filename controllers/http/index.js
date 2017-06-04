@@ -1,8 +1,5 @@
 let router = module.exports = require('express').Router();
 
-router.get("/ping", (req, res) => {
-  let r = {
-    "message": "*pong*"
-  };
-  res.json(r);
+router.get("/ping", function (req, res) {
+  res.status(200).json( {"message": "*pong*"});
 });
