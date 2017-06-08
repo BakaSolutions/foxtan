@@ -1,4 +1,5 @@
-const db = require('../sql');
+const db = require('../sql'),
+  post = require('./post');
 
 let thread = module.exports = {};
 
@@ -68,10 +69,16 @@ thread.update = function(board, thread_id, post_id) {
  * Delete a post or a thread (with its' posts) with defined id
  * @param {String} board
  * @param {Number} id
+ * @param {String} password
  * @return {Promise}
  */
-thread.delete = function (board, id) {
-  return db.promisify((r, j) => {
+thread.delete = function (board, id, password) {
+  return db.promisify(async (r, j) => {
+    if (password) {
+      let psto = await post.read(board, id);
+      if (psto['posts_password'] !== psto.password)
+        return;
+    }
     db.query('DELETE FROM ?? WHERE (posts_id = ? OR posts_thread = ?)', ['posts_' + board, id, id], function (err, result) {
       if (err) j(err);
       r(result);
@@ -85,7 +92,7 @@ thread.delete = function (board, id) {
  * @param {Number} id
  * @return {Promise}
  */
-thread.recreate = function(board, id) {
+thread.regenerateJSON = function(board, id) {
   return db.promisify((r, j) => {
     db.query('SELECT * FROM ?? WHERE (`posts_id` = ? OR `posts_thread` = ?)', ['posts_' + board, id, id], function (err, queryData) {
       if (err) j(err);

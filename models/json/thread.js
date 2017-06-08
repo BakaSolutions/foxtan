@@ -11,8 +11,7 @@ let thread = module.exports = {};
 thread.create = async function(fields) {
   let query = await db.create(fields);
   let out = { board: fields['boardName'], thread: query['insertId'] };
-  query = await db.read(fields['boardName'], query['insertId']);
-  console.log(query);
+  query = await db.read(out.board, out.thread);
   FS.writeSync(`${out.board}/res/${out.thread}.json`, JSON.stringify(query));
   return out;
 };
@@ -45,7 +44,7 @@ thread.update = async function(board, thread_id, post_id) {
   if (query.length < 1)
     return false;
   //TODO: check for existing posts and replace them
-  // for now use thread.recreate()
+  // for now use thread.regenerateJSON()
   file = JSON.parse(file);
   Array.prototype.push.apply(file, query);
   FS.writeSync(`${board}/res/${thread_id}.json`, JSON.stringify(file));
@@ -58,8 +57,8 @@ thread.update = async function(board, thread_id, post_id) {
  * @param {Number} thread_id
  * @return {Object} query
  */
-thread.recreate = async function(board, thread_id) {
-  let query = await db.recreate(board, thread_id);
+thread.regenerateJSON = async function(board, thread_id) {
+  let query = await db.regenerateJSON(board, thread_id);
   FS.writeSync(`${board}/res/${thread_id}.json`, JSON.stringify(query));
 };
 

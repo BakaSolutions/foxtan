@@ -2,17 +2,30 @@ const db = require('../sql');
 
 let post = module.exports = {};
 
-post.create = function(board, thread, name, email, subject, tripcode, capcode, body, password, sageru) {
+/**
+ * Create a post
+ * @param {Object} fields
+ * @return {Promise}
+ */
+post.create = function(fields) {
+  let { boardName, threadNumber, name, email, subject, tripcode, capcode, text, password, sageru } = fields;
+  sageru = sageru? 1 : null;
   return db.promisify((r, j) => {
     db.query('INSERT INTO ?? (posts_thread, posts_name, posts_email, posts_subject, posts_tripcode, posts_capcode,' +
         'posts_body, posts_password, posts_sageru) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      ['posts_' + board, thread, name, email, subject, tripcode, capcode, body, password, sageru], function (err, result) {
+      ['posts_' + boardName, threadNumber, name, email, subject, tripcode, capcode, text, password, sageru], function (err, result) {
         if (err) j(err);
         r(result);
       });
   });
 };
 
+/**
+ * Read a post with defined id
+ * @param {String} board
+ * @param {Number} id
+ * @return {Promise}
+ */
 post.read = async function(board, id) {
   return db.promisify((r, j) => {
     db.query('SELECT * FROM ?? WHERE posts_id = ? LIMIT 1', ['posts_' + board, id], function (err, queryData) {
@@ -22,14 +35,26 @@ post.read = async function(board, id) {
   });
 };
 
-post.update = function(board, thread_id, post_id) {
+post.update = function(board, thread_id, post_id, fields) {
   return db.promisify((r, j) => {
-    //TODO
+    // TODO: Create post.update
   });
 };
 
-post.delete = function(board, id) {
-  return db.promisify((r, j) => {
+/**
+ * Delete a post with defined id
+ * @param {String} board
+ * @param {Number} id
+ * @param {String} password
+ * @return {Promise}
+ */
+post.delete = function(board, id, password) {
+  return db.promisify(async (r, j) => {
+    if (password) {
+      let psto = await post.read(board, id);
+      if (psto['posts_password'] !== psto.password)
+        return;
+    }
     db.query('DELETE FROM ?? WHERE (`posts_id` = ? AND `posts_thread` IS NOT NULL)', ['posts_' + board, id], function (err, result) {
       if (err) j(err);
       r(result);

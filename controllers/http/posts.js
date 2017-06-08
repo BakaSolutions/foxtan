@@ -17,9 +17,13 @@ router.post("/api/post.get", async function (req, res) {
   res.status(200).json(out);
 });
 
-router.post("/api/post.create", function (req, res) {
-  Common.throw(res, 501);
+router.post("/api/post.create", async function (req, res) {
+  let query = await model.create(req.body).catch((e) => Common.throw(res, 500, e));
+  req.body.redirect?
+      res.redirect(303, `/${req.body.boardName}/res/${query['posts_thread']}.json`) : res.status(201).json(query);
 });
+
+// TODO: Create post.update
 
 router.post("/api/post.delete", async function (req, res) {
   let out = await model.delete(req.body.boardName, req.body.postNumber);

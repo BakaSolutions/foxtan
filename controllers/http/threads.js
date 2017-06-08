@@ -1,12 +1,11 @@
 const Common = require('../common'),
-    //Tools = require('../../helpers/tools.js'),
     model = require('../../models/json/thread');
 
 let router = module.exports = require('express').Router();
 
 router.get("/:board/res/:id.json", async function (req, res) {
   try {
-    let out = await model.read(req.params.board, req.params.id);
+    let out = await model.read(req.params.board, req.params.id).catch(() => Common.throw(res, 500)); //TODO: debug this exception
     if(out.length < 1)
       return Common.throw(res, 404);
     out.forEach((post) => {
