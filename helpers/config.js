@@ -9,8 +9,9 @@ let config = new Map([
   ['db.mysql.hostname', 'localhost'],
   ['db.mysql.database', 'sobaka'],
 
-  ['fs.cache', true],
-  ['fs.cache.interval', 1000 * 60 * 5], // 5 min
+  ['fs.existscache', true],
+  ['fs.existscache.interval', 1000 * 60 * 5], // 5 min
+  ['fs.cache.json', true],
 
   ['server.host', 'localhost'],
   ['server.output', 'port'],

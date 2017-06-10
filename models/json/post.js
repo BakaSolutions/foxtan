@@ -1,7 +1,8 @@
 const FS = require('../../helpers/fs'),
     fs = require('fs'),
     db = require('../db/post'),
-    thread = require('./thread');
+    thread = require('./thread'),
+    config = require('../../helpers/config');
 
 let post = module.exports = {};
 
@@ -12,17 +13,21 @@ let post = module.exports = {};
  */
 post.create = async function(fields) {
   let query = await db.create(fields),
-      out = { board: fields['boardName'], post: query['insertId'] };
-  query = await db.read(out.board, out.post);
+      out = { board: fields['boardName'], post: query['insertId'] },
+      post = (await db.read(out.board, out.post))[0];
+  delete post['posts_sticked'];
+  delete post['posts_locked'];
+  delete post['posts_cycled'];
   try {
-    let file = FS.readSync(`${out.board}/res/${query[0]['posts_thread']}.json`);
+    let file = FS.readSync(`${out.board}/res/${post['posts_thread']}.json`);
     file = JSON.parse(file);
-    Array.prototype.push.apply(file, query);
+    Array.prototype.push.apply(file, post);
     FS.writeSync(`${out.board}/res/${out.thread}.json`, JSON.stringify(file));
   } catch (e) {
-    await thread.regenerateJSON(out.board, query[0]['posts_thread']);
+    if (config('fs.cache.json'))
+      await thread.regenerateJSON(out.board, post['posts_thread']);
   }
-  return query;
+  return post;
 };
 
 /**

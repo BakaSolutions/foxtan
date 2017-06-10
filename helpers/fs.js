@@ -6,10 +6,12 @@ const path = require('path'),
 let FS = module.exports = {};
 const ROOT = path.join(__dirname, '/../public/');
 
-FS.cache = new Map();
-FS.cacheInterval = setInterval(function () {
-  FS.cache.clear();
-}, config('fs.cache.interval'));
+if (config('fs.existscache')) {
+  FS.cache = new Map();
+  FS.cacheInterval = setInterval(function () {
+    FS.cache.clear();
+  }, config('fs.existscache.interval'));
+}
 
 FS.normalize = function(filePath) {
   if (this.check(filePath))
@@ -32,7 +34,11 @@ FS.unlinkSync = function (filePath) {
   filePath = FS.normalize(filePath);
   if (!this.check(filePath))
     return false;
-  return fs.unlinkSync(filePath);
+  try {
+    return fs.unlinkSync(filePath);
+  } catch (e) {
+    return false;
+  }
 };
 
 FS.writeSync = function (filePath, content) {
@@ -50,7 +56,7 @@ FS.writeSync = function (filePath, content) {
 FS.existsSync = function (filePath, cache) {
   filePath = FS.normalize(filePath);
   let key = filePath, out;
-  cache = cache && config('fs.cache');
+  cache = cache && config('fs.existscache');
   if(cache && this.cache.has(key))
     return this.cache.get(key);
   try {
