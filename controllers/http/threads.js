@@ -32,12 +32,14 @@ router.get("/:board/catalog.json", function (req, res) {
 });
 
 router.post("/api/thread.create", async function (req, res) {
+  await Common.parseForm(req);
   let query = await model.create(req.body);
   req.body.redirect?
     res.redirect(303, `/${query.board}/res/${query.thread}.json`) : res.status(201).json(query);
 });
 
 router.post("/api/thread.delete", async function (req, res) {
+  await Common.parseForm(req);
   let out = await model.delete(req.body.boardName, req.body.postNumber);
-  res.status(200).json({"ok": out.affectedRows});
+  res.status(200).json({"ok": typeof out === 'undefined'? 0: out.affectedRows});
 });

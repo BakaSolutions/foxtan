@@ -1,10 +1,36 @@
 let common = module.exports = {};
 
-const http = require('http');
+const http = require('http'),
+    Busboy = require('busboy'),
+    Tools = require('../helpers/tools');
 
 common.throw = function(res, status, msg) {
   let out = {};
   out.status = status || 500;
   out.error = msg || http.STATUS_CODES[out.status];
   return res.status(out.status).json(out);
+};
+
+common.parseForm = function(req) {
+  return new Promise(function (resolve, reject) {
+    let busboy = new Busboy({ headers: req.headers }),
+        fields = {};
+    /*busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
+      console.log('File [' + fieldname + ']: filename: ' + filename + ', encoding: ' + encoding + ', mimetype: ' + mimetype);
+      file.on('data', function(data) {
+        console.log('File [' + fieldname + '] got ' + data.length + ' bytes');
+      });
+      file.on('end', function() {
+        console.log('File [' + fieldname + '] Finished');
+      });
+    });*/ // TODO: Parse files
+    busboy.on('field', function(fieldname, val) {
+      fields[fieldname] = val;
+    });
+    busboy.on('finish', function() {
+      req.body = Tools.merge(req.body, fields);
+      resolve();
+    });
+    req.pipe(busboy);
+  });
 };
