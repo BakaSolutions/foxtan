@@ -13,6 +13,8 @@ let config = new Map([
   ['fs.existscache.interval', 1000 * 60 * 5], // 5 min
   ['fs.cache.json', true],
 
+  ['log.db.noerr', /ER_NO_SUCH_TABLE/],
+
   ['server.host', 'localhost'],
   ['server.output', 'port'],
   ['server.port', 1337],

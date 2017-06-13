@@ -5,8 +5,8 @@ let router = module.exports = require('express').Router();
 
 router.get("/:board/res/:id.json", async function (req, res) {
   try {
-    let out = await model.read(req.params.board, req.params.id);//.catch((e) => Common.throw(res, 500, e)); //TODO: debug this exception
-    if(out.length < 1)
+    let out = await model.read(req.params.board, req.params.id).catch(e => Common.throw(res, 500, e));
+    if(typeof out !== 'object' || 1 > out.length)
       return Common.throw(res, 404);
     out.forEach((post) => {
       delete post['posts_password'];

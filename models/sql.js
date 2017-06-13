@@ -10,7 +10,8 @@ module.exports = mysql.createPool({
 });
 
 module.exports.catch = function(e) {
-  console.log(`[E_SQL] ${e}`);
+  if(!config('log.db.noerr').test(e.code))
+    console.log(`[E_SQL] ${e}`);
 };
 module.exports.promisify = function(f) {
   let p = new Promise((r, j) => {
