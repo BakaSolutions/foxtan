@@ -30,7 +30,7 @@ post.read = async function(board, id) {
   return db.promisify((r, j) => {
     db.query('SELECT * FROM ?? WHERE posts_id = ? LIMIT 1', ['posts_' + board, id], function (err, queryData) {
       if (err) j(err);
-      r(queryData);
+      r(typeof queryData !== 'undefined'? queryData[0] || [] : null);
     })
   });
 };
@@ -50,14 +50,21 @@ post.update = function(board, thread_id, post_id, fields) {
  */
 post.delete = function(board, id, password) {
   return db.promisify(async (r, j) => {
-    if (password) {
-      let psto = await post.read(board, id);
-      if (psto['posts_password'] !== psto.password)
-        return;
-    }
+    let psto = await post.read(board, id),
+        out = {ok: 0, exists: typeof psto === 'object' && !Array.isArray(psto)};
+    if (!out.exists)
+      return r(out);
+    out.isPost = psto['posts_thread'] !== null;
+    if (password && (psto['posts_password'] !== password || !out.isPost))
+      return r(out);
     db.query('DELETE FROM ?? WHERE (`posts_id` = ? AND `posts_thread` IS NOT NULL)', ['posts_' + board, id], function (err, result) {
-      if (err) j(err);
-      r(result);
+      if (err) {
+        out.result = err;
+        return j(out);
+      }
+      out.result = result;
+      out.ok = result.affectedRows > 0;
+      r(out);
     });
   });
 };

@@ -74,14 +74,21 @@ thread.update = function(board, thread_id, post_id) {
  */
 thread.delete = function (board, id, password) {
   return db.promisify(async (r, j) => {
-    if (password) {
-      let psto = await post.read(board, id);
-      if (psto['posts_password'] !== psto.password)
-        return;
-    }
+    let psto = await post.read(board, id),
+        out = {ok: 0, exists: typeof psto === 'object' && !Array.isArray(psto)};
+    if (!out.exists)
+      return r(out);
+    out.isThread = psto['posts_thread'] === null;
+    if (password && psto['posts_password'] !== password)
+      return r(out);
     db.query('DELETE FROM ?? WHERE (posts_id = ? OR posts_thread = ?)', ['posts_' + board, id, id], function (err, result) {
-      if (err) j(err);
-      r(result);
+      if (err) {
+        out.result = err;
+        return j(out);
+      }
+      out.result = result;
+      out.ok = result.affectedRows > 0;
+      r(out);
     });
   });
 };

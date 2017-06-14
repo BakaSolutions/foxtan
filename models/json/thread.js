@@ -81,11 +81,12 @@ thread.regenerateJSON = async function(board, thread_id) {
  * Delete a JSON file with thread and delete a thread from DB
  * @param {String} board
  * @param {Number} thread_id
+ * @param {String} password
  * @return {Boolean}
  */
-thread.delete = async function(board, thread_id) {
-  let query = await db.delete(board, thread_id); //TODO: Check password
-  if (config('fs.cache.json'))
+thread.delete = async function(board, thread_id, password) {
+  let query = await db.delete(board, thread_id, password);
+  if (query.ok && query.isThread && config('fs.cache.json'))
     FS.unlinkSync(`${board}/res/${thread_id}.json`);
   return query;
 };

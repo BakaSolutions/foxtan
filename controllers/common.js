@@ -6,9 +6,16 @@ const http = require('http'),
 
 common.throw = function(res, status, msg) {
   let out = {};
-  out.status = status || 500;
+  if (status !== 200) out.status = status || 500;
   out.error = msg || http.STATUS_CODES[out.status];
-  return res.status(out.status).json(out);
+  return res.status(status || 200).json(out);
+};
+
+common.removeInfo = function(post) {
+  delete post['posts_sticked'];
+  delete post['posts_locked'];
+  delete post['posts_cycled'];
+  return post;
 };
 
 common.parseForm = function(req) {

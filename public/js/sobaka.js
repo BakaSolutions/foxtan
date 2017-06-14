@@ -3,7 +3,7 @@
   so.baka = {};
   so.baka.settings = {
     base: '/',
-    fetchAPI: false// typeof fetch === 'function' // we'd like to use fetch but it's too raw
+    fetchAPI: typeof fetch === 'function' // we'd like to use fetch but it's too raw
   };
   so.baka.config = {
     popupTimeout: 5000
@@ -13,7 +13,9 @@
     request: function (method, url, data) {
       let promise;
       if (so.baka.settings.fetchAPI) {
-        new baka.popup('Ni-paa~! Your browser doesn\'t support fetch()!','warn');
+        new baka.popup('Ni-paa~! We don\'t support fetch() yet!\nBut we can use XHR...','info');
+        so.baka.settings.fetchAPI = !1;
+        return this.request(method, url, data);
       } else {
         promise = new Promise(function (resolve, reject) {
           let xhr = new XMLHttpRequest();
@@ -28,9 +30,8 @@
       return promise.then(function(xhr){
         let isJSON = /json/.test(xhr.getResponseHeader('Content-Type')),
             ok = xhr.status >= 200 && xhr.status < 300;
-        if (!ok) {
+        if (!ok)
           Promise.reject(xhr);
-        }
         return {
           ok: ok,
           response: isJSON? JSON.parse(xhr.response) : xhr.response,
@@ -125,7 +126,7 @@ baka.tmp.onload = function () {
     form.addEventListener('submit', function (event) {
       event.preventDefault();
       baka.AJAX.request(this.method, this.action, new FormData(this)).then(function(data) {
-        let type = (!data.ok || (typeof data.response.ok !== 'undefined' && !data.response.ok)) ? 'error': 'ok';
+        let type = (!data.ok || (typeof data.response.ok !== 'undefined' && !data.response.ok) || typeof data.response.error !== 'undefined') ? 'error': 'ok';
         new baka.popup(JSON.stringify(data.response, null, '  '), type, 1e4);
       });
       return false;

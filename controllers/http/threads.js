@@ -11,14 +11,11 @@ router.get("/:board/res/:id.json", async function (req, res) {
     out.forEach((post) => {
       delete post['posts_password'];
       if(post['posts_thread'] !== null) {
-        delete post['posts_sticked'];
-        delete post['posts_locked'];
-        delete post['posts_cycled'];
+        Common.removeInfo(post);
       }
     });
     res.status(200).json(out);
   } catch (e) {
-    console.log(e);
     Common.throw(res, 500);
   }
 });
@@ -40,6 +37,11 @@ router.post("/api/thread.create", async function (req, res) {
 
 router.post("/api/thread.delete", async function (req, res) {
   await Common.parseForm(req);
-  let out = await model.delete(req.body.boardName, req.body.postNumber);
-  res.status(200).json({"ok": typeof out === 'undefined'? 0: out.affectedRows});
+  if (typeof req.body.password === 'undefined' || req.body.password === '')
+    return Common.throw(res, 200, "Please, define a password");
+  let out = await model.delete(req.body.boardName, req.body.postNumber, req.body.password);
+  if (out.ok)
+    res.status(200).json({"ok": typeof out.result === 'undefined'? 0 : out.result.affectedRows});
+  else
+    Common.throw(res, 200, out.exists ? "Wrong password" : "It doesn't exist!");
 });

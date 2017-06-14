@@ -39,13 +39,9 @@ post.create = async function(fields) {
 post.read = async function(board, post_id) {
   //TODO: Read from .json if exists
   let queryData = await db.read(board, post_id);
-  if (queryData.length < 1)
+  if (queryData === null || typeof queryData === 'undefined' || !queryData)
     return [];
-  let q = queryData[0];
-  delete q['posts_sticked'];
-  delete q['posts_locked'];
-  delete q['posts_cycled'];
-  return q;
+  return queryData;
 };
 
 post.update = async function(board, post_id, fields) {
@@ -56,10 +52,11 @@ post.update = async function(board, post_id, fields) {
  * Delete a post from a JSON file and delete a post from DB
  * @param {String} board
  * @param {Number} post_id
+ * @param {String} password
  * @return {Boolean}
  */
-post.delete = async function(board, post_id) {
-  let query = await db.delete(board, post_id);
+post.delete = async function(board, post_id, password) {
+  let query = await db.delete(board, post_id, password);
   //TODO: Delete post from JSON by picking
   return query;
 };
