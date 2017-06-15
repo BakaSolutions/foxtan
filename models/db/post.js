@@ -55,6 +55,7 @@ post.delete = function(board, id, password) {
     if (!out.exists)
       return r(out);
     out.isPost = psto['posts_thread'] !== null;
+    out.thread = psto['posts_thread'];
     if (password && (psto['posts_password'] !== password || !out.isPost))
       return r(out);
     db.query('DELETE FROM ?? WHERE (`posts_id` = ? AND `posts_thread` IS NOT NULL)', ['posts_' + board, id], function (err, result) {

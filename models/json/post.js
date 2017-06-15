@@ -14,18 +14,24 @@ let post = module.exports = {};
 post.create = async function(fields) {
   let query = await db.create(fields),
       out = { board: fields['boardName'], post: query['insertId'] },
-      post = (await db.read(out.board, out.post))[0];
+      post = await db.read(out.board, out.post);
   delete post['posts_sticked'];
   delete post['posts_locked'];
   delete post['posts_cycled'];
-  try {
-    let file = FS.readSync(`${out.board}/res/${post['posts_thread']}.json`);
-    file = JSON.parse(file);
-    Array.prototype.push.apply(file, post);
-    FS.writeSync(`${out.board}/res/${out.thread}.json`, JSON.stringify(file));
-  } catch (e) {
-    if (config('fs.cache.json'))
+  if (config('fs.cache.json')) {
+    try {
+      let file = FS.readSync(`${out.board}/res/${post['posts_thread']}.json`);
+      console.log(file);
+      file = JSON.parse(file);
+      console.log(file);
+      Array.prototype.push.apply(file, post);
+      console.log(file);
+      FS.writeSync(`${out.board}/res/${out.thread}.json`, JSON.stringify(file));
+      console.log('succ');
+    } catch (e) {
+      console.log(e);
       await thread.regenerateJSON(out.board, post['posts_thread']);
+    }
   }
   return post;
 };
@@ -57,10 +63,10 @@ post.update = async function(board, post_id, fields) {
  */
 post.delete = async function(board, post_id, password) {
   let query = await db.delete(board, post_id, password);
-  //TODO: Delete post from JSON by picking
+  thread.regenerateJSON(board, query.thread); //TODO: Delete post from JSON by picking
   return query;
 };
 
-post.regenerateJSON = async function(board, post_id) {
-  //TODO
+post.regenerate = async function(board, post_id) {
+  //TODO: (re)markup
 };
