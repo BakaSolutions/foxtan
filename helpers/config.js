@@ -14,6 +14,24 @@ let config = new Map([
   ['fs.cache.json', true],
 
   ['log.db.noerr', /ER_NO_SUCH_TABLE/],
+  ['markup.patterns', [
+    [/h3sot/gi, '<b>H<sub>3</sub>S&Ouml;T</b>'],
+    [/\(c\)/gi, '&copy;'],
+    [/\(r\)/gi, '&reg;'],
+    [/\(tm\)/gi, '&trade;'],
+    [/&quot;(.+?)&quot;/g, '«$1»']
+  ]],
+  ['markup.tags', [
+    ['b'], ['i'], ['u'], ['s'], ['sup'], ['sub'],
+    ['\\*\\*\\*', ['<s>','</s>']],
+    ['\\*\\*', ['<b>','</b>']],
+    ['\\*', ['<i>','</i>']],
+    ['___', ['<u>','</u>']],
+    ['__', ['<b>','</b>']],
+    ['_', ['<i>','</i>']],
+    ['%%', ['<span class="spoiler">', '</span>']],
+    [['\\[spoiler]','\\[\\/spoiler]'], ['<span class="spoiler">', '</span>']],
+  ]],
 
   ['server.host', 'localhost'],
   ['server.output', 'port'],

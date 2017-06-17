@@ -21,15 +21,10 @@ post.create = async function(fields) {
   if (config('fs.cache.json')) {
     try {
       let file = FS.readSync(`${out.board}/res/${post['posts_thread']}.json`);
-      console.log(file);
       file = JSON.parse(file);
-      console.log(file);
       Array.prototype.push.apply(file, post);
-      console.log(file);
       FS.writeSync(`${out.board}/res/${out.thread}.json`, JSON.stringify(file));
-      console.log('succ');
     } catch (e) {
-      console.log(e);
       await thread.regenerateJSON(out.board, post['posts_thread']);
     }
   }

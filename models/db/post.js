@@ -1,4 +1,5 @@
-const db = require('../sql');
+const db = require('../sql'),
+    markup = require('../../core/markup');
 
 let post = module.exports = {};
 
@@ -10,10 +11,11 @@ let post = module.exports = {};
 post.create = function(fields) {
   let { boardName, threadNumber, name, email, subject, tripcode, capcode, text, password, sageru } = fields;
   sageru = sageru? 1 : null;
+  let text_markup = markup.toHTML(text);
   return db.promisify((r, j) => {
     db.query('INSERT INTO ?? (posts_thread, posts_name, posts_email, posts_subject, posts_tripcode, posts_capcode,' +
-        'posts_body, posts_password, posts_sageru) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      ['posts_' + boardName, threadNumber, name, email, subject, tripcode, capcode, text, password, sageru], function (err, result) {
+        'posts_body, posts_bodymarkup, posts_password, posts_sageru) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      ['posts_' + boardName, threadNumber, name, email, subject, tripcode, capcode, text, text_markup, password, sageru], function (err, result) {
         if (err) j(err);
         r(result);
       });

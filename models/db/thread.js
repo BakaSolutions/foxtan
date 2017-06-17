@@ -1,5 +1,6 @@
 const db = require('../sql'),
-  post = require('./post');
+  post = require('./post'),
+  markup = require('../../core/markup');
 
 let thread = module.exports = {};
 
@@ -10,10 +11,11 @@ let thread = module.exports = {};
  */
 thread.create = function (fields) {
   let { boardName, name, email, subject, tripcode, capcode, text, password, sageru, sticked, locked, cycled } = fields;
+  let text_markup = markup.toHTML(text) || null;
   sageru = sageru? 1 : null;
   return db.promisify((r, j) => {
-    db.query('INSERT INTO ?? (posts_name, posts_email, posts_subject, posts_tripcode, posts_capcode, posts_body, posts_password, posts_sageru, posts_sticked, posts_locked, posts_cycled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      ['posts_' + boardName, name, email, subject, tripcode, capcode, text, password, sageru, sticked, locked, cycled], function(err, result) {
+    db.query('INSERT INTO ?? (posts_name, posts_email, posts_subject, posts_tripcode, posts_capcode, posts_body, posts_bodymarkup, posts_password, posts_sageru, posts_sticked, posts_locked, posts_cycled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      ['posts_' + boardName, name, email, subject, tripcode, capcode, text, text_markup, password, sageru, sticked, locked, cycled], function(err, result) {
         if (err) j(err);
         r(result);
       });
