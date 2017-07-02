@@ -17,5 +17,6 @@ module.exports.promisify = function(f) {
   let p = new Promise((r, j) => {
     f(r, j);
   });
-  return p.catch((e) => this.catch(e));
+  p.catch((e) => this.catch(e));
+  return p;
 };

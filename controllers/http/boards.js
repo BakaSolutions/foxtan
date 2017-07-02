@@ -1,16 +1,23 @@
 const Common = require('../common'),
-  Tools = require('../../helpers/tools.js');
+  model = require('../../models/db/board');
 
 let router = module.exports = require('express').Router();
 
-router.get("/boards.json", function (req, res) {
-  Common.throw(res, 501);
+router.get("/boards.json", async function (req, res) {
+  let out = await model.readAll();
+  res.json(out);
 });
 
-router.get("/boards/:board.json", function (req, res) {
-  res.json(Tools.merge({}, req.params, req.query));
+router.get("/:board/board.json", async function (req, res) {
+  let out = await model.read(req.params.board);
+  res.json(out);
 });
 
-router.post("/create/board", function (req, res) {
-  Common.throw(res, 501);
+router.post("/api/board.create", async function (req, res) {
+  await Common.parseForm(req);
+  let query = await model.create(req.body).catch(e => Common.throw(res, 500, e));
+  if (typeof query === 'undefined')
+    return false;
+  let out = {ok: query.affectedRows === 1};
+  res.status(201).json(out);
 });

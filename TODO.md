@@ -21,7 +21,8 @@
 
 ##### Common
 * ~~Create simple static post form~~
-* Use async/await (Node 7.6+)
+* Rendering posts
+* Use async/await (Node 7.6+) (in progress)
 
 ##### Modules
 * Refactor for adding modules

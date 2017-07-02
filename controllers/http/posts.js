@@ -12,7 +12,7 @@ let router = module.exports = require('express').Router();
 
 router.post("/api/post.get", async function (req, res) {
   await Common.parseForm(req);
-  let out = await model.read(req.body.boardName, req.body.postNumber).catch(e => Common.throw(res, 500, e.code? e.code: e));
+  let out = await model.read(req.body.boardName, req.body.postNumber).catch(e => Common.throw(res, 500, e));
   if (out.length < 1)
     return Common.throw(res, 404);
   Common.removeInfo(out);

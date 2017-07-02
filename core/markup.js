@@ -8,7 +8,6 @@ let m = module.exports = {},
     [/&gt;&gt;\/?(\w{1,24})\/([0-9]{1,24})/img, '<a href="/$1/res/$2">&gt;&gt;/$1/$2</a>'],
     [/(https?:\/\/([a-zA-Z0-9\-.]+)\/?[a-zA-Z0-9?&=.:;#\/\-_~%+]*)/img, '<a href="$1" title="$1" target="_blank">$2</a>'], // url
     [/^&gt;(.*)$/img, '<span class="quotation">&gt;$1</span>'], // quotation
-    [/^#!(.*)$/img, '<span class="redline">$1</span>'], // redline
     [/---/g, '—'],
     [/--/g, '–'],
   ];

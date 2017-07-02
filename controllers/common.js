@@ -6,9 +6,9 @@ const http = require('http'),
 
 common.throw = function(res, status, msg) {
   let out = {};
-  if (status !== 200) out.status = status || 500;
-  out.error = msg || http.STATUS_CODES[out.status];
-  return res.status(status || 200).json(out);
+  /*if (status !== 200) */out.status = status || 500;
+  out.error = ((typeof msg !== 'undefined' && msg.code)? msg.code: msg) || http.STATUS_CODES[out.status];
+  res.status(out.status).json(out);
 };
 
 common.removeInfo = function(post) {
