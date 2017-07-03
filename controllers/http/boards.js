@@ -8,6 +8,11 @@ router.get("/boards.json", async function (req, res) {
   res.json(out);
 });
 
+router.get("/lastPostNumbers.json", async function (req, res) {
+  let out = await model.getCounters();
+  res.json(out);
+});
+
 router.get("/:board/board.json", async function (req, res) {
   let out = await model.read(req.params.board);
   res.json(out);

@@ -33,6 +33,9 @@ tools.isObject = function(obj) {
 tools.isMap = function(obj) {
   return toString.call(obj) === '[object Map]';
 };
+tools.isNumber = function(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+};
 /*tools.flattenArray = function(a) {
   let out = [];
   for(let i = 0; i < a.length; i++) {

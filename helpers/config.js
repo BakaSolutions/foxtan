@@ -13,7 +13,7 @@ let config = new Map([
   ['fs.existscache.interval', 1000 * 60 * 5], // 5 min
   ['fs.cache.json', true],
 
-  ['log.db.noerr', /ER_NO_SUCH_TABLE/],
+  ['log.db.noerr', /ER_(NO_SUCH_TABLE|DUP_ENTRY)/],
   ['markup.patterns', [
     [/h3sot/gi, '<b>H<sub>3</sub>S&Ouml;T</b>'],
     [/\(c\)/gi, '&copy;'],
@@ -40,7 +40,7 @@ let config = new Map([
 ]);
 
 function Figurecon(key, defaults) {
-  if(defaults && defaults.toString() === '[object Map]')
+  if(defaults && Tools.isMap(defaults))
     return Figurecon.init(...arguments);
   return Figurecon.get(...arguments);
 }
@@ -48,9 +48,9 @@ function Figurecon(key, defaults) {
 Figurecon.get = function (key, def) {
   return (typeof def === 'undefined')?
     (typeof this.config.get(key) !== 'undefined')?
-      this.config.get(key):
-    new Error(`Undefined config item: "${key}"!`):
-  def;
+        this.config.get(key):
+      new Error(`Undefined config item: "${key}"!`):
+    def;
 };
 
 Figurecon.init = function (file, defaults) {
