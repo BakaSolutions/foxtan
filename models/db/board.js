@@ -1,20 +1,54 @@
 const db = require('../sql'),
   Tools = require('../../helpers/tools');
 
-let board = module.exports = {};
+let board = module.exports = {},
+  queries =
+  {
+    create: 'CREATE TABLE `posts_??` (' +
+      '`posts_id` int(11) unsigned NOT NULL AUTO_INCREMENT,' +
+      '`posts_thread` int(11) unsigned DEFAULT NULL,' +
+      '`posts_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
+      '`posts_email` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
+      '`posts_subject` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
+      '`posts_tripcode` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
+      '`posts_capcode` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
+      '`posts_body` longtext COLLATE utf8mb4_unicode_ci,' +
+      '`posts_bodymarkup` longtext COLLATE utf8mb4_unicode_ci,' +
+      '`posts_password` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
+      '`posts_files` mediumtext COLLATE utf8mb4_unicode_ci,' +
+      '`posts_filesamount` tinyint(4) unsigned DEFAULT NULL,' +
+      '`posts_fileshash` mediumtext COLLATE utf8mb4_unicode_ci,' +
+      '`posts_sageru` tinyint(4) DEFAULT NULL,' +
+      '`posts_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,' +
+      '`posts_sticked` tinyint(4) DEFAULT NULL,' +
+      '`posts_locked` tinyint(4) DEFAULT NULL,' +
+      '`posts_cycled` tinyint(4) DEFAULT NULL,' +
+      '`posts_embed` mediumtext COLLATE utf8mb4_unicode_ci,' +
+      'PRIMARY KEY (`posts_id`),' +
+      'UNIQUE KEY `posts_id_UNIQUE` (`posts_id`)' +
+      ') ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;'
+  };
+
 /**
  * Create a board
  * @param {Object} fields
  * @return {Promise}
  */
-board.create = function(fields) {
+board.create = function(fields)
+{
   let { uri, name } = fields;
-  return db.promisify((r, j) => {
+  return db.promisify(function (resolve, reject)
+  {
     db.query('INSERT INTO ?? (uri, name, posts) VALUES (?, ?, ?)',
-        ['boards', uri, name, 0], function (err, result) {
-          if (err) j(err);
-          r(result);
+      ['boards', uri, name, 0], function (err, result)
+      {
+        if (err) reject(err);
+        db.query(queries.create, [uri], function (error)
+        {
+          if (error) reject(error);
+          resolve(result);
         });
+      });
   });
 };
 
@@ -23,11 +57,14 @@ board.create = function(fields) {
  * @param {String} uri
  * @return {Promise}
  */
-board.read = async function(uri) {
-  return db.promisify((r, j) => {
-    db.query('SELECT * FROM ?? WHERE `uri` = ? LIMIT 1', ['boards', uri], function (err, queryData) {
-      if (err) j(err);
-      r(typeof queryData !== 'undefined'? queryData[0] || [] : null);
+board.read = async function(uri)
+{
+  return db.promisify(function (resolve, reject)
+  {
+    db.query('SELECT * FROM ?? WHERE `uri` = ? LIMIT 1', ['boards', uri], function (err, queryData)
+    {
+      if (err) reject(err);
+      resolve(typeof queryData !== 'undefined'? (queryData[0] || []) : null);
     })
   });
 };
@@ -36,11 +73,14 @@ board.read = async function(uri) {
  * Read all boards
  * @return {Promise}
  */
-board.readAll = async function() {
-  return db.promisify((r, j) => {
-    db.query('SELECT * FROM boards', null, function (err, queryData) {
-      if (err) j(err);
-      r(queryData);
+board.readAll = async function()
+{
+  return db.promisify(function (resolve, reject)
+  {
+    db.query('SELECT * FROM boards', null, function (err, queryData)
+    {
+      if (err) reject(err);
+      resolve(queryData);
     })
   });
 };
@@ -51,14 +91,17 @@ board.readAll = async function() {
  * @param {Object} fields
  * @return {Promise}
  */
-board.update = function(boardNameOld, fields) {
+board.update = function(boardNameOld, fields)
+{
   let { href, boardName } = fields;
-  return db.promisify((r, j) => {
+  return db.promisify(function (resolve, reject)
+  {
     db.query('UPDATE ?? SET `uri`=?, `name`=? WHERE `name`=?',
-        ['boards', href, boardName, boardNameOld], function (err, result) {
-          if (err) j(err);
-          r(result);
-        });
+      ['boards', href, boardName, boardNameOld], function (err, result)
+      {
+        if (err) reject(err);
+        resolve(result);
+      });
   });
 };
 
@@ -68,12 +111,15 @@ board.update = function(boardNameOld, fields) {
  * @param {String} password
  * @return {Promise}
  */
-board.delete = function(boardName, password) {
-  return db.promisify((r, j) => {
+board.delete = function(boardName, password)
+{
+  return db.promisify(function (resolve, reject)
+  {
     db.query('DELETE FROM ?? WHERE `name`=? AND `password`=?',
-        ['boards', boardName, password], function (err, result) {
-          if (err) j(err);
-          r(result);
+        ['boards', boardName, password], function (err, result)
+        {
+          if (err) reject(err);
+          resolve(result);
         });
   })
 };
@@ -82,19 +128,22 @@ board.delete = function(boardName, password) {
  * Increment a post counter of a board with defined uri
  * @param {String} boardName
  * @param {Number} counter
- * @param {Boolean} positiveSign
  * @return {Promise}
  */
-board.incrementCounter = function(boardName, counter = 1, positiveSign = true) {
-  return db.promisify((r, j) => {
+board.incrementCounter = function(boardName, counter = 1)
+{
+  return db.promisify(function (resolve, reject)
+  {
     if (!Tools.isNumber(counter))
+    {
       counter = 1;
-    let s = positiveSign? '+' : '-';
-    db.query(`UPDATE ?? SET posts = posts ${s} ? WHERE \`uri\`=?`,
-      ['boards', counter, boardName], function (err, result) {
-        if (err) j(err);
-        r(result);
-      });
+    }
+    db.query(`UPDATE ?? SET posts = posts + ? WHERE \`uri\`=?`,
+      ['boards', counter, boardName], function (err, result)
+        {
+          if (err) reject(err);
+          resolve(result);
+        });
   })
 };
 
@@ -103,31 +152,40 @@ board.incrementCounter = function(boardName, counter = 1, positiveSign = true) {
  * @param {String, Array} boardNames
  * @return {Promise}
  */
-board.getCounters = async function(boardNames) {
-  if (typeof boardNames === 'undefined') {
+board.getCounters = async function(boardNames)
+{
+  if (typeof boardNames === 'undefined')
+  {
     boardNames = await board.readAll();
-    boardNames = boardNames.map(function(board) {
+    boardNames = boardNames.map(function(board)
+    {
       return board.uri;
     })
   }
   if (!Array.isArray(boardNames))
+  {
     boardNames = [ boardNames ];
+  }
   let query = 'SELECT uri, posts FROM ?? WHERE',
     qArray = ['boards'];
-  for (let i = 0; i < boardNames.length; i++) {
+  for (let i = 0; i < boardNames.length; i++)
+  {
     qArray.push(boardNames[i]);
     if (i !== 0) query += ' OR ';
     query += '`uri` = ?'
   }
-  return db.promisify((r, j) => {
-    db.query(query, qArray, function (err, result) {
-        if (err) j(err);
-        result = result.map(function(board) {
+  return db.promisify(function (resolve, reject)
+  {
+    db.query(query, qArray, function (err, result)
+    {
+        if (err) reject(err);
+        result = result.map(function(board)
+        {
           let o = {};
           o[board.uri] = board.posts;
           return o;
         });
-        r(result);
+      resolve(result);
       });
   })
 };

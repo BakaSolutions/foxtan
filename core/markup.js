@@ -11,29 +11,42 @@ let m = module.exports = {},
     [/---/g, '—'],
     [/--/g, '–'],
   ];
-Array.prototype.push.apply(parsePatterns, (function () {
-  return config('markup.tags').map((tag) => {
+Array.prototype.push.apply(parsePatterns, (function ()
+{
+  return config('markup.tags').map(function (tag)
+  {
     let out;
     if (tag.length === 1)
+    {
       out = [new RegExp(`\\[${tag}\\](.+?)\\[/${tag}\\]`, 'img'), `<${tag}>$1</${tag}>`];
+    }
     else
+      {
       if (Array.isArray(tag[0]))
+      {
         out = [new RegExp(`${tag[0][0]}(.+?)${tag[0][1]}`, 'img'), `${tag[1][0]}$1${tag[1][1]}`];
+      }
       else
+      {
         out = [new RegExp(`${tag[0]}(.+?)${tag[0]}`, 'img'), `${tag[1][0]}$1${tag[1][1]}`];
+      }
+    }
     return out;
   })
 })());
 Array.prototype.push.apply(parsePatterns, config('markup.patterns'));
 
-m.toHTML = function(html) {
+m.toHTML = function(html)
+{
   html = escape(html);
 
-  for (let i = 0; i < parsePatterns.length; i++) {
+  for (let i = 0; i < parsePatterns.length; i++)
+  {
     html = html.replace(parsePatterns[i][0], parsePatterns[i][1]);
   }
 
-  while (html.search(new RegExp('\\[spoiler\\](.+)\\[\\/spoiler\\]', 'im')) > -1) {
+  while (html.search(new RegExp('\\[spoiler\\](.+)\\[\\/spoiler\\]', 'im')) > -1)
+  {
     html = html.replace('[spoiler]', '<span class="spoiler">');
     html = html.replace('[/spoiler]', '</span>');
   }
@@ -42,22 +55,28 @@ m.toHTML = function(html) {
   return html;
 };
 
-function escape(text) {
-  let map = {
+function escape(text)
+{
+  let map =
+  {
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
     "'": '&#039;'
   };
-  return text.replace(/[&<>"']/g, (m) => map[m]);
+  return text.replace(/[&<>"']/g, function (m)
+  {
+    return map[m];
+  });
 }
 /*
 let times = 100000, o, wtt = '%%**bold** *italic* ***wtf*** [b]bold[/b] [i]ita[/i] [u]wtf[/u]%%';
 console.log(`Testing ${times} times...`);
 console.log('Input: ' + wtt);
 let start = +new Date();
-for (let i = 0; i < times; i++) {
+for (let i = 0; i < times; i++)
+{
   o = m.toHTML(wtt);
 }
 console.log(+new Date() - start, o);*/

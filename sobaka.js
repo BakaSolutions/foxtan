@@ -4,7 +4,8 @@ const express = require('express'),
   app = express();
 
 controllers.init(app);
-switch (config('server.output')) {
+switch (config('server.output'))
+{
   case 'unix':
     app.listen(config('server.socket'), onListening(config('server.socket')));
     break;
@@ -13,7 +14,8 @@ switch (config('server.output')) {
     break;
 }
 
-function onListening(address) {
+function onListening(address)
+{
   console.log(`Sobaka! Where? Here: ${address}`);
   console.log(`Try our debugging!:o ${address}/index.xhtml`);
 }
