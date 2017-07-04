@@ -4,6 +4,12 @@ const http = require('http'),
     Busboy = require('busboy'),
     Tools = require('../helpers/tools');
 
+/**
+ * Throws an error into a response
+ * @param res
+ * @param status
+ * @param [msg]
+ */
 common.throw = function(res, status, msg)
 {
   let out = {};
@@ -22,6 +28,11 @@ common.throw = function(res, status, msg)
   res.status(out.status).json(out);
 };
 
+/**
+ * Removes unnecessary info from a post
+ * @param post
+ * @returns {*}
+ */
 common.removeInfo = function(post)
 {
   delete post['posts_sticked'];
@@ -30,6 +41,11 @@ common.removeInfo = function(post)
   return post;
 };
 
+/**
+ * Fetches form's fields (multipart/form-data)
+ * @param req
+ * @returns {Promise}
+ */
 common.parseForm = function(req)
 {
   return new Promise(function (resolve, reject)

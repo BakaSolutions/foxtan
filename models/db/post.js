@@ -5,7 +5,7 @@ const db = require('../sql'),
 let post = module.exports = {};
 
 /**
- * Create a post
+ * Creates a post
  * @param {Object} fields
  * @return {Promise}
  */
@@ -28,7 +28,7 @@ post.create = async function(fields)
 };
 
 /**
- * Read a post with defined id
+ * Reads a post with defined id
  * @param {String} board
  * @param {Number} id
  * @return {Promise}
@@ -54,7 +54,7 @@ post.update = function(board, thread_id, post_id, fields)
 };
 
 /**
- * Delete a post with defined id
+ * Deletes a post with defined id
  * @param {String} board
  * @param {Number} id
  * @param {String} password

@@ -15,6 +15,11 @@ if (config('fs.existscache'))
   }, config('fs.existscache.interval'));
 }
 
+/**
+ * Normalizes the path (removes all unnecessary "../")
+ * @param {String} filePath
+ * @returns {String}
+ */
 FS.normalize = function(filePath)
 {
   if (this.check(filePath))
@@ -24,11 +29,21 @@ FS.normalize = function(filePath)
   return path.normalize(path.join(ROOT, filePath));
 };
 
+/**
+ * Checks if filePath matches with the engine's directory
+ * @param {String} filePath
+ * @returns {boolean}
+ */
 FS.check = function (filePath)
 {
   return filePath.indexOf(path.normalize(ROOT)) === 0;
 };
 
+/**
+ * Read file synchronously with checking the filePath
+ * @param {String} filePath
+ * @returns {*}
+ */
 FS.readSync = function (filePath)
 {
   filePath = FS.normalize(filePath);
@@ -39,6 +54,11 @@ FS.readSync = function (filePath)
   return fs.readFileSync(filePath, 'utf8');
 };
 
+/**
+ * Delete file synchronously with checking the filePath
+ * @param {String} filePath
+ * @returns {boolean}
+ */
 FS.unlinkSync = function (filePath)
 {
   filePath = FS.normalize(filePath);
@@ -56,6 +76,12 @@ FS.unlinkSync = function (filePath)
   }
 };
 
+/**
+ * Write content into file synchronously with checking the filePath
+ * @param {String} filePath
+ * @param {String, Buffer} content
+ * @returns {boolean}
+ */
 FS.writeSync = function (filePath, content)
 {
   filePath = FS.normalize(filePath);
@@ -73,6 +99,12 @@ FS.writeSync = function (filePath, content)
   return true;
 };
 
+/**
+ * Check if file exists directly or from cache
+ * @param {String} filePath
+ * @param {Boolean} [cache]
+ * @returns {boolean}
+ */
 FS.existsSync = function (filePath, cache)
 {
   filePath = FS.normalize(filePath);
@@ -97,6 +129,11 @@ FS.existsSync = function (filePath, cache)
   return out;
 };
 
+/**
+ * Creates new folder _recursively_
+ * @param {String} dir
+ * @returns {boolean}
+ */
 FS.mkdirSync = function (dir)
 {
   if (!Array.isArray(dir))
@@ -126,17 +163,3 @@ FS.mkdirSync = function (dir)
   }
   return this.mkdirSync(dir);
 };
-
-/*let start = +new Date();
-for (let i = 0; i < 1000000; i++)
-{
-  FS.existsSync('test/res/1.json');
-}
-console.log(+new Date() - start);
-
-start = +new Date();
-for (let i = 0; i < 1000000; i++)
-{
-  FS.existsSync('test/res/1.json', 1);
-}
-console.log(+new Date() - start);*/

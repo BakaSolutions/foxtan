@@ -16,7 +16,7 @@ thread.create = async function(fields)
   thread = await db.read(out.board, out.thread);
   if (config('fs.cache.json'))
   {
-    FS.writeSync(`${out.board}/res/${out.thread}.json`, JSON.stringify(thread));
+    FS.writeSync(out.board + '/res/' + out.thread + '.json', JSON.stringify(thread));
   }
   return out;
 };
@@ -29,7 +29,7 @@ thread.create = async function(fields)
  */
 thread.read = async function(board, thread_id)
 {
-  let pattern = `${board}/res/${thread_id}.json`, thread;
+  let pattern = board + '/res/' + thread_id + '.json', thread;
   if (config('fs.cache.json'))
   {
     if (FS.existsSync(pattern))
@@ -66,12 +66,12 @@ thread.update = async function(board, thread_id, post_id)
   {
     return query;
   }
-  let file = FS.readSync(`${board}/res/${thread_id}.json`);
+  let file = FS.readSync(board + '/res/' + thread_id + '.json');
   //TODO: check for existing posts and replace them
   // for now use thread.regenerateJSON()
   file = JSON.parse(file);
   Array.prototype.push.apply(file, query);
-  FS.writeSync(`${board}/res/${thread_id}.json`, JSON.stringify(file));
+  FS.writeSync(board + '/res/' + thread_id + '.json', JSON.stringify(file));
 };
 
 /**
@@ -89,7 +89,7 @@ thread.regenerateJSON = async function(board, thread_id)
     return false;
   }
   let query = await db.regenerateJSON(board, thread_id);
-  FS.writeSync(`${board}/res/${thread_id}.json`, JSON.stringify(query));
+  FS.writeSync(board + '/res/' + thread_id + '.json', JSON.stringify(query));
   return query;
 };
 
@@ -105,7 +105,7 @@ thread.delete = async function(board, thread_id, password)
   let query = await db.delete(board, thread_id, password);
   if (query.ok && query.isThread && config('fs.cache.json'))
   {
-    FS.unlinkSync(`${board}/res/${thread_id}.json`);
+    FS.unlinkSync(board + '/res/' + thread_id + '.json');
   }
   return query;
 };

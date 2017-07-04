@@ -7,7 +7,7 @@ const FS = require('../../helpers/fs'),
 let post = module.exports = {};
 
 /**
- * Append a post to a JSON file
+ * Appends a post to a JSON file
  * @param {Object} fields
  * @return {Object}
  */
@@ -23,10 +23,10 @@ post.create = async function(fields)
   {
     try
     {
-      let file = FS.readSync(`${out.board}/res/${post['posts_thread']}.json`);
+      let file = FS.readSync(out.board + '/res/' + post['posts_thread'] + '.json');
       file = JSON.parse(file);
       Array.prototype.push.apply(file, post);
-      FS.writeSync(`${out.board}/res/${out.thread}.json`, JSON.stringify(file));
+      FS.writeSync(out.board + '/res/' + post['posts_thread'] + '.json', JSON.stringify(file));
     }
     catch (e)
     {
@@ -37,7 +37,7 @@ post.create = async function(fields)
 };
 
 /**
- * Read a post from DB
+ * Reads a post from DB
  * @param {String} board
  * @param {Number} post_id
  * @return {Object} query
@@ -59,7 +59,7 @@ post.update = async function(board, post_id, fields)
 };
 
 /**
- * Delete a post from a JSON file and delete a post from DB
+ * Deletes a post from a JSON file and delete a post from DB
  * @param {String} board
  * @param {Number} post_id
  * @param {String} password

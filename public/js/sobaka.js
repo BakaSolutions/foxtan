@@ -9,6 +9,8 @@
     popupTimeout: 5000
   };
   so.baka.tmp = {};
+
+  /* AJAX module */
   so.baka.AJAX = {
     request: function (method, url, data) {
       let promise;
@@ -40,8 +42,10 @@
         };
       }).catch(function (e) {
         let out = ['( o_o)?', e];
-        if(e instanceof XMLHttpRequest)
+        if(e instanceof XMLHttpRequest) {
+          console.log(e);
           out = !e.status? ['Network error!', e.statusText] : e.status+' &mdash; '+e.statusText;
+        }
         return Promise.reject(new baka.popup(out, 'error'));
       });
     }
@@ -49,6 +53,7 @@
 })(typeof so !== 'undefined' ? so : window);
 
 (function (so) {
+  /* DOM module */
   so.baka.dom = {
     add: function (el, parent) {
       parent = parent || document.body;
@@ -76,6 +81,8 @@
       return document.querySelectorAll('.'+cl);
     }
   };
+
+  /* popup module */
   so.baka.popups = [];
   so.baka.popup = function (text, type, timeout) {
     if (!Array.isArray(text))
@@ -122,6 +129,7 @@ baka.tmp.onload = function () {
   baka.dom.add(popups);
   new baka.popup('Hello, dev! :3','info');
 
+  /* form submitting begins an AJAX request */
   baka.dom.blocks('create-form').forEach(function (form) {
     form.addEventListener('submit', function (event) {
       event.preventDefault();

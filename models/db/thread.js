@@ -6,7 +6,7 @@ const db = require('../sql'),
 let thread = module.exports = {};
 
 /**
- * Create an OP
+ * Creates an "original post" (new thread)
  * @param {Object} fields
  * @return {Promise}
  */
@@ -28,7 +28,7 @@ thread.create = async function (fields)
 };
 
 /**
- * Read a thread with defined id
+ * Reads a thread with defined id
  * @param {String} board
  * @param {Number} id
  * @return {Promise}
@@ -46,7 +46,7 @@ thread.read = function(board, id)
 };
 
 /**
- * Read all OPs for a board
+ * Reads all OPs for a board
  * @param {String} board
  * @return {Promise}
  */
@@ -63,7 +63,7 @@ thread.readAll = function(board)
 };
 
 /**
- * Read all posts from thread after defined id (including post with id)
+ * Reads all posts from thread after defined id (including post with id)
  * @param {String} board
  * @param {Number} thread_id
  * @param {Number} post_id
@@ -82,7 +82,7 @@ thread.update = function(board, thread_id, post_id)
 };
 
 /**
- * Delete a post or a thread (with its' posts) with defined id
+ * Deletes a post or a thread (with its' posts) with defined id
  * @param {String} board
  * @param {Number} id
  * @param {String} password
@@ -118,7 +118,7 @@ thread.delete = function (board, id, password)
 };
 
 /**
- * Read all posts (including OP) from thread with defined id
+ * Reads all posts (including OP) from thread with defined id
  * @param {String} board
  * @param {Number} id
  * @return {Promise}

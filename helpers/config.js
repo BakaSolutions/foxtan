@@ -15,24 +15,29 @@ let config = new Map(
   ['fs.cache.json', true],
 
   ['log.db.noerr', /ER_(NO_SUCH_TABLE|DUP_ENTRY)/],
-  ['markup.patterns', [
-    [/h3sot/gi, '<b>H<sub>3</sub>S&Ouml;T</b>'],
-    [/\(c\)/gi, '&copy;'],
-    [/\(r\)/gi, '&reg;'],
-    [/\(tm\)/gi, '&trade;'],
-    [/&quot;(.+?)&quot;/g, '«$1»']
-  ]],
-  ['markup.tags', [
-    ['b'], ['i'], ['u'], ['s'], ['sup'], ['sub'],
-    ['\\*\\*\\*', ['<s>','</s>']],
-    ['\\*\\*', ['<b>','</b>']],
-    ['\\*', ['<i>','</i>']],
-    ['___', ['<u>','</u>']],
-    ['__', ['<b>','</b>']],
-    ['_', ['<i>','</i>']],
-    ['%%', ['<span class="spoiler">', '</span>']],
-    [['\\[spoiler]','\\[\\/spoiler]'], ['<span class="spoiler">', '</span>']],
-  ]],
+
+  ['markup.patterns',
+    [
+      [/h3sot/gi, '<b>H<sub>3</sub>S&Ouml;T</b>'],
+      [/\(c\)/gi, '&copy;'],
+      [/\(r\)/gi, '&reg;'],
+      [/\(tm\)/gi, '&trade;'],
+      [/&quot;(.+?)&quot;/g, '«$1»']
+    ]
+  ],
+  ['markup.tags',
+    [
+      ['b'], ['i'], ['u'], ['s'], ['sup'], ['sub'],
+      ['\\*\\*\\*', ['<s>','</s>']],
+      ['\\*\\*', ['<b>','</b>']],
+      ['\\*', ['<i>','</i>']],
+      ['___', ['<u>','</u>']],
+      ['__', ['<b>','</b>']],
+      ['_', ['<i>','</i>']],
+      ['%%', ['<span class="spoiler">', '</span>']],
+      [['\\[spoiler]','\\[\\/spoiler]'], ['<span class="spoiler">', '</span>']],
+    ]
+  ],
 
   ['server.host', 'localhost'],
   ['server.output', 'port'],
@@ -40,6 +45,12 @@ let config = new Map(
   ['server.output', '/tmp/sock']
 ]);
 
+/**
+ * Figurecon -- small module for a configuration. It gets from a file `/config.js` or a map `config` if variable doesn't exists in a config file.
+ * @param key
+ * @param defaults
+ * @constructor
+ */
 function Figurecon(key, defaults)
 {
   if(defaults && Tools.isMap(defaults))
@@ -49,6 +60,13 @@ function Figurecon(key, defaults)
   return Figurecon.get(...arguments);
 }
 
+/**
+ * Gets a variable or throw an error if variable doesn't exist anywhere
+ * @param key
+ * @param def
+ * @returns {*}
+ * @throws {Error}
+ */
 Figurecon.get = function (key, def)
 {
   if (typeof def === 'undefined')
@@ -62,6 +80,12 @@ Figurecon.get = function (key, def)
   return def;
 };
 
+/**
+ * Read a config file and merges config map with it
+ * @param file
+ * @param defaults
+ * @returns {Figurecon}
+ */
 Figurecon.init = function (file, defaults)
 {
   let self = this,

@@ -30,7 +30,7 @@ let board = module.exports = {},
   };
 
 /**
- * Create a board
+ * Creates a board entry, also creates a table for posts
  * @param {Object} fields
  * @return {Promise}
  */
@@ -53,7 +53,7 @@ board.create = function(fields)
 };
 
 /**
- * Read a board with defined uri
+ * Reads a board with defined uri
  * @param {String} uri
  * @return {Promise}
  */
@@ -70,7 +70,7 @@ board.read = async function(uri)
 };
 
 /**
- * Read all boards
+ * Reads all boards
  * @return {Promise}
  */
 board.readAll = async function()
@@ -86,7 +86,7 @@ board.readAll = async function()
 };
 
 /**
- * Update a board with defined name
+ * Updates a board with defined name
  * @param {String} boardNameOld
  * @param {Object} fields
  * @return {Promise}
@@ -106,7 +106,7 @@ board.update = function(boardNameOld, fields)
 };
 
 /**
- * Delete a board with defined id
+ * Deletes a board with defined id
  * @param {String} boardName
  * @param {String} password
  * @return {Promise}
@@ -125,7 +125,7 @@ board.delete = function(boardName, password)
 };
 
 /**
- * Increment a post counter of a board with defined uri
+ * Increments a post counter of a board with defined uri
  * @param {String} boardName
  * @param {Number} counter
  * @return {Promise}
@@ -148,7 +148,7 @@ board.incrementCounter = function(boardName, counter = 1)
 };
 
 /**
- * Get number of posts of a board with defined uri
+ * Gets number of posts of a board with defined uri
  * @param {String, Array} boardNames
  * @return {Promise}
  */

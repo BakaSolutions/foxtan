@@ -4,6 +4,12 @@ const path = require('path');
 let tools = module.exports = {},
   toString = Object.prototype.toString;
 
+/**
+ * Requires all files in a defined directory
+ * @param src
+ * @param [mask]
+ * @returns {Promise}
+ */
 tools.requireAll = async function (src, mask)
 {
   let filePath = path.join(__dirname + '/../', src) + '/',
@@ -11,12 +17,26 @@ tools.requireAll = async function (src, mask)
   return requireAll(mask, files, filePath);
 };
 
+/**
+ * Requires all files in a defined directory synchronously
+ * @param src
+ * @param [mask]
+ * @returns {*}
+ */
 tools.requireAllSync = function (src, mask)
 {
   let filePath = path.join(__dirname + '/../', src) + '/',
       files = fs.readdirSync(filePath);
   return requireAll(mask, files, filePath);
 };
+
+/**
+ * Common function for requireAll* functions
+ * @param [mask]
+ * @param files
+ * @param {String} filePath
+ * @returns {Array}
+ */
 function requireAll(mask, files, filePath)
 {
   let o = [];
@@ -31,22 +51,52 @@ function requireAll(mask, files, filePath)
   });
   return o;
 }
+
+/**
+ * Wraps file into a pluggable module
+ * @param m
+ * @returns {*|default}
+ */
 tools.requireWrapper = function (m)
 {
   return (m && m.default) || m;
 };
+
+/**
+ * Check if a variable is an object but not a mop
+ * @param obj
+ * @returns {boolean}
+ */
 tools.isObject = function(obj)
 {
   return toString.call(obj) === '[object Object]';
 };
+
+/**
+ * Check if a variable is a map
+ * @param obj
+ * @returns {boolean}
+ */
 tools.isMap = function(obj)
 {
   return toString.call(obj) === '[object Map]';
 };
+
+/**
+ * Check if a variable is a number
+ * @param n
+ * @returns {boolean}
+ */
 tools.isNumber = function(n)
 {
   return !isNaN(parseFloat(n)) && isFinite(n);
 };
+
+/**
+ * "Flattens" an array (moves all elements to the root of an array)
+ * @param {Array} obj
+ * @returns {boolean}
+ */
 /*tools.flattenArray = function(a)
 {
   let out = [];
@@ -63,6 +113,7 @@ tools.isNumber = function(n)
   }
   return out;
 };*/
+
 /**
  * Merges two or more arrays into one
  * @param {Array, Map} target
