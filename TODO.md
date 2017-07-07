@@ -22,7 +22,9 @@
 ##### Common
 * ~~Create simple static post form~~
 * Rendering posts
-* Use async/await (Node 7.6+) (in progress)
+* ~~Use async/await (Node 7.6+)~~
+* Try to catch DB errors without Promises
+* Make tests (in progress)
 
 ##### Modules
 * Refactor for adding modules

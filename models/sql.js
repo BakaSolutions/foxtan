@@ -17,6 +17,7 @@ module.exports = mysql.createPool({
 module.exports.catch = function(error) {
   if(!config('log.db.noerr').test(error.code)) {
     console.log('[E_SQL] ' + error);
+    return Promise.reject(error);
   }
 };
 
@@ -29,8 +30,9 @@ module.exports.promisify = function(func) {
   let p = new Promise(function (resolve, reject) {
     func(resolve, reject);
   });
-  p.catch(function (error) {
-    this.catch(error)
+  let self = this;
+
+  return p.catch(function (err) {
+    return self.catch(err)
   });
-  return p;
 };

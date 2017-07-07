@@ -12,7 +12,9 @@ let thread = module.exports = {};
  */
 thread.create = async function (fields) {
   let { boardName, name, email, subject, tripcode, capcode, text, password, sageru, sticked, locked, cycled } = fields;
-  let text_markup = markup.toHTML(text) || null;
+  let text_markup = text
+    ? markup.toHTML(text)
+    : null;
   sageru = sageru? 1 : null;
   return db.promisify(function (resolve, reject) {
     db.query('INSERT INTO ?? (posts_name, posts_email, posts_subject, posts_tripcode, posts_capcode, posts_body, posts_bodymarkup, posts_password, posts_sageru, posts_sticked, posts_locked, posts_cycled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',

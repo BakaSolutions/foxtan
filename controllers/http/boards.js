@@ -1,5 +1,5 @@
 const Common = require('../common'),
-  model = require('../../models/db/board');
+  model = require('../../models/mysql/board');
 
 let router = module.exports = require('express').Router();
 

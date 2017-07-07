@@ -1,6 +1,7 @@
 const db = require('../sql'),
   board = require('./board'),
-  markup = require('../../core/markup');
+  markup = require('../../core/markup'),
+  Tools = require('../../helpers/tools');
 
 let post = module.exports = {};
 
@@ -11,8 +12,12 @@ let post = module.exports = {};
  */
 post.create = async function(fields) {
   let { boardName, threadNumber, name, email, subject, tripcode, capcode, text, password, sageru } = fields;
+  if (!Tools.isNumber(threadNumber))
+    return false;
   sageru = sageru? 1 : null;
-  let text_markup = markup.toHTML(text);
+  let text_markup = text
+    ? markup.toHTML(text)
+    : null;
   return db.promisify(function (resolve, reject) {
     db.query('INSERT INTO ?? (posts_thread, posts_name, posts_email, posts_subject, posts_tripcode, posts_capcode,' +
         'posts_body, posts_bodymarkup, posts_password, posts_sageru) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',

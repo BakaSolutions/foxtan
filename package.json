@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node sobaka.js",
     "start-dev": "NODE_ENV=development node sobaka.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha tests --check-leaks --reporter nyan",
+    "test-db": "mocha tests/mysql.js",
+    "test-json": "mocha tests/json.js"
   },
   "repository": {
     "type": "git",
@@ -23,5 +25,8 @@
     "busboy": "^0.2.14",
     "express": "^4.15.3",
     "mysql": "^2.13.0"
+  },
+  "devDependencies": {
+    "mocha": "^3.4.2"
   }
 }

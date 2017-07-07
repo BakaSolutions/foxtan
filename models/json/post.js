@@ -1,8 +1,8 @@
-const FS = require('../../helpers/fs'),
-    fs = require('fs'),
-    db = require('../db/post'),
-    thread = require('./thread'),
-    config = require('../../helpers/config');
+const FS = require('../../helpers/fs');
+const fs = require('fs');
+const thread = require('./thread');
+const config = require('../../helpers/config');
+const db = require('../' + config('db') + '/post');
 
 let post = module.exports = {};
 
@@ -12,8 +12,11 @@ let post = module.exports = {};
  * @return {Object}
  */
 post.create = async function(fields) {
-  let query = await db.create(fields),
-      out = { board: fields['boardName'], post: query['insertId'] },
+  let query = await db.create(fields);
+  if (!query) {
+    return false;
+  }
+  let out = { board: fields['boardName'], post: query['insertId'] },
       post = await db.read(out.board, out.post);
   delete post['posts_sticked'];
   delete post['posts_locked'];
@@ -59,7 +62,9 @@ post.update = async function(board, post_id, fields) {
  */
 post.delete = async function(board, post_id, password) {
   let query = await db.delete(board, post_id, password);
-  thread.regenerateJSON(board, query.thread); //TODO: Delete post from JSON by picking
+  if (query.ok) {
+    thread.regenerateJSON(board, query.thread); //TODO: Delete post from JSON by picking
+  }
   return query;
 };
 

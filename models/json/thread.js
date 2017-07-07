@@ -1,7 +1,7 @@
-const FS = require('../../helpers/fs'),
-    db = require('../db/thread'),
-    config = require('../../helpers/config');
-
+const FS = require('../../helpers/fs');
+const config = require('../../helpers/config');
+const Tools = require('../../helpers/tools');
+const db = require('../' + config('db') + '/thread');
 let thread = module.exports = {};
 
 /**
@@ -11,6 +11,8 @@ let thread = module.exports = {};
  */
 thread.create = async function(fields) {
   let query = await db.create(fields);
+  if(!query)
+    return false;
   let out = { board: fields['boardName'], thread: query['insertId'] };
   thread = await db.read(out.board, out.thread);
   if (config('fs.cache.json')) {
@@ -70,6 +72,10 @@ thread.update = async function(board, thread_id, post_id) {
  * @return {Object} query
  */
 thread.regenerateJSON = async function(board, thread_id) {
+  if (!Tools.isNumber(thread_id)) {
+    console.log(thread_id);
+    throw new Error('Trying to regenerate something unexistable!');
+  }
   let pattern = 'fs.cache.json';
   if (!config(pattern)) {
     console.log('Ni-paa~! Enable ' + pattern + ' in your config to use this feature.');

@@ -3,7 +3,7 @@ const db = require('../sql'),
 
 let board = module.exports = {},
   queries = {
-    create: 'CREATE TABLE `posts_??` (' +
+    create: 'CREATE TABLE IF NOT EXISTS ?? (' +
       '`posts_id` int(11) unsigned NOT NULL AUTO_INCREMENT,' +
       '`posts_thread` int(11) unsigned DEFAULT NULL,' +
       '`posts_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
@@ -39,7 +39,8 @@ board.create = function(fields) {
     db.query('INSERT INTO ?? (uri, name, posts) VALUES (?, ?, ?)',
       ['boards', uri, name, 0], function (err, result) {
         if (err) reject(err);
-        db.query(queries.create, [uri], function (error) {
+
+        db.query(queries.create, ['posts_' + uri], function (error) {
           if (error) reject(error);
           resolve(result);
         });
@@ -94,12 +95,12 @@ board.update = function(boardNameOld, fields) {
 /**
  * Deletes a board with defined id
  * @param {String} boardName
- * @param {String} password
+ * @param {String} [password]
  * @return {Promise}
  */
 board.delete = function(boardName, password) {
   return db.promisify(function (resolve, reject) {
-    db.query('DELETE FROM ?? WHERE `name`=? AND `password`=?',
+    db.query('DELETE FROM ?? WHERE `uri`=?',// AND `password`=?
         ['boards', boardName, password], function (err, result) {
           if (err) reject(err);
           resolve(result);

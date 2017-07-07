@@ -11,9 +11,12 @@ let tools = module.exports = {},
  * @returns {Promise}
  */
 tools.requireAll = async function (src, mask) {
-  let filePath = path.join(__dirname + '/../', src) + '/',
-    files = await fs.readdir(filePath);
-  return requireAll(mask, files, filePath);
+  let filePath = path.join(__dirname + '/../', src) + '/';
+  return new Promise(function(resolve, reject) {
+    fs.readdir(filePath, function(err, files) {
+      resolve(requireAll(mask, files, filePath));
+    });
+  });
 };
 
 /**
@@ -37,6 +40,9 @@ tools.requireAllSync = function (src, mask) {
  */
 function requireAll(mask, files, filePath) {
   let o = [];
+  if (typeof files === 'undefined') {
+    return o;
+  }
   files.forEach(function (file) {
     if(mask && !mask.test(file)) {
       return false;
@@ -101,15 +107,19 @@ tools.isNumber = function(n) {
 };*/
 
 /**
- * Merges two or more arrays into one
- * @param {Array, Map} target
- * @param {Array, Map} arguments
- * @return {Array, Map} target
+ * Merges two or more objects into one
+ * @param {Object|Map} target
+ * @param {Object|Map} theArgs
+ * @return {Object|Map} target
  */
-tools.merge = function (target) {
+tools.merge = function (target, ...theArgs) {
   if(tools.isMap(target)) {
-    let sources = [].slice.call(arguments, 1);
-    return new Map([...target, ...sources[0]]); //TODO: Merge >2 Maps
+    //let sources = [].slice.call(arguments, 1);
+    let out = [...target];
+    theArgs.forEach(function(arg) {
+      out.push(...arg);
+    });
+    return new Map(out);
   }
   let sources = [].slice.call(arguments, 1);
   sources.forEach(function (source) {

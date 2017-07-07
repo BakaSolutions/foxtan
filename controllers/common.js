@@ -20,7 +20,7 @@ common.throw = function(res, status, msg) {
   } else {
     out.error = msg || http.STATUS_CODES[out.status];
   }
-  res.status(out.status).json(out);
+  res.status(out.status || 200).json(out);
 };
 
 /**

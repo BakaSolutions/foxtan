@@ -5,9 +5,7 @@ let router = module.exports = require('express').Router();
 
 router.get("/:board/res/:id.json", async function (req, res) {
   try {
-    let out = await model.read(req.params.board, req.params.id).catch(function (e) {
-      Common.throw(res, 500, e)
-    });
+    let out = await model.read(req.params.board, req.params.id);
     if(typeof out !== 'object' || out.length < 1) {
       return Common.throw(res, 404);
     }
@@ -19,7 +17,7 @@ router.get("/:board/res/:id.json", async function (req, res) {
     });
     res.status(200).json(out);
   } catch (e) {
-    Common.throw(res, 500);
+    return Common.throw(res, 500);
   }
 });
 
@@ -47,13 +45,13 @@ router.post("/api/thread.delete", async function (req, res) {
   }
   let out = await model.delete(req.body.boardName, req.body.postNumber, req.body.password);
   if (out.ok) {
-    res.status(200).json({
-      "ok": typeof out.result === 'undefined'
-        ? 0
-        : out.result.affectedRows
+    return res.status(200).json({
+      "ok": out.result.constructor.name === 'OkPacket'
+        ? out.result.affectedRows
+        : 0
     });
   }
-  return Common.throw(res, 200, out.exists
+  Common.throw(res, 200, out.exists
     ? "Wrong password"
     : "It doesn't exist!");
 });
