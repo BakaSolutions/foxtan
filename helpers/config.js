@@ -2,8 +2,7 @@
 const Tools = require('./tools');
 const FS = require('fs');
 
-let config = new Map(
-[
+let config = new Map([
   ['db', 'mysql'], // 'mysql' | 'sqlite' | 'postgres' | 'mssql'
   ['db.mysql.username', 'root'],
   ['db.mysql.password', ''],
@@ -51,10 +50,8 @@ let config = new Map(
  * @param defaults
  * @constructor
  */
-function Figurecon(key, defaults)
-{
-  if(defaults && Tools.isMap(defaults))
-  {
+function Figurecon(key, defaults) {
+  if(defaults && Tools.isMap(defaults)) {
     return Figurecon.init(...arguments);
   }
   return Figurecon.get(...arguments);
@@ -67,12 +64,9 @@ function Figurecon(key, defaults)
  * @returns {*}
  * @throws {Error}
  */
-Figurecon.get = function (key, def)
-{
-  if (typeof def === 'undefined')
-  {
-    if (typeof this.config.get(key) !== 'undefined')
-    {
+Figurecon.get = function (key, def) {
+  if (typeof def === 'undefined') {
+    if (typeof this.config.get(key) !== 'undefined') {
       return this.config.get(key)
     }
     return new Error('Undefined config item: "' + key + '"!')
@@ -86,8 +80,7 @@ Figurecon.get = function (key, def)
  * @param defaults
  * @returns {Figurecon}
  */
-Figurecon.init = function (file, defaults)
-{
+Figurecon.init = function (file, defaults) {
   let self = this,
     exists = FS.existsSync(file);
   self.config = exists? Tools.merge(defaults, require(file)) : defaults;

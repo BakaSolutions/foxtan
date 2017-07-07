@@ -1,14 +1,15 @@
 (function (so) {
   if (so.baka) return;
-  so.baka = {};
-  so.baka.settings = {
-    base: '/',
-    fetchAPI: typeof fetch === 'function' // we'd like to use fetch but it's too raw
+  so.baka = {
+    config: {
+      popupTimeout: 5000
+    },
+    settings: {
+      base: '/',
+      fetchAPI: typeof fetch === 'function' // we'd like to use fetch but it's too raw
+    },
+    tmp: {}
   };
-  so.baka.config = {
-    popupTimeout: 5000
-  };
-  so.baka.tmp = {};
 
   /* AJAX module */
   so.baka.AJAX = {

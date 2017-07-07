@@ -9,13 +9,11 @@ let thread = module.exports = {};
  * @param {Object} fields
  * @return {Object}
  */
-thread.create = async function(fields)
-{
+thread.create = async function(fields) {
   let query = await db.create(fields);
   let out = { board: fields['boardName'], thread: query['insertId'] };
   thread = await db.read(out.board, out.thread);
-  if (config('fs.cache.json'))
-  {
+  if (config('fs.cache.json')) {
     FS.writeSync(out.board + '/res/' + out.thread + '.json', JSON.stringify(thread));
   }
   return out;
@@ -27,26 +25,19 @@ thread.create = async function(fields)
  * @param {Number} thread_id
  * @return {Object} query
  */
-thread.read = async function(board, thread_id)
-{
+thread.read = async function(board, thread_id) {
   let pattern = board + '/res/' + thread_id + '.json', thread;
-  if (config('fs.cache.json'))
-  {
-    if (FS.existsSync(pattern))
-    {
+  if (config('fs.cache.json')) {
+    if (FS.existsSync(pattern)) {
       let file = FS.readSync(pattern); //TODO: Read file async
-      try
-      {
+      try {
         thread = JSON.parse(file);
-      }
-      catch (e)
-      {
+      } catch (e) {
         //
       }
     }
   }
-  if (!thread)
-  {
+  if (!thread) {
     thread = await db.read(board, thread_id);
   }
   return thread;
@@ -59,11 +50,9 @@ thread.read = async function(board, thread_id)
  * @param {Number} post_id
  * @return {Object} query
  */
-thread.update = async function(board, thread_id, post_id)
-{
+thread.update = async function(board, thread_id, post_id) {
   let query = await db.update(board, thread_id, post_id);
-  if (query.length < 1 || !config('fs.cache.json'))
-  {
+  if (query.length < 1 || !config('fs.cache.json')) {
     return query;
   }
   let file = FS.readSync(board + '/res/' + thread_id + '.json');
@@ -80,11 +69,9 @@ thread.update = async function(board, thread_id, post_id)
  * @param {Number} thread_id
  * @return {Object} query
  */
-thread.regenerateJSON = async function(board, thread_id)
-{
+thread.regenerateJSON = async function(board, thread_id) {
   let pattern = 'fs.cache.json';
-  if (!config(pattern))
-  {
+  if (!config(pattern)) {
     console.log('Ni-paa~! Enable ' + pattern + ' in your config to use this feature.');
     return false;
   }
@@ -100,11 +87,9 @@ thread.regenerateJSON = async function(board, thread_id)
  * @param {String} password
  * @return {Boolean}
  */
-thread.delete = async function(board, thread_id, password)
-{
+thread.delete = async function(board, thread_id, password) {
   let query = await db.delete(board, thread_id, password);
-  if (query.ok && query.isThread && config('fs.cache.json'))
-  {
+  if (query.ok && query.isThread && config('fs.cache.json')) {
     FS.unlinkSync(board + '/res/' + thread_id + '.json');
   }
   return query;

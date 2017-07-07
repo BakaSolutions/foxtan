@@ -2,8 +2,7 @@ const db = require('../sql'),
   Tools = require('../../helpers/tools');
 
 let board = module.exports = {},
-  queries =
-  {
+  queries = {
     create: 'CREATE TABLE `posts_??` (' +
       '`posts_id` int(11) unsigned NOT NULL AUTO_INCREMENT,' +
       '`posts_thread` int(11) unsigned DEFAULT NULL,' +
@@ -34,17 +33,13 @@ let board = module.exports = {},
  * @param {Object} fields
  * @return {Promise}
  */
-board.create = function(fields)
-{
+board.create = function(fields) {
   let { uri, name } = fields;
-  return db.promisify(function (resolve, reject)
-  {
+  return db.promisify(function (resolve, reject) {
     db.query('INSERT INTO ?? (uri, name, posts) VALUES (?, ?, ?)',
-      ['boards', uri, name, 0], function (err, result)
-      {
+      ['boards', uri, name, 0], function (err, result) {
         if (err) reject(err);
-        db.query(queries.create, [uri], function (error)
-        {
+        db.query(queries.create, [uri], function (error) {
           if (error) reject(error);
           resolve(result);
         });
@@ -57,12 +52,9 @@ board.create = function(fields)
  * @param {String} uri
  * @return {Promise}
  */
-board.read = async function(uri)
-{
-  return db.promisify(function (resolve, reject)
-  {
-    db.query('SELECT * FROM ?? WHERE `uri` = ? LIMIT 1', ['boards', uri], function (err, queryData)
-    {
+board.read = async function(uri) {
+  return db.promisify(function (resolve, reject) {
+    db.query('SELECT * FROM ?? WHERE `uri` = ? LIMIT 1', ['boards', uri], function (err, queryData) {
       if (err) reject(err);
       resolve(typeof queryData !== 'undefined'? (queryData[0] || []) : null);
     })
@@ -73,12 +65,9 @@ board.read = async function(uri)
  * Reads all boards
  * @return {Promise}
  */
-board.readAll = async function()
-{
-  return db.promisify(function (resolve, reject)
-  {
-    db.query('SELECT * FROM boards', null, function (err, queryData)
-    {
+board.readAll = async function() {
+  return db.promisify(function (resolve, reject) {
+    db.query('SELECT * FROM boards', null, function (err, queryData) {
       if (err) reject(err);
       resolve(queryData);
     })
@@ -91,14 +80,11 @@ board.readAll = async function()
  * @param {Object} fields
  * @return {Promise}
  */
-board.update = function(boardNameOld, fields)
-{
+board.update = function(boardNameOld, fields) {
   let { href, boardName } = fields;
-  return db.promisify(function (resolve, reject)
-  {
+  return db.promisify(function (resolve, reject) {
     db.query('UPDATE ?? SET `uri`=?, `name`=? WHERE `name`=?',
-      ['boards', href, boardName, boardNameOld], function (err, result)
-      {
+      ['boards', href, boardName, boardNameOld], function (err, result) {
         if (err) reject(err);
         resolve(result);
       });
@@ -111,13 +97,10 @@ board.update = function(boardNameOld, fields)
  * @param {String} password
  * @return {Promise}
  */
-board.delete = function(boardName, password)
-{
-  return db.promisify(function (resolve, reject)
-  {
+board.delete = function(boardName, password) {
+  return db.promisify(function (resolve, reject) {
     db.query('DELETE FROM ?? WHERE `name`=? AND `password`=?',
-        ['boards', boardName, password], function (err, result)
-        {
+        ['boards', boardName, password], function (err, result) {
           if (err) reject(err);
           resolve(result);
         });
@@ -130,17 +113,13 @@ board.delete = function(boardName, password)
  * @param {Number} counter
  * @return {Promise}
  */
-board.incrementCounter = function(boardName, counter = 1)
-{
-  return db.promisify(function (resolve, reject)
-  {
-    if (!Tools.isNumber(counter))
-    {
+board.incrementCounter = function(boardName, counter = 1) {
+  return db.promisify(function (resolve, reject) {
+    if (!Tools.isNumber(counter)) {
       counter = 1;
     }
     db.query(`UPDATE ?? SET posts = posts + ? WHERE \`uri\`=?`,
-      ['boards', counter, boardName], function (err, result)
-        {
+      ['boards', counter, boardName], function (err, result) {
           if (err) reject(err);
           resolve(result);
         });
@@ -149,43 +128,35 @@ board.incrementCounter = function(boardName, counter = 1)
 
 /**
  * Gets number of posts of a board with defined uri
- * @param {String, Array} boardNames
+ * @param {String, Array} [boardNames]
  * @return {Promise}
  */
-board.getCounters = async function(boardNames)
-{
-  if (typeof boardNames === 'undefined')
-  {
+board.getCounters = async function(boardNames) {
+  if (typeof boardNames === 'undefined') {
     boardNames = await board.readAll();
-    boardNames = boardNames.map(function(board)
-    {
+    boardNames = boardNames.map(function(board) {
       return board.uri;
     })
   }
-  if (!Array.isArray(boardNames))
-  {
+  if (!Array.isArray(boardNames)) {
     boardNames = [ boardNames ];
   }
   let query = 'SELECT uri, posts FROM ?? WHERE',
     qArray = ['boards'];
-  for (let i = 0; i < boardNames.length; i++)
-  {
+  for (let i = 0; i < boardNames.length; i++) {
     qArray.push(boardNames[i]);
     if (i !== 0) query += ' OR ';
     query += '`uri` = ?'
   }
-  return db.promisify(function (resolve, reject)
-  {
-    db.query(query, qArray, function (err, result)
-    {
-        if (err) reject(err);
-        result = result.map(function(board)
-        {
-          let o = {};
-          o[board.uri] = board.posts;
-          return o;
-        });
-      resolve(result);
+  return db.promisify(function (resolve, reject) {
+    db.query(query, qArray, function (err, result) {
+      if (err) reject(err);
+      result = result.map(function(board) {
+        let o = {};
+        o[board.uri] = board.posts;
+        return o;
       });
+    resolve(result);
+    });
   })
 };

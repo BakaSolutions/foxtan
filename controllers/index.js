@@ -8,21 +8,18 @@ const Common = require('./common'),
  * Inits controllers: requires all .js from /controllers/http/ and sets routers
  * @param app
  */
-module.exports.init = function (app)
-{
+module.exports.init = function (app) {
   let plugins = Tools.requireAllSync('controllers/http', /\.js$/),
     router = express.Router();
   app.routers = [];
 
-  plugins.forEach(function (plugin)
-  {
+  plugins.forEach(function (plugin) {
     router.use('/', plugin);
     app.routers.push(plugin);
   });
 
   // Magic perfomance header! \( ^o^)/
-  app.use(async function (req, res, next)
-  {
+  app.use(async function (req, res, next) {
     const start = new Date();
     await next();
     const ms = new Date() - start;
@@ -35,8 +32,7 @@ module.exports.init = function (app)
 
   app.use(express.static(path.join(__dirname,  '/../public')));
 
-  app.use('*', function (req, res)
-  {
+  app.use('*', function (req, res) {
     Common.throw(res, 404);
   });
 };

@@ -10,16 +10,13 @@ let thread = module.exports = {};
  * @param {Object} fields
  * @return {Promise}
  */
-thread.create = async function (fields)
-{
+thread.create = async function (fields) {
   let { boardName, name, email, subject, tripcode, capcode, text, password, sageru, sticked, locked, cycled } = fields;
   let text_markup = markup.toHTML(text) || null;
   sageru = sageru? 1 : null;
-  return db.promisify(function (resolve, reject)
-  {
+  return db.promisify(function (resolve, reject) {
     db.query('INSERT INTO ?? (posts_name, posts_email, posts_subject, posts_tripcode, posts_capcode, posts_body, posts_bodymarkup, posts_password, posts_sageru, posts_sticked, posts_locked, posts_cycled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      ['posts_' + boardName, name, email, subject, tripcode, capcode, text, text_markup, password, sageru, sticked, locked, cycled], async function(err, result)
-        {
+      ['posts_' + boardName, name, email, subject, tripcode, capcode, text, text_markup, password, sageru, sticked, locked, cycled], async function(err, result) {
           if (err) reject(err);
           await board.incrementCounter(boardName);
           resolve(result);
@@ -33,12 +30,9 @@ thread.create = async function (fields)
  * @param {Number} id
  * @return {Promise}
  */
-thread.read = function(board, id)
-{
-  return db.promisify(function (resolve, reject)
-  {
-    db.query('SELECT * FROM ?? WHERE (`posts_id` = ? AND `posts_thread` IS NULL) OR `posts_thread` = ?', ['posts_' + board, id, id], function (err, queryData)
-    {
+thread.read = function(board, id) {
+  return db.promisify(function (resolve, reject) {
+    db.query('SELECT * FROM ?? WHERE (`posts_id` = ? AND `posts_thread` IS NULL) OR `posts_thread` = ?', ['posts_' + board, id, id], function (err, queryData) {
       if (err) reject(err);
       resolve(queryData);
     })
@@ -50,12 +44,9 @@ thread.read = function(board, id)
  * @param {String} board
  * @return {Promise}
  */
-thread.readAll = function(board)
-{
-  return db.promisify(function (resolve, reject)
-  {
-    db.query('SELECT * FROM ?? WHERE posts_thread = NULL', ['posts_' + board], function (err, queryData)
-    {
+thread.readAll = function(board) {
+  return db.promisify(function (resolve, reject) {
+    db.query('SELECT * FROM ?? WHERE posts_thread = NULL', ['posts_' + board], function (err, queryData) {
       if (err) reject(err);
       resolve(queryData);
     });
@@ -69,12 +60,9 @@ thread.readAll = function(board)
  * @param {Number} post_id
  * @return {Promise}
  */
-thread.update = function(board, thread_id, post_id)
-{
-  return db.promisify(function (resolve, reject)
-  {
-    db.query('SELECT * FROM ?? WHERE (posts_thread = ? AND posts_id >= ? )', ['posts_' + board, thread_id, post_id], function (err, queryData)
-    {
+thread.update = function(board, thread_id, post_id) {
+  return db.promisify(function (resolve, reject) {
+    db.query('SELECT * FROM ?? WHERE (posts_thread = ? AND posts_id >= ? )', ['posts_' + board, thread_id, post_id], function (err, queryData) {
       if (err) reject(err);
       resolve(queryData);
     })
@@ -88,25 +76,19 @@ thread.update = function(board, thread_id, post_id)
  * @param {String} password
  * @return {Promise}
  */
-thread.delete = function (board, id, password)
-{
-  return db.promisify(async (resolve, reject) =>
-  {
+thread.delete = function (board, id, password) {
+  return db.promisify(async function (resolve, reject) {
     let psto = await post.read(board, id),
         out = {ok: 0, exists: typeof psto === 'object' && !Array.isArray(psto)};
-    if (!out.exists)
-    {
+    if (!out.exists) {
       return resolve(out);
     }
     out.isThread = psto['posts_thread'] === null;
-    if (password && psto['posts_password'] !== password)
-    {
+    if (password && psto['posts_password'] !== password) {
       return resolve(out);
     }
-    db.query('DELETE FROM ?? WHERE (posts_id = ? OR posts_thread = ?)', ['posts_' + board, id, id], function (err, result)
-    {
-      if (err)
-      {
+    db.query('DELETE FROM ?? WHERE (posts_id = ? OR posts_thread = ?)', ['posts_' + board, id, id], function (err, result) {
+      if (err) {
         out.result = err;
         return reject(out);
       }
@@ -123,12 +105,9 @@ thread.delete = function (board, id, password)
  * @param {Number} id
  * @return {Promise}
  */
-thread.regenerateJSON = function(board, id)
-{
-  return db.promisify(function (resolve, reject)
-  {
-    db.query('SELECT * FROM ?? WHERE (`posts_id` = ? OR `posts_thread` = ?)', ['posts_' + board, id, id], function (err, queryData)
-    {
+thread.regenerateJSON = function(board, id) {
+  return db.promisify(function (resolve, reject) {
+    db.query('SELECT * FROM ?? WHERE (`posts_id` = ? OR `posts_thread` = ?)', ['posts_' + board, id, id], function (err, queryData) {
       if (err) reject(err);
       resolve(queryData);
     });
@@ -136,8 +115,7 @@ thread.regenerateJSON = function(board, id)
 };
 
 /*let start = +new Date(); //TODO: tests
-for (let i = 0; i < 100000; i++)
-{
+for (let i = 0; i < 100000; i++) {
   thread.read('test', 1);
 }
 console.log(+new Date() - start);*/
