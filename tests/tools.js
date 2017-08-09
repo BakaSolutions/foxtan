@@ -5,12 +5,12 @@ describe('Модуль инструментов', function () {
 
   it('подключает все .js-файлы в папке (sync)', function () {
     var files = Tools.requireAllSync('controllers', /\.js$/);
-    assert(typeof files === 'object' && files.length > 1);
+    assert(typeof files === 'object' && files.length > 0);
   });
 
   it('подключает все .js-файлы в папке (async)', async function () {
     var files = await Tools.requireAll('controllers', /\.js$/);
-    assert(typeof files === 'object' && files.length > 1);
+    assert(typeof files === 'object' && files.length > 0);
   });
 
   var funcs = ['isObject', 'isMap', 'isNumber'];
@@ -19,6 +19,7 @@ describe('Модуль инструментов', function () {
     describe(funcs[i] + '()', function () {
 
       var tests = [
+        ['string',  false, false, false],
         [{},        true, false, false],
         [new Map(), false, true, false],
         [42,        false, false, true],

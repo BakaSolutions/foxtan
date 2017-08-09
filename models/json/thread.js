@@ -1,7 +1,7 @@
 const FS = require('../../helpers/fs');
 const config = require('../../helpers/config');
 const Tools = require('../../helpers/tools');
-const db = require('../' + config('db') + '/thread');
+const db = require('../' + config('db.type') + '/thread');
 let thread = module.exports = {};
 
 /**

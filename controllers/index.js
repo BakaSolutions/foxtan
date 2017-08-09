@@ -13,17 +13,20 @@ module.exports.init = function (app) {
     router = express.Router();
   app.routers = [];
 
+  // Magic perfomance header! \( ^o^)/
+  /*app.use(async function (req, res, next) {
+    const start = new Date();
+    console.log(start);
+    await next();
+    const ms = new Date() - start;
+    console.log(ms);
+    res.set('X-Response-Time', ms + 'ms');
+    console.log(ms, ms);
+  });*/
+
   plugins.forEach(function (plugin) {
     router.use('/', plugin);
     app.routers.push(plugin);
-  });
-
-  // Magic perfomance header! \( ^o^)/
-  app.use(async function (req, res, next) {
-    const start = new Date();
-    await next();
-    const ms = new Date() - start;
-    res.set('X-Response-Time', ms + 'ms');
   });
 
   app.use(bodyParser.urlencoded({ extended: true }));

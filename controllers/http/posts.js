@@ -16,7 +16,7 @@ router.post("/api/post.get", async function (req, res) {
     return Common.throw(res, 404);
   }
   Common.removeInfo(out);
-  res.status(200).json(out);
+  res.json(out);
 });
 
 router.post("/api/post.create", async function (req, res) {
@@ -25,7 +25,7 @@ router.post("/api/post.create", async function (req, res) {
   if (req.body.redirect) {
     return res.redirect(303, '/'+req.body.boardName+'/res/'+query['posts_thread']+'.json')
   }
-  return res.status(201).json(query);
+  res.status(201).json(query);
 });
 
 // TODO: Create post.update

@@ -2,7 +2,7 @@ const FS = require('../../helpers/fs');
 const fs = require('fs');
 const thread = require('./thread');
 const config = require('../../helpers/config');
-const db = require('../' + config('db') + '/post');
+const db = require('../' + config('db.type') + '/post');
 
 let post = module.exports = {};
 

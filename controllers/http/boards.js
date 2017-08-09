@@ -1,5 +1,5 @@
 const Common = require('../common'),
-  model = require('../../models/mysql/board');
+  model = require('../../models/json/board');
 
 let router = module.exports = require('express').Router();
 
@@ -15,6 +15,9 @@ router.get("/lastPostNumbers.json", async function (req, res) {
 
 router.get("/:board/board.json", async function (req, res) {
   let out = await model.read(req.params.board);
+  if (!out) {
+    return Common.throw(res, 404);
+  }
   res.json(out);
 });
 

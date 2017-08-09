@@ -1,5 +1,5 @@
 let router = module.exports = require('express').Router();
 
-router.get("/", function (req, res) {
-  res.status(200).json( {"message": "*pong*"} );
+router.get("/", async function (req, res) {
+  res.json( {"message": "*pong*"} );
 });

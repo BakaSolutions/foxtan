@@ -4,8 +4,9 @@ var config = require('../helpers/config');
 var Post = require('../models/mysql/post');
 var Board = require('../models/mysql/board');
 var Thread = require('../models/mysql/thread');
+var User = require('../models/mysql/user');
 
-if (config('db') === 'mysql') {
+if (config('db.type') === 'mysql') {
   testMySQL();
 } else {
   console.log('Skipping MySQL tests...');
@@ -45,7 +46,8 @@ function testMySQL() {
     var fields = {
       correct: {
         uri: 'test_u',
-        name: 'Unit-testing'
+        title: 'Unit-testing',
+        subtitle: 'This board is just for testing purposes!!1'
       }
     };
     fields.incorrect = {
@@ -56,7 +58,8 @@ function testMySQL() {
     it('создаёт тестовую доску', function () {
       return Board.create(fields.correct).catch(function (err) {
         assert(err.code === 'ER_DUP_ENTRY')
-      }).then(function () {
+      }).then(function (board) {
+        assert(board.constructor.name === 'OkPacket');
         triggers.createTestBoard = true;
       });
     });
@@ -69,13 +72,13 @@ function testMySQL() {
 
     it('отдаёт тестовую доску', async function () {
       return Board.read(fields.correct.uri).then(function (board) {
-        assert(board.constructor.name === 'RowDataPacket');
+        assert(board);
       });
     });
 
     it('не отдаёт несуществующую тестовую доску', async function () {
       return Board.read(fields.incorrect.uri).then(function (board) {
-        assert(board.constructor.name !== 'RowDataPacket');
+        assert(!board);
       });
     });
 
@@ -84,7 +87,7 @@ function testMySQL() {
   describe('[MySQL] Thread-модель', function () {
 
     before(function () {
-      if(!triggers.connected) this.skip();
+      if(!triggers.connected || !triggers.createTestBoard) this.skip();
     });
 
     var fields = {
@@ -219,18 +222,63 @@ function testMySQL() {
     });
 
     var fields = {
-      correct: 'test_u'
+      correct: 'test_u',
+      incorrect: 'test__'
     };
-    fields.incorrect = 'test__';
 
     it('удаляет тестовую доску', async function () {
-
       let query = await Board.delete(fields.correct);
-      assert(query.affectedRows === 1, '(не существует?)');
+      assert(query.constructor.name === 'OkPacket', '(не существует?)');
     });
 
     it('не удаляет несуществующую тестовую доску', async function () {
       let query = await Board.delete(fields.incorrect);
+      assert(query.affectedRows === 0);
+    });
+
+  });
+
+  describe('[MySQL] User-модель', function () {
+
+    before(function () {
+      if(!triggers.connected) this.skip();
+    });
+
+    var fields = {
+      correct: {
+        login: 'adminium_testo',
+        password: 'futureGadgetLab',
+        role: {
+          "*": "ADMIN"
+        }
+      }
+    };
+    fields.incorrect = {
+      password: 'tuft'
+    };
+
+    it('регистрирует тестового юзера', async function () {
+      let query = await User.create(fields.correct);
+      assert(query.constructor.name === 'OkPacket');
+    });
+
+    it('не регистрирует дубликат тестового юзера', async function () {
+      let query = await User.create(fields.incorrect);
+      assert(query.affectedRows === 0);
+    });
+
+    it('не регистрирует дубликат тестового юзера', async function () {
+      let query = await User.read(fields.correct.login);
+      assert(query.role === fields.correct.role);
+    });
+
+    it('удаляет тестового юзера', async function () {
+      let query = await User.delete(fields.correct);
+      assert(query.constructor.name === 'OkPacket', '(не существует?)');
+    });
+
+    it('не удаляет несуществующегю тестового юзера', async function () {
+      let query = await User.delete(fields.incorrect);
       assert(query.affectedRows === 0);
     });
 

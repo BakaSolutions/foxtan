@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const merge = require('merge');
 
 let tools = module.exports = {},
   toString = Object.prototype.toString;
@@ -11,7 +12,7 @@ let tools = module.exports = {},
  * @returns {Promise}
  */
 tools.requireAll = async function (src, mask) {
-  let filePath = path.join(__dirname + '/../', src) + '/';
+  let filePath = path.join(__dirname, '/../', src);
   return new Promise(function(resolve, reject) {
     fs.readdir(filePath, function(err, files) {
       resolve(requireAll(mask, files, filePath));
@@ -26,9 +27,16 @@ tools.requireAll = async function (src, mask) {
  * @returns {*}
  */
 tools.requireAllSync = function (src, mask) {
-  let filePath = path.join(__dirname + '/../', src) + '/',
-      files = fs.readdirSync(filePath);
-  return requireAll(mask, files, filePath);
+  if (!Array.isArray(src)) {
+    src = [ src ];
+  }
+  let plugins = [];
+  src.forEach(function (source) {
+    let filePath = path.join(__dirname, '/../', source);
+    let files = fs.readdirSync(filePath);
+    Array.prototype.push.apply(plugins, requireAll(mask, files, filePath));
+  });
+  return plugins;
 };
 
 /**
@@ -47,8 +55,8 @@ function requireAll(mask, files, filePath) {
     if(mask && !mask.test(file)) {
       return false;
     }
-    delete require.cache[require.resolve(filePath + file)];
-    o[o.length] = tools.requireWrapper(require(filePath + file));
+    delete require.cache[require.resolve(path.join(filePath, file))];
+    o[o.length] = tools.requireWrapper(require(path.join(filePath, file)));
   });
   return o;
 }
@@ -86,7 +94,8 @@ tools.isMap = function(obj) {
  * @returns {boolean}
  */
 tools.isNumber = function(n) {
-  return !isNaN(parseFloat(n)) && isFinite(n);
+  return +n === n;
+  //return !isNaN(parseFloat(n)) && isFinite(n);
 };
 
 /**
@@ -113,21 +122,66 @@ tools.isNumber = function(n) {
  * @return {Object|Map} target
  */
 tools.merge = function (target, ...theArgs) {
+  target = tools.clone(target);
   if(tools.isMap(target)) {
-    //let sources = [].slice.call(arguments, 1);
     let out = [...target];
     theArgs.forEach(function(arg) {
       out.push(...arg);
     });
     return new Map(out);
   }
-  let sources = [].slice.call(arguments, 1);
+  let sources = Array.prototype.slice.call(arguments, 1);
   sources.forEach(function (source) {
     for (let prop in source) {
       if(source.hasOwnProperty(prop)) {
-        target[prop] = (typeof source[prop] === 'object')? tools.merge(target[prop], source[prop]) : source[prop];
+        if (typeof target === 'undefined') {
+          target = {};
+        }
+        target[prop] = (typeof source[prop] === 'object')
+            ? tools.merge(target[prop], source[prop])
+            : source[prop];
       }
     }
   });
   return target;
 };
+
+tools.clone = function (value) {
+  if (Array.isArray(value)) {
+    return value.slice(0).map(val => tools.clone(val));
+  } else if (tools.isObject(value)) {
+    return merge.recursive(true, value);
+  } else {
+    return value;
+  }
+};
+
+tools.sortObject = function(object, order) {
+  let arr = [];
+  let out = {};
+  for (let key in object) {
+    arr.push(key);
+  }
+  arr.sort(function(a, b) {
+    return a.toLowerCase().localeCompare(b.toLowerCase());
+  });
+  if (order === 'desc') {
+    arr.reverse();
+  }
+  for (let i = 0; i < arr.length; i++ ) {
+    out[ arr[i] ] = object[ arr[i] ];
+  }
+  return out;
+};
+
+/*tools.toPromise = function (ctx, func, ...args) {
+  return new Promise(function (resolve, reject) {
+    args.push(function (err, res) {
+      if (err) {
+        reject(err);
+      }
+      resolve(res);
+    });
+    func.apply(ctx, args);
+  });
+};*/

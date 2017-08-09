@@ -1,7 +1,7 @@
 const mysql = require('mysql'),
   config = require('../helpers/config');
 
-let db = config('db');
+let db = config('db.type');
 
 module.exports = mysql.createPool({
   host: config('db.' + db + '.hostname'),
@@ -16,9 +16,9 @@ module.exports = mysql.createPool({
  */
 module.exports.catch = function(error) {
   if(!config('log.db.noerr').test(error.code)) {
-    console.log('[E_SQL] ' + error);
-    return Promise.reject(error);
+    console.log('[E_SQL] ', error.stack || error);
   }
+  return Promise.reject(error);
 };
 
 /**

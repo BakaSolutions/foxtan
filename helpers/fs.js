@@ -6,12 +6,19 @@ const path = require('path'),
 let FS = module.exports = {};
 const ROOT = path.join(__dirname, '/../public/');
 
-if (config('fs.existscache')) {
+function onConfigChange(key, oldValue, newValue) {
+  if (!newValue.enabled) {
+    clearInterval(FS.cacheInterval);
+    return FS.cacheInterval = null;
+  }
   FS.cache = new Map();
   FS.cacheInterval = setInterval(function () {
     FS.cache.clear();
-  }, config('fs.existscache.interval'));
+  }, newValue.interval);
 }
+
+config.on('fs.cache.exists', onConfigChange);
+onConfigChange(null, null, config('fs.cache.exists'));
 
 /**
  * Normalizes the path (removes all unnecessary "../")

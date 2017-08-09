@@ -22,7 +22,7 @@ body { background: #efefef }
 }
 .popups__bold { font-weight: bold }
 .popups__text { padding: .5em }
-.popups__popup_visible { max-height: 400px }
+.popups__popup_visible { max-height: 100vh }
 .popups__popup_ok { background: #efe; color: #0a0; border-color: #0f0 }
 .popups__popup_info { background: #4ef; color: #44c; border-color: #44c }
 .popups__popup_warn { background: #fb9; color: #940; border-color: #940 }

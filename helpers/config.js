@@ -1,21 +1,64 @@
-//const FSWatcher = require('./fs-watcher');
-const Tools = require('./tools');
-const FS = require('fs');
+const Figurecon = require('figurecon');
 
-let config = new Map([
-  ['db', 'mysql'], // 'mysql' | 'sqlite' | 'postgres' | 'mssql'
-  ['db.mysql.username', 'root'],
-  ['db.mysql.password', ''],
-  ['db.mysql.hostname', 'localhost'],
-  ['db.mysql.database', 'sobaka'],
+let config = {
+  board: {
+    archiveLimit: 100, // threads
+    boardLimit: 200, // threads
+    bumpLimit: 500, // posts in a thread
+    captchaEnabled: true,
+    captchaQuota: 24, // + 1 captchas
+    defaultUserName: "",
+    launchDate: +new Date("2015-12-31T17:00:00Z") / 1000,
+    maxFileCount: 0, // files
+    maxFileSize: 1024 * 1024 * 20, // 20 Mb
+    postQuota: 1, // post in `postTimeQuota`
+    postTimeQuota: 1000 * 60, // 1 minute
+    threadLimit: 1000, // posts
+    threadQuota: 1, // threads in `threadTimeQuota`
+    threadTimeQuota: 1000 * 60 * 60, // 1 hour
+    threadsPerPage: 20
+  },
+  boards: {},
+  db: {
+    type: 'mysql', // 'mysql'
+    mysql: {
+      username: 'root',
+      password: '',
+      hostname: 'localhost',
+      database: 'sobaka'
+    }
+  },
+  fs: {
+    cache: {
+      exists: {
+        enabled: true,
+        interval: 1000 * 60 * 5 // 5 minutes
+      },
+      json: true
+    }
+  },
+  log: {
+    db: {
+      noerr: /ER_(NO_SUCH_TABLE|DUP_ENTRY)/
+    }
+  },
+  markup: {
+    patterns: [],
+    tags: []
+  },
+  permissions: {},
+  roles: {
 
-  ['fs.existscache', true],
-  ['fs.existscache.interval', 1000 * 60 * 5], // 5 min
-  ['fs.cache.json', true],
+  },
+  server: {
+    host: 'localhost',
+    output: 'port',
+    port: 1337,
+    socket: '/tmp/sock'
+  }
+};
 
-  ['log.db.noerr', /ER_(NO_SUCH_TABLE|DUP_ENTRY)/],
-
-  ['markup.patterns',
+/*  ['markup.patterns',
     [
       [/h3sot/gi, '<b>H<sub>3</sub>S&Ouml;T</b>'],
       [/\(c\)/gi, '&copy;'],
@@ -36,57 +79,6 @@ let config = new Map([
       ['%%', ['<span class="spoiler">', '</span>']],
       [['\\[spoiler]','\\[\\/spoiler]'], ['<span class="spoiler">', '</span>']],
     ]
-  ],
-
-  ['server.host', 'localhost'],
-  ['server.output', 'port'],
-  ['server.port', 1337],
-  ['server.output', '/tmp/sock']
-]);
-
-/**
- * Figurecon -- small module for a configuration. It gets from a file `/config.js` or a map `config` if variable doesn't exists in a config file.
- * @param key
- * @param defaults
- * @constructor
- */
-function Figurecon(key, defaults) {
-  if(defaults && Tools.isMap(defaults)) {
-    return Figurecon.init(...arguments);
-  }
-  return Figurecon.get(...arguments);
-}
-
-/**
- * Gets a variable or throw an error if variable doesn't exist anywhere
- * @param key
- * @param def
- * @returns {*}
- * @throws {Error}
- */
-Figurecon.get = function (key, def) {
-  if (typeof def === 'undefined') {
-    if (typeof this.config.get(key) !== 'undefined') {
-      return this.config.get(key)
-    }
-    return new Error('Undefined config item: "' + key + '"!')
-  }
-  return def;
-};
-
-/**
- * Read a config file and merges config map with it
- * @param file
- * @param defaults
- * @returns {Figurecon}
- */
-Figurecon.init = function (file, defaults) {
-  let self = this,
-    exists = FS.existsSync(file);
-  self.config = exists? Tools.merge(defaults, require(file)) : defaults;
-  //let c = FSWatcher.createWatchedResource(file, (path) => { ... }); TODO: Real-time updates
-  return self;
-};
+  ]*/
 
 module.exports = new Figurecon(__dirname + "/../config.js", config);
-//module.exports.watcher = FSWatcher;

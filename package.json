@@ -24,6 +24,8 @@
     "body-parser": "^1.17.2",
     "busboy": "^0.2.14",
     "express": "^4.15.3",
+    "figurecon": "github:rngnrs/figurecon",
+    "merge": "^1.2.0",
     "mysql": "^2.13.0"
   },
   "devDependencies": {

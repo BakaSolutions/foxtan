@@ -15,18 +15,26 @@
       <td><input name="uri" value="test" /></td>
     </tr>
     <tr>
-      <td><b>Name:</b></td>
-      <td><input name="name" /></td>
+      <td><b>Title:</b></td>
+      <td><input name="title" /></td>
+    </tr>
+    <tr>
+      <td><b>Subtitle:</b></td>
+      <td><input name="subtitle" /></td>
     </tr>
   </table>
   <button>Submit</button>
 </form>
 <h1>Get boards</h1>
-<form action="/boards.json" method="get" class="create-form">
+<form action="/boards.json" class="create-form">
   <button>Submit</button>
 </form>
 <h1>Get /test/</h1>
-<form action="/test/board.json" method="get" class="create-form">
+<form action="/test/board.json" class="create-form">
+  <button>Submit</button>
+</form>
+<h1>Get last post numbers</h1>
+<form action="/lastPostNumbers.json" class="create-form">
   <button>Submit</button>
 </form>
 <h1>Create thread</h1>
