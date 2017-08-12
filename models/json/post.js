@@ -1,5 +1,4 @@
 const FS = require('../../helpers/fs');
-const fs = require('fs');
 const thread = require('./thread');
 const config = require('../../helpers/config');
 const db = require('../' + config('db.type') + '/post');
@@ -18,17 +17,15 @@ post.create = async function(fields) {
   }
   let out = { board: fields['boardName'], post: query['insertId'] },
       post = await db.read(out.board, out.post);
-  delete post['posts_sticked'];
-  delete post['posts_locked'];
-  delete post['posts_cycled'];
+  delete post['options'];
   if (config('fs.cache.json')) {
     try {
-      let file = FS.readSync(out.board + '/res/' + post['posts_thread'] + '.json');
+      let file = FS.readSync(out.board + '/res/' + post['thread'] + '.json');
       file = JSON.parse(file);
       Array.prototype.push.apply(file, post);
-      FS.writeSync(out.board + '/res/' + post['posts_thread'] + '.json', JSON.stringify(file));
+      FS.writeSync(out.board + '/res/' + post['thread'] + '.json', JSON.stringify(file));
     } catch (e) {
-      await thread.regenerateJSON(out.board, post['posts_thread']);
+      await thread.regenerateJSON(out.board, post['thread']);
     }
   }
   return post;

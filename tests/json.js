@@ -79,7 +79,7 @@ describe('[JSON] Post-модель', function () {
 
   it('создаёт пост на доске', function () {
     return Post.create(fields.correct).then(function (post) {
-      postId = post['posts_id'];
+      postId = post['id'];
       assert(post.constructor.name === 'RowDataPacket');
     });
   });

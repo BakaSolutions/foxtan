@@ -2,10 +2,10 @@ const config = require('../../helpers/config');
 const Tools = require('../../helpers/tools');
 const db = require('../' + config('db.type') + '/board');
 
-let boards = [];
+let boards = {};
 
 function clearBoardsCache() {
-  boards = [];
+  boards = {};
 }
 
 config.on('board', clearBoardsCache);
@@ -54,23 +54,31 @@ Board.read = async function (boardName) {
  * @return {Array} -- board entries
  */
 Board.readAll = async function (includeHidden) {
-  if (boards.length > 1) {
+  /*let boardNames = Object.keys(boards);
+  if (boardNames.length > 1) {
     if (includeHidden) {
       return boards;
     }
-    return boards.filter(function(board) {
-      return (!!board.hidden) === false;
+    return boardNames.filter(function(boardName) {
+      if (!!boards[boardName].hidden === false) {
+        return boards[boardName];
+      }
     });
-  }
+  }*/ // TODO: Better caching
   let queryData = await db.readAll(includeHidden);
   if (!queryData) {
-    return [];
+    return {};
   }
-  return boards = queryData.map(function(board) {
+  queryData.map(function(board) {
     let settings = Tools.merge(config('board'), config('boards.' + board.uri));
     board = Tools.merge(board, settings);
     return Tools.sortObject(board);
+  }).map(function(board) {
+    let uri = board.uri;
+    delete board.uri;
+    boards[uri] = Tools.sortObject(board);
   });
+  return boards = Tools.sortObject(boards);
 };
 
 /**
@@ -126,10 +134,8 @@ Board.incrementCounter = async function(boardName, counter = 1) {
  */
 Board.getCounters = async function (boardNames) {
   if (typeof boardNames === 'undefined') {
-    boardNames = await Board.readAll();
-    boardNames = boardNames.map(function(board) {
-      return board.uri;
-    })
+    let boards = await Board.readAll();
+    boardNames = Object.keys(boards);
   }
   let counters = await db.getCounters(boardNames);
   return Tools.sortObject(counters);

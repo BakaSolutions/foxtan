@@ -4,27 +4,28 @@ const db = require('../sql'),
 let board = module.exports = {},
   queries = {
     create: 'CREATE TABLE IF NOT EXISTS ?? (' +
-      '`posts_id` int(11) unsigned NOT NULL AUTO_INCREMENT,' +
-      '`posts_thread` int(11) unsigned DEFAULT NULL,' +
-      '`posts_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
-      '`posts_email` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
-      '`posts_subject` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
-      '`posts_tripcode` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
-      '`posts_capcode` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
-      '`posts_body` longtext COLLATE utf8mb4_unicode_ci,' +
-      '`posts_bodymarkup` longtext COLLATE utf8mb4_unicode_ci,' +
-      '`posts_password` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
-      '`posts_files` mediumtext COLLATE utf8mb4_unicode_ci,' +
-      '`posts_filesamount` tinyint(4) unsigned DEFAULT NULL,' +
-      '`posts_fileshash` mediumtext COLLATE utf8mb4_unicode_ci,' +
-      '`posts_sageru` tinyint(4) DEFAULT NULL,' +
-      '`posts_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,' +
-      '`posts_sticked` tinyint(4) DEFAULT NULL,' +
-      '`posts_locked` tinyint(4) DEFAULT NULL,' +
-      '`posts_cycled` tinyint(4) DEFAULT NULL,' +
-      '`posts_embed` mediumtext COLLATE utf8mb4_unicode_ci,' +
-      'PRIMARY KEY (`posts_id`),' +
-      'UNIQUE KEY `posts_id_UNIQUE` (`posts_id`)' +
+      '`id` int(11) unsigned NOT NULL AUTO_INCREMENT,' +
+      '`thread` int(11) unsigned DEFAULT NULL,' +
+      '`name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
+      '`email` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
+      '`subject` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
+      '`tripcode` varchar(24) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
+      '`capcode` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
+      '`body` longtext COLLATE utf8mb4_unicode_ci,' +
+      '`bodymarkup` longtext COLLATE utf8mb4_unicode_ci,' +
+      '`password` varchar(42) COLLATE utf8mb4_unicode_ci DEFAULT NULL,' +
+      '`files` mediumtext COLLATE utf8mb4_unicode_ci,' +
+      '`filesamount` tinyint(4) unsigned DEFAULT NULL,' +
+      '`fileshash` mediumtext COLLATE utf8mb4_unicode_ci,' +
+      '`sageru` tinyint(4) DEFAULT NULL,' +
+      '`lastbump` datetime DEFAULT NULL,' +
+      '`options` tinyint(4) DEFAULT NULL,' +
+      '`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,' +
+      '`updated_at` datetime DEFAULT NULL,' +
+      '`bumped_at` datetime DEFAULT NULL,' +
+      '`deleted_at` datetime DEFAULT NULL,' +
+      'PRIMARY KEY (`id`),' +
+      'UNIQUE KEY `id_UNIQUE` (`id`)' +
       ') ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;'
   };
 

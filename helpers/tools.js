@@ -5,6 +5,34 @@ const merge = require('merge');
 let tools = module.exports = {},
   toString = Object.prototype.toString;
 
+Object.defineProperty(tools, 'consts', {
+  value: {
+    threadOptions: {
+      LOCKED: 1,
+      STICKED: 2,
+      CYCLED: 4
+    }
+  },
+  writable: false,
+  enumerable: false,
+  configurable: false
+});
+
+
+tools.createBitMask = function (bits, params) {
+  let out = 0;
+  for (let param in params) {
+    if (params[param]) {
+      out += bits[param];
+    }
+  }
+  return out.toString(2);
+};
+
+tools.checkBitMask = function (bit, mask) {
+  return !!(bit & mask);
+};
+
 /**
  * Requires all files in a defined directory
  * @param src

@@ -4,7 +4,8 @@ const Common = require('../common'),
 let router = module.exports = require('express').Router();
 
 router.get("/boards.json", async function (req, res) {
-  let out = await model.readAll();
+  let includeHidden = !!req.query.includeHidden;
+  let out = await model.readAll(includeHidden);
   res.json(out);
 });
 

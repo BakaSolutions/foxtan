@@ -19,8 +19,8 @@ post.create = async function(fields) {
     ? markup.toHTML(text)
     : null;
   return db.promisify(function (resolve, reject) {
-    db.query('INSERT INTO ?? (posts_thread, posts_name, posts_email, posts_subject, posts_tripcode, posts_capcode,' +
-        'posts_body, posts_bodymarkup, posts_password, posts_sageru) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    db.query('INSERT INTO ?? (thread, name, email, subject, tripcode, capcode,' +
+        'body, bodymarkup, password, sageru) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       ['posts_' + boardName, threadNumber, name, email, subject, tripcode, capcode, text, text_markup, password, sageru], async function (err, result) {
           if (err) return reject(err);
           await board.incrementCounter(boardName);
@@ -37,7 +37,7 @@ post.create = async function(fields) {
  */
 post.read = async function(board, id) {
   return db.promisify(function (resolve, reject) {
-    db.query('SELECT * FROM ?? WHERE posts_id = ? LIMIT 1', ['posts_' + board, id], function (err, queryData) {
+    db.query('SELECT * FROM ?? WHERE id = ? LIMIT 1', ['posts_' + board, id], function (err, queryData) {
       if (err) reject(err);
       resolve(
         typeof queryData !== 'undefined'
@@ -68,12 +68,12 @@ post.delete = function(board, id, password) {
     if (!out.exists) {
       return resolve(out);
     }
-    out.isPost = psto['posts_thread'] !== null;
-    out.thread = psto['posts_thread'];
-    if (password && (psto['posts_password'] !== password || !out.isPost)) {
+    out.isPost = psto['thread'] !== null;
+    out.thread = psto['thread'];
+    if (password && (psto['password'] !== password || !out.isPost)) {
       return resolve(out);
     }
-    db.query('DELETE FROM ?? WHERE (`posts_id` = ? AND `posts_thread` IS NOT NULL)', ['posts_' + board, id], function (err, result) {
+    db.query('DELETE FROM ?? WHERE (`id` = ? AND `thread` IS NOT NULL)', ['posts_' + board, id], function (err, result) {
       if (err) {
         out.result = err;
         return reject(out);

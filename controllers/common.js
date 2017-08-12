@@ -29,9 +29,7 @@ common.throw = function(res, status, msg) {
  * @returns {*}
  */
 common.removeInfo = function(post) {
-  delete post['posts_sticked'];
-  delete post['posts_locked'];
-  delete post['posts_cycled'];
+  delete post['options'];
   return post;
 };
 

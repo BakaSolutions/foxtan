@@ -248,38 +248,40 @@ function testMySQL() {
       correct: {
         login: 'adminium_testo',
         password: 'futureGadgetLab',
-        role: {
-          "*": "ADMIN"
-        }
+        role: 30
       }
     };
     fields.incorrect = {
+      __proto__: fields.correct,
       password: 'tuft'
     };
 
     it('регистрирует тестового юзера', async function () {
-      let query = await User.create(fields.correct);
+      let query = await User.create(fields.correct).catch(function (err) {
+        assert(err.code === 'ER_DUP_ENTRY')
+      });
       assert(query.constructor.name === 'OkPacket');
     });
 
     it('не регистрирует дубликат тестового юзера', async function () {
-      let query = await User.create(fields.incorrect);
-      assert(query.affectedRows === 0);
+      await User.create(fields.incorrect).catch(function (err) {
+        assert(err.code === 'ER_DUP_ENTRY')
+      });
     });
 
-    it('не регистрирует дубликат тестового юзера', async function () {
+    it('читает тестового юзера', async function () {
       let query = await User.read(fields.correct.login);
       assert(query.role === fields.correct.role);
     });
 
     it('удаляет тестового юзера', async function () {
-      let query = await User.delete(fields.correct);
-      assert(query.constructor.name === 'OkPacket', '(не существует?)');
+      let query = await User.delete(fields.correct.login);
+      assert(query.ok, '(не существует?)');
     });
 
-    it('не удаляет несуществующегю тестового юзера', async function () {
-      let query = await User.delete(fields.incorrect);
-      assert(query.affectedRows === 0);
+    it('не удаляет несуществующего тестового юзера', async function () {
+      let query = await User.delete(fields.incorrect.login);
+      assert(!query.ok);
     });
 
   });

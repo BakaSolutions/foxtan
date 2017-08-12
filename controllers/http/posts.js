@@ -23,7 +23,7 @@ router.post("/api/post.create", async function (req, res) {
   await Common.parseForm(req);
   let query = await model.create(req.body);
   if (req.body.redirect) {
-    return res.redirect(303, '/'+req.body.boardName+'/res/'+query['posts_thread']+'.json')
+    return res.redirect(303, '/'+req.body.boardName+'/res/'+query['thread']+'.json')
   }
   res.status(201).json(query);
 });

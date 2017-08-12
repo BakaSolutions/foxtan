@@ -10,9 +10,15 @@ let thread = module.exports = {};
  * @return {Object}
  */
 thread.create = async function(fields) {
+  fields.options = Tools.createBitMask(Tools.consts.threadOptions, {
+    LOCKED: fields.locked,
+    STICKED: fields.sticked,
+    CYCLED: fields.cycled
+  });
   let query = await db.create(fields);
-  if(!query)
+  if (!query) {
     return false;
+  }
   let out = { board: fields['boardName'], thread: query['insertId'] };
   thread = await db.read(out.board, out.thread);
   if (config('fs.cache.json')) {
@@ -43,6 +49,12 @@ thread.read = async function(board, thread_id) {
     thread = await db.read(board, thread_id);
   }
   return thread;
+};
+
+thread.readPage = async function(board, page) {
+  let limit = config('board.' + board + '.threadsPerPage', config('board.threadsPerPage'));
+  let offset = limit * page;
+  return await db.readPage(board, offset, limit);
 };
 
 /**
