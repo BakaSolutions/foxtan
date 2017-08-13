@@ -54,7 +54,15 @@ thread.read = async function(board, thread_id) {
 thread.readPage = async function(board, page) {
   let limit = config('board.' + board + '.threadsPerPage', config('board.threadsPerPage'));
   let offset = limit * page;
-  return await db.readPage(board, offset, limit);
+  let query = await db.readPage(board, offset, limit);
+  if (query.length) {
+    for (let threadItem of query) {
+      let posts = await thread.read(board, threadItem.id);
+      threadItem.opPost = posts.shift();
+      threadItem.lastPosts = posts.slice(-config('board.' + board + '.lastPostsNumber', config('board.lastPostsNumber')));
+    }
+  }
+  return query;
 };
 
 /**

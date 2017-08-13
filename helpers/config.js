@@ -9,6 +9,7 @@ let config = {
     captchaQuota: 24, // + 1 captchas
     defaultUserName: "",
     launchDate: +new Date("2015-12-31T17:00:00Z") / 1000,
+    lastPostsNumber: 3,
     maxFileCount: 0, // files
     maxFileSize: 1024 * 1024 * 20, // 20 Mb
     postQuota: 1, // post in `postTimeQuota`
