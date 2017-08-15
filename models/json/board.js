@@ -39,7 +39,7 @@ Board.create = async function (fields) {
  */
 Board.read = async function (boardName) {
   // TODO: read a board entry from `boards`
-  let queryData = await db.read(boardName);
+  let queryData = await db.readOne(boardName);
   if (!queryData) {
     return false;
   }

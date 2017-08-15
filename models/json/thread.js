@@ -10,11 +10,6 @@ let thread = module.exports = {};
  * @return {Object}
  */
 thread.create = async function(fields) {
-  fields.options = Tools.createBitMask(Tools.consts.threadOptions, {
-    LOCKED: fields.locked,
-    STICKED: fields.sticked,
-    CYCLED: fields.cycled
-  });
   let query = await db.create(fields);
   if (!query) {
     return false;
@@ -46,7 +41,7 @@ thread.read = async function(board, thread_id) {
     }
   }
   if (!thread) {
-    thread = await db.read(board, thread_id);
+    thread = await db.readOne(board, thread_id, null, true);
   }
   return thread;
 };
@@ -54,15 +49,8 @@ thread.read = async function(board, thread_id) {
 thread.readPage = async function(board, page) {
   let limit = config('board.' + board + '.threadsPerPage', config('board.threadsPerPage'));
   let offset = limit * page;
-  let query = await db.readPage(board, offset, limit);
-  if (query.length) {
-    for (let threadItem of query) {
-      let posts = await thread.read(board, threadItem.id);
-      threadItem.opPost = posts.shift();
-      threadItem.lastPosts = posts.slice(-config('board.' + board + '.lastPostsNumber', config('board.lastPostsNumber')));
-    }
-  }
-  return query;
+  let lastPostsNum = config('board.' + board + '.lastPostsNumber', config('board.lastPostsNumber'));
+  return await db.readPage(board, lastPostsNum, limit, offset);
 };
 
 /**
@@ -92,8 +80,8 @@ thread.update = async function(board, thread_id, post_id) {
  * @return {Object} query
  */
 thread.regenerateJSON = async function(board, thread_id) {
+  console.log(thread_id);
   if (!Tools.isNumber(thread_id)) {
-    console.log(thread_id);
     throw new Error('Trying to regenerate something unexistable!');
   }
   let pattern = 'fs.cache.json';
@@ -101,8 +89,10 @@ thread.regenerateJSON = async function(board, thread_id) {
     console.log('Ni-paa~! Enable ' + pattern + ' in your config to use this feature.');
     return false;
   }
-  let query = await db.regenerateJSON(board, thread_id);
-  FS.writeSync(board + '/res/' + thread_id + '.json', JSON.stringify(query));
+  let query = await db.readOne(board, thread_id);
+  if (query) {
+    FS.writeSync(board + '/res/' + thread_id + '.json', JSON.stringify(query));
+  }
   return query;
 };
 
@@ -115,7 +105,7 @@ thread.regenerateJSON = async function(board, thread_id) {
  */
 thread.delete = async function(board, thread_id, password) {
   let query = await db.delete(board, thread_id, password);
-  if (query.ok && query.isThread && config('fs.cache.json')) {
+  if (query && query.ok/* && query.isThread*/ && config('fs.cache.json')) {
     FS.unlinkSync(board + '/res/' + thread_id + '.json');
   }
   return query;

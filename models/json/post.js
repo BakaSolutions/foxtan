@@ -11,21 +11,22 @@ let post = module.exports = {};
  * @return {Object}
  */
 post.create = async function(fields) {
+  fields.thread = +fields.thread;
   let query = await db.create(fields);
   if (!query) {
     return false;
   }
-  let out = { board: fields['boardName'], post: query['insertId'] },
-      post = await db.read(out.board, out.post);
-  delete post['options'];
+  let out = { board: fields['boardName'], post: query['insertId'] };
+  let post = await db.readOne(out.board, out.post);
+  delete post.options;
   if (config('fs.cache.json')) {
     try {
-      let file = FS.readSync(out.board + '/res/' + post['thread'] + '.json');
+      let file = FS.readSync(out.board + '/res/' + post.thread + '.json');
       file = JSON.parse(file);
       Array.prototype.push.apply(file, post);
-      FS.writeSync(out.board + '/res/' + post['thread'] + '.json', JSON.stringify(file));
+      FS.writeSync(out.board + '/res/' + post.thread + '.json', JSON.stringify(file));
     } catch (e) {
-      await thread.regenerateJSON(out.board, post['thread']);
+      await thread.regenerateJSON(out.board, post.thread);
     }
   }
   return post;
@@ -39,7 +40,7 @@ post.create = async function(fields) {
  */
 post.read = async function(board, post_id) {
   //TODO: Read from .json if exists
-  let queryData = await db.read(board, post_id);
+  let queryData = await db.readOne(board, post_id);
   if (queryData === null || typeof queryData === 'undefined' || !queryData) {
     return [];
   }

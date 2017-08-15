@@ -64,9 +64,7 @@ router.post("/api/thread.delete", async function (req, res) {
   let out = await model.delete(req.body.boardName, req.body.postNumber, req.body.password);
   if (out.ok) {
     return res.status(200).json({
-      "ok": out.result.constructor.name === 'OkPacket'
-        ? out.result.affectedRows
-        : 0
+      "ok": out.ok
     });
   }
   Common.throw(res, 200, out.exists

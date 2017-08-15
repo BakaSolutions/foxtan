@@ -6,13 +6,7 @@ let tools = module.exports = {},
   toString = Object.prototype.toString;
 
 Object.defineProperty(tools, 'consts', {
-  value: {
-    threadOptions: {
-      LOCKED: 1,
-      STICKED: 2,
-      CYCLED: 4
-    }
-  },
+  value: {},
   writable: false,
   enumerable: false,
   configurable: false

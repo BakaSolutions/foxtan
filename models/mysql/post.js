@@ -1,19 +1,16 @@
 const db = require('../sql'),
   board = require('./board'),
-  markup = require('../../core/markup'),
-  Tools = require('../../helpers/tools');
+  markup = require('../../core/markup');
 
-let post = module.exports = {};
+let Post = module.exports = {};
 
 /**
  * Creates a post
  * @param {Object} fields
  * @return {Promise}
  */
-post.create = async function(fields) {
+Post.create = async function (fields) {
   let { boardName, threadNumber, name, email, subject, tripcode, capcode, text, password, sageru } = fields;
-  if (!Tools.isNumber(threadNumber))
-    return false;
   sageru = sageru? 1 : null;
   let text_markup = text
     ? markup.toHTML(text)
@@ -30,25 +27,83 @@ post.create = async function(fields) {
 };
 
 /**
+ * Reads posts
+ * @param {String} board
+ * @param {Number} id
+ * @param {Boolean} withOp
+ * @param {String} [order]
+ * @param {String} [orderBy]
+ * @param {Number} [limit]
+ * @param {Number} [offset]
+ * @return {Promise}
+ */
+Post.read = async function (board, id, withOp, order, orderBy, limit, offset) {
+  let query = 'SELECT * FROM ?? WHERE `id` = ?';
+  if (withOp) query += ' OR (`id` = ? AND `thread` = ?)';
+  if (order) {
+    query += ' ORDER BY ?';
+    if (order === 'ASC')  query += ' ASC';
+    if (order === 'DESC') query += ' DESC';
+  }
+  if (limit)  query += ' LIMIT ?';
+  if (offset) query += ' OFFSET ?';
+
+  let params = ['posts_' + board, id];
+  if (withOp) params.push(id, id);
+  if (order) params.push(orderBy);
+  if (limit)  params.push(limit);
+  if (offset) params.push(offset);
+  return db.promisify(function (resolve, reject) {
+    db.query(query, params, function (err, queryData) {
+      if (err) return reject(err);
+      queryData = queryData.map(function (post, i) {
+        if (!post.thread) {
+          post.thread = post.id;
+        }
+        return post;
+      });
+      resolve(queryData || []);
+    })
+  })
+};
+
+/**
  * Reads a post with defined id
  * @param {String} board
  * @param {Number} id
  * @return {Promise}
  */
-post.read = async function(board, id) {
-  return db.promisify(function (resolve, reject) {
-    db.query('SELECT * FROM ?? WHERE id = ? LIMIT 1', ['posts_' + board, id], function (err, queryData) {
-      if (err) reject(err);
-      resolve(
-        typeof queryData !== 'undefined'
-          ? queryData[0] || []
-          : null
-      );
-    })
-  });
+Post.readOne = async function (board, id) {
+  return (await Post.read(board, id, true, null, null, 1))[0] || false;
 };
 
-post.update = function(board, thread_id, post_id, fields) {
+/**
+ * Reads last `limit` posts in a `id` thread
+ * @param {String} board
+ * @param {Number} id
+ * @param {Boolean} withOp
+ * @param {Number} [limit]
+ * @param {Number} [offset]
+ * @return {Promise}
+ */
+Post.readLast = async function (board, id, withOp, limit, offset) {
+  return (await Post.read(board, id, withOp, 'DESC', 'created_at', limit, offset)).reverse();
+};
+
+/**
+ * Reads `limit` posts
+ * @param {String} board
+ * @param {Number} id
+ * @param {Boolean} [withOp = true]
+ * @param {Number} [limit]
+ * @param {Number} [offset]
+ * @return {Promise}
+ */
+Post.readAll = async function (board, id, withOp = true, limit, offset) {
+  return await Post.read(board, id, withOp, null, null, limit, offset);
+};
+
+Post.update = function(board, post_id, fields) {
   return db.promisify(function (resolve, reject) {
     // TODO: Create post.update
   });
@@ -61,9 +116,9 @@ post.update = function(board, thread_id, post_id, fields) {
  * @param {String} password
  * @return {Promise}
  */
-post.delete = function(board, id, password) {
+Post.delete = function (board, id, password) {
   return db.promisify(async function (resolve, reject) {
-    let psto = await post.read(board, id),
+    let psto = await Post.readOne(board, id),
         out = {ok: 0, exists: typeof psto === 'object' && !Array.isArray(psto)};
     if (!out.exists) {
       return resolve(out);

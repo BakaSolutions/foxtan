@@ -1,84 +1,120 @@
 const db = require('../sql'),
-  post = require('./post'),
-  board = require('./board'),
+  Post = require('./post'),
   markup = require('../../core/markup');
 
-let thread = module.exports = {};
+let Thread = module.exports = {};
 
 /**
  * Creates an "original post" (new thread)
  * @param {Object} fields
  * @return {Promise}
  */
-thread.create = async function (fields) {
-  let { boardName, name, email, subject, tripcode, capcode, text, password, sageru, options } = fields;
-  let bodymarkup = text
-    ? markup.toHTML(text)
-    : null;
-  sageru = sageru? 1 : null;
-  options = options || 0;
-  return db.promisify(function (resolve, reject) {
-    db.query('INSERT INTO ?? (name, email, subject, tripcode, capcode, body, bodymarkup, password, sageru, options) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      ['posts_' + boardName, name, email, subject, tripcode, capcode, text, bodymarkup, password, sageru, options], async function(err, result) {
+Thread.create = async function (fields) {
+  fields.bodymarkup = fields.text
+      ? markup.toHTML(fields.text)
+      : null;
+  fields.sageru = fields.sageru
+      ? 1
+      : null;
+  let post = await Post.create(fields);
+  if (post.constructor.name !== 'OkPacket') {
+    return post;
+  }
+  let { boardName, unbumpable, locked, sticked, cycled } = fields;
+  let thread = await db.promisify(function (resolve, reject) {
+    db.query('INSERT INTO ?? (board_name, thread_id, unbumpable, locked, sticked, cycled) VALUES (?, ?, ?, ?, ?, ?)',
+        ['threads_' + boardName, boardName, post.insertId, unbumpable, locked, sticked, cycled], async function(err, result) {
           if (err) return reject(err);
-          await board.incrementCounter(boardName);
           resolve(result);
         });
+  });
+  return post;
+};
+
+/**
+ * Reads threads
+ * @param {String} board
+ * @param {Number} [id]
+ * @param {Boolean} [withPosts]
+ * @param {Number} [lastPostsNum]
+ * @param {Boolean} [withSeparatedOp]
+ * @param {String} [order]
+ * @param {String} [orderBy]
+ * @param {Number} [limit]
+ * @param {Number} [offset]
+ * @return {Promise}
+ */
+Thread.read = async function (board, id, withPosts, lastPostsNum, withSeparatedOp, order, orderBy, limit, offset) {
+  let query = 'SELECT * FROM ??';
+  if (id) query += ' WHERE `thread_id` = ?';
+  if (order) {
+    query += ' ORDER BY ?';
+    if (order === 'ASC')  query += ' ASC';
+    if (order === 'DESC') query += ' DESC';
+  }
+  if (limit)  query += ' LIMIT ?';
+  if (offset) query += ' OFFSET ?';
+
+  let params = ['threads_' + board];
+  if (id)     params.push(id);
+  if (order)  params.push(orderBy);
+  if (limit)  params.push(limit);
+  if (offset) params.push(offset);
+  return db.promisify(function (resolve, reject) {
+    db.query(query, params, function (err, queryData) {
+      if (err) return reject(err);
+      resolve(queryData);
+    })
+  }).then(async function (threads) {
+    if (!threads || !threads.length) {
+      return threads;
+    }
+    if (withPosts) {
+      for (let i = 0; i < threads.length; i++) {
+        if (withSeparatedOp) {
+          let opPost = await Post.readOne(board, threads[i]['thread_id']);
+          threads[i].opPost = opPost;
+          let posts = await Post.readLast(board, threads[i]['thread_id'], false, lastPostsNum, 1);
+          threads[i].lastPosts = posts;
+        } else {
+          let posts = await Post.readLast(board, threads[i]['thread_id'], true, lastPostsNum);
+          threads[i].posts = posts;
+        }
+      }
+    }
+    return threads;
   });
 };
 
 /**
- * Reads a thread with defined id
+ * Reads a thread with posts and info by defined id
  * @param {String} board
  * @param {Number} id
+ * @param {Boolean} [separatedOp]
+ * @param {Number} [lastPostsNum]
  * @return {Promise}
  */
-thread.read = function(board, id) {
-  return db.promisify(function (resolve, reject) {
-    db.query('SELECT * FROM ?? WHERE (`id` = ? AND `thread` IS NULL) OR `thread` = ?', ['posts_' + board, id, id], function (err, queryData) {
-      if (err) reject(err);
-      resolve(queryData);
-    })
-  });
+Thread.readOne = async function (board, id, lastPostsNum, separatedOp) {
+  return (await Thread.read(board, id, true, lastPostsNum, separatedOp, null, 1))[0] || false;
 };
 
 /**
  * Reads all OPs for a board
  * @param {String} board
+ * @param {Boolean} [withPosts]
+ * @param {Number} [lastPostsNum]
+ * @param {String} [order]
+ * @param {String} [orderBy]
+ * @param {Number} [limit]
+ * @param {Number} [offset]
  * @return {Promise}
  */
-thread.readAll = function(board) {
-  return db.promisify(function (resolve, reject) {
-    db.query('SELECT * FROM ?? WHERE thread IS NULL', ['posts_' + board], function (err, queryData) {
-      if (err) reject(err);
-      resolve(queryData);
-    });
-  });
+Thread.readAll = async function (board, withPosts, lastPostsNum, order, orderBy, limit, offset) {
+  return await Thread.read(board, null, withPosts, lastPostsNum, true, order, orderBy, limit, offset);
 };
 
-thread.readPage = async function(board, offset, limit) {
-  return db.promisify(function (resolve, reject) {
-    db.query('SELECT * FROM ?? WHERE thread IS NULL ORDER BY bumped_at LIMIT ? OFFSET ?', ['posts_' + board, limit, offset], function (err, queryData) {
-      if (err) reject(err);
-      resolve(queryData);
-    });
-  });
-};
-
-/**
- * Reads all posts from thread after defined id (including post with id)
- * @param {String} board
- * @param {Number} thread_id
- * @param {Number} post_id
- * @return {Promise}
- */
-thread.update = function(board, thread_id, post_id) {
-  return db.promisify(function (resolve, reject) {
-    db.query('SELECT * FROM ?? WHERE (thread = ? AND id >= ? )', ['posts_' + board, thread_id, post_id], function (err, queryData) {
-      if (err) reject(err);
-      resolve(queryData);
-    })
-  });
+Thread.readPage = async function (board, lastPostsNum, limit, offset) {
+  return (await Thread.read(board, null, true, lastPostsNum, true, 'DESC', 'updated_at', limit, offset)).reverse();
 };
 
 /**
@@ -88,10 +124,11 @@ thread.update = function(board, thread_id, post_id) {
  * @param {String} password
  * @return {Promise}
  */
-thread.delete = function (board, id, password) {
+Thread.delete = function (board, id, password) {
   return db.promisify(async function (resolve, reject) {
-    let psto = await post.read(board, id),
-        out = {ok: 0, exists: typeof psto === 'object' && !Array.isArray(psto)};
+    let psto = await Post.readOne(board, id);
+    let out = {ok: 0, exists: typeof psto === 'object' && !Array.isArray(psto)};
+    console.log(psto, out);
     if (!out.exists) {
       return resolve(out);
     }
@@ -111,23 +148,8 @@ thread.delete = function (board, id, password) {
   });
 };
 
-/**
- * Reads all posts (including OP) from thread with defined id
- * @param {String} board
- * @param {Number} id
- * @return {Promise}
- */
-thread.regenerateJSON = function(board, id) {
-  return db.promisify(function (resolve, reject) {
-    db.query('SELECT * FROM ?? WHERE (`id` = ? OR `thread` = ?)', ['posts_' + board, id, id], function (err, queryData) {
-      if (err) reject(err);
-      resolve(queryData);
-    });
-  });
-};
-
 /*let start = +new Date(); //TODO: tests
 for (let i = 0; i < 100000; i++) {
-  thread.read('test', 1);
+  Thread.read('test', 1);
 }
 console.log(+new Date() - start);*/
