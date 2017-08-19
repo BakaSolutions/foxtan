@@ -2,6 +2,7 @@ const FS = require('../../helpers/fs');
 const config = require('../../helpers/config');
 const Tools = require('../../helpers/tools');
 const db = require('../' + config('db.type') + '/thread');
+const Board = require('../json/board');
 let thread = module.exports = {};
 
 /**
@@ -47,10 +48,37 @@ thread.read = async function(board, thread_id) {
 };
 
 thread.readPage = async function(board, page) {
+  let out = {};
   let limit = config('board.' + board + '.threadsPerPage', config('board.threadsPerPage'));
   let offset = limit * page;
   let lastPostsNum = config('board.' + board + '.lastPostsNumber', config('board.lastPostsNumber'));
-  return await db.readPage(board, lastPostsNum, limit, offset);
+  out.threads = await db.readPage(board, lastPostsNum, limit, offset);
+
+  let lastPostNumber = await Board.getCounters(board);
+  out.lastPostNumber = lastPostNumber[board];
+  out.currentPage = page;
+  out.pageCount = await thread.pageCount(board, true);
+  return out;
+};
+
+thread.pageCount = async function (board, numOnly) {
+  let limit = config('board.' + board + '.threadsPerPage', config('board.threadsPerPage'));
+  let threadCount = await thread.countThreads(board, true);
+  let pageCount = Math.floor(threadCount / limit + 1);
+  if (numOnly) {
+    return pageCount;
+  }
+  let out = {};
+  out.pageCount = pageCount;
+  return out;
+};
+
+thread.countThreads = async function (board, numOnly) {
+  let query = await db.countThreads(board);
+  if (numOnly) {
+    return query.threadCount || 0;
+  }
+  return query || { threadCount: 0 };
 };
 
 /**

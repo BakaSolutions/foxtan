@@ -173,9 +173,8 @@ tools.clone = function (value) {
     return value.slice(0).map(val => tools.clone(val));
   } else if (tools.isObject(value)) {
     return merge.recursive(true, value);
-  } else {
-    return value;
   }
+  return value;
 };
 
 tools.sortObject = function(object, order) {
@@ -195,15 +194,3 @@ tools.sortObject = function(object, order) {
   }
   return out;
 };
-
-/*tools.toPromise = function (ctx, func, ...args) {
-  return new Promise(function (resolve, reject) {
-    args.push(function (err, res) {
-      if (err) {
-        reject(err);
-      }
-      resolve(res);
-    });
-    func.apply(ctx, args);
-  });
-};*/

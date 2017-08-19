@@ -117,6 +117,15 @@ Thread.readPage = async function (board, lastPostsNum, limit, offset) {
   return (await Thread.read(board, null, true, lastPostsNum, true, 'DESC', 'updated_at', limit, offset)).reverse();
 };
 
+Thread.countThreads = async function (board) {
+  return db.promisify(function (resolve, reject) {
+    db.query('SELECT count(*) AS threadCount FROM ??', ['threads_' + board], function (err, queryData) {
+      if (err) return reject(err);
+      resolve(queryData[0]);
+    })
+  })
+};
+
 /**
  * Deletes a post or a thread (with its' posts) with defined id
  * @param {String} board

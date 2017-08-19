@@ -3,18 +3,31 @@ const Common = require('../common'),
 
 let router = module.exports = require('express').Router();
 
-router.get("/:board/:page.json", async function (req, res) {
+router.get("/:board/pageCount.json", async function (req, res) {
   try {
-    let out = await model.readPage(req.params.board, req.params.page);
+    let out = await model.pageCount(req.params.board, false);
     if (typeof out !== 'object' || out.length < 1) {
       return Common.throw(res, 404);
     }
-    out.forEach(function (post) {
-      delete post['password'];
-      if(post['thread'] !== null) {
-        Common.removeInfo(post);
+    res.status(200).json(out);
+  } catch (e) {
+    console.log(e);
+    return Common.throw(res, 500);
+  }
+});
+
+router.get("/:board/:page.json", async function (req, res) {
+  try {
+    let out = await model.readPage(req.params.board, +req.params.page);
+    if (typeof out !== 'object' || out.length < 1) {
+      return Common.throw(res, 404);
+    }
+    for (let i = 0; i < out.threads.length; i++) {
+      delete out.threads[i].password;
+      if(out.threads[i].thread !== null) {
+        Common.removeInfo(out.threads[i]);
       }
-    });
+    }
     res.status(200).json(out);
   } catch (e) {
     return Common.throw(res, 500);
