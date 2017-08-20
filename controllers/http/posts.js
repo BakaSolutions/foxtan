@@ -15,7 +15,7 @@ router.post("/api/post.get", async function (req, res) {
   if (!out || out.length < 1) {
     return Common.throw(res, 404);
   }
-  Common.removeInfo(out);
+  Common.removeInfoFromPost(out);
   res.json(out);
 });
 

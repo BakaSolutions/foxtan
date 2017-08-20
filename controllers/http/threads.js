@@ -11,7 +11,6 @@ router.get("/:board/pageCount.json", async function (req, res) {
     }
     res.status(200).json(out);
   } catch (e) {
-    console.log(e);
     return Common.throw(res, 500);
   }
 });
@@ -23,10 +22,10 @@ router.get("/:board/:page.json", async function (req, res) {
       return Common.throw(res, 404);
     }
     for (let i = 0; i < out.threads.length; i++) {
-      delete out.threads[i].password;
-      if(out.threads[i].thread !== null) {
-        Common.removeInfo(out.threads[i]);
+      for (let j = 0; j < out.threads[i].lastPosts.length; j++) {
+        Common.removeInfoFromPost(out.threads[i].lastPosts[j]);
       }
+      Common.removeInfoFromPost(out.threads[i].opPost);
     }
     res.status(200).json(out);
   } catch (e) {
@@ -40,11 +39,9 @@ router.get("/:board/res/:id.json", async function (req, res) {
     if(typeof out !== 'object' || out.length < 1) {
       return Common.throw(res, 404);
     }
-    out.forEach(function (post) {
-      delete post['password'];
-      if(post['thread'] !== null) {
-        Common.removeInfo(post);
-      }
+    Common.removeInfoFromPost(out.opPost);
+    out.posts.forEach(function (post) {
+      Common.removeInfoFromPost(post);
     });
     res.status(200).json(out);
   } catch (e) {

@@ -223,7 +223,7 @@ Board.getCounters = async function(boardNames) {
     if (i !== 0) {
       query += ' OR ';
     }
-    query += '`uri` = ?';
+    query += ' `uri` = ?';
   }
   return db.promisify(function (resolve, reject) {
     db.query(query, qArray, function (err, result) {

@@ -38,18 +38,18 @@ Post.create = async function (fields) {
  * @return {Promise}
  */
 Post.read = async function (board, id, withOp, order, orderBy, limit, offset) {
-  let query = 'SELECT * FROM ?? WHERE `id` = ?';
-  if (withOp) query += ' OR (`id` = ? AND `thread` = ?)';
+  let query = 'SELECT * FROM ?? WHERE ((`id` = ? OR `thread` = ?) AND `thread` IS NOT NULL)';
+  if (withOp) query += ' OR (`id` = ? AND `thread` IS NULL)';
   if (order) {
-    query += ' ORDER BY ?';
+    query += ' ORDER BY ??';
     if (order === 'ASC')  query += ' ASC';
     if (order === 'DESC') query += ' DESC';
   }
   if (limit)  query += ' LIMIT ?';
   if (offset) query += ' OFFSET ?';
 
-  let params = ['posts_' + board, id];
-  if (withOp) params.push(id, id);
+  let params = ['posts_' + board, id, id];
+  if (withOp) params.push(id);
   if (order) params.push(orderBy);
   if (limit)  params.push(limit);
   if (offset) params.push(offset);
@@ -87,7 +87,8 @@ Post.readOne = async function (board, id) {
  * @return {Promise}
  */
 Post.readLast = async function (board, id, withOp, limit, offset) {
-  return (await Post.read(board, id, withOp, 'DESC', 'created_at', limit, offset)).reverse();
+  let posts = await Post.read(board, id, withOp, 'DESC', 'id', limit, offset);
+  return posts.reverse();
 };
 
 /**
@@ -101,6 +102,15 @@ Post.readLast = async function (board, id, withOp, limit, offset) {
  */
 Post.readAll = async function (board, id, withOp = true, limit, offset) {
   return await Post.read(board, id, withOp, null, null, limit, offset);
+};
+
+Post.countPosts = async function (board, id) {
+  return db.promisify(function (resolve, reject) {
+    db.query('SELECT count(*) AS postCount FROM ?? WHERE thread = ? OR id = ?', ['posts_' + board, id, id], function (err, queryData) {
+      if (err) return reject(err);
+      resolve(queryData[0]);
+    })
+  })
 };
 
 Post.update = function(board, post_id, fields) {

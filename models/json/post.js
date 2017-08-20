@@ -23,7 +23,7 @@ post.create = async function(fields) {
     try {
       let file = FS.readSync(out.board + '/res/' + post.thread + '.json');
       file = JSON.parse(file);
-      Array.prototype.push.apply(file, post);
+      file.push(post);
       FS.writeSync(out.board + '/res/' + post.thread + '.json', JSON.stringify(file));
     } catch (e) {
       await thread.regenerateJSON(out.board, post.thread);

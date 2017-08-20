@@ -28,8 +28,9 @@ common.throw = function(res, status, msg) {
  * @param post
  * @returns {*}
  */
-common.removeInfo = function(post) {
+common.removeInfoFromPost = function(post) {
   delete post['options'];
+  delete post['password'];
   return post;
 };
 

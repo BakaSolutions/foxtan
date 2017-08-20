@@ -21,7 +21,7 @@ Thread.create = async function (fields) {
     return post;
   }
   let { boardName, unbumpable, locked, sticked, cycled } = fields;
-  let thread = await db.promisify(function (resolve, reject) {
+  await db.promisify(function (resolve, reject) {
     db.query('INSERT INTO ?? (board_name, thread_id, unbumpable, locked, sticked, cycled) VALUES (?, ?, ?, ?, ?, ?)',
         ['threads_' + boardName, boardName, post.insertId, unbumpable, locked, sticked, cycled], async function(err, result) {
           if (err) return reject(err);
@@ -44,7 +44,7 @@ Thread.create = async function (fields) {
  * @param {Number} [offset]
  * @return {Promise}
  */
-Thread.read = async function (board, id, withPosts, lastPostsNum, withSeparatedOp, order, orderBy, limit, offset) {
+Thread.read = async function (board, id, withPosts, lastPostsNum, withSeparatedOp, order = 'DESC', orderBy = 'updated_at', limit, offset) {
   let query = 'SELECT * FROM ??';
   if (id) query += ' WHERE `thread_id` = ?';
   if (order) {
@@ -71,15 +71,19 @@ Thread.read = async function (board, id, withPosts, lastPostsNum, withSeparatedO
     }
     if (withPosts) {
       for (let i = 0; i < threads.length; i++) {
-        if (withSeparatedOp) {
-          let opPost = await Post.readOne(board, threads[i]['thread_id']);
-          threads[i].opPost = opPost;
-          let posts = await Post.readLast(board, threads[i]['thread_id'], false, lastPostsNum, 1);
-          threads[i].lastPosts = posts;
-        } else {
-          let posts = await Post.readLast(board, threads[i]['thread_id'], true, lastPostsNum);
-          threads[i].posts = posts;
+        threads[i].opPost = await Post.readOne(board, threads[i]['thread_id']);
+        threads[i].postCount = (await Post.countPosts(board, threads[i]['thread_id'])).pageCount;
+
+        let lastPostNumber = (await Post.readLast(board, threads[i]['thread_id'], false, 1/*, 1*/))[0];
+        threads[i].lastPostNumber = lastPostNumber
+          ? lastPostNumber.id
+          : threads[i].opPost.id;
+
+        if (lastPostsNum) {
+          threads[i].lastPosts = await Post.readLast(board, threads[i]['thread_id'], false, lastPostsNum/*, 1*/);
+          continue;
         }
+        threads[i].posts = await Post.readAll(board, threads[i]['thread_id'], false);
       }
     }
     return threads;
