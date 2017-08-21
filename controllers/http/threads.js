@@ -11,7 +11,7 @@ router.get("/:board/pageCount.json", async function (req, res) {
     }
     res.status(200).json(out);
   } catch (e) {
-    return Common.throw(res, 500);
+    return Common.throw(res, 500, e);
   }
 });
 
@@ -29,7 +29,7 @@ router.get("/:board/:page.json", async function (req, res) {
     }
     res.status(200).json(out);
   } catch (e) {
-    return Common.throw(res, 500);
+    return Common.throw(res, 500, e);
   }
 });
 
@@ -45,7 +45,7 @@ router.get("/:board/res/:id.json", async function (req, res) {
     });
     res.status(200).json(out);
   } catch (e) {
-    return Common.throw(res, 500);
+    return Common.throw(res, 500, e);
   }
 });
 
@@ -58,26 +58,34 @@ router.get("/:board/catalog.json", function (req, res) {
 });
 
 router.post("/api/thread.create", async function (req, res) {
-  await Common.parseForm(req);
-  let query = await model.create(req.body);
-  if (req.body.redirect) {
-    return res.redirect(303, '/' + query.board + '/res/' + query.thread + '.json')
+  try {
+    await Common.parseForm(req);
+    let query = await model.create(req.body);
+    if (req.body.redirect) {
+      return res.redirect(303, '/' + query.board + '/res/' + query.thread + '.json')
+    }
+    return res.status(201).json(query);
+  } catch (e) {
+    return Common.throw(res, 500, e);
   }
-  return res.status(201).json(query);
 });
 
 router.post("/api/thread.delete", async function (req, res) {
-  await Common.parseForm(req);
-  if (typeof req.body.password === 'undefined' || req.body.password === '') {
-    return Common.throw(res, 200, "Please, define a password");
+  try {
+    await Common.parseForm(req);
+    if (typeof req.body.password === 'undefined' || req.body.password === '') {
+      return Common.throw(res, 200, "Please, define a password");
+    }
+    let out = await model.delete(req.body.boardName, req.body.postNumber, req.body.password);
+    if (out.ok) {
+      return res.status(200).json({
+        "ok": out.ok
+      });
+    }
+    Common.throw(res, 200, out.exists
+      ? "Wrong password"
+      : "It doesn't exist!");
+  } catch (e) {
+    return Common.throw(res, 500, e);
   }
-  let out = await model.delete(req.body.boardName, req.body.postNumber, req.body.password);
-  if (out.ok) {
-    return res.status(200).json({
-      "ok": out.ok
-    });
-  }
-  Common.throw(res, 200, out.exists
-    ? "Wrong password"
-    : "It doesn't exist!");
 });

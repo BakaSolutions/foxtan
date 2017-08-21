@@ -108,7 +108,6 @@ thread.update = async function(board, thread_id, post_id) {
  * @return {Object} query
  */
 thread.regenerateJSON = async function(board, thread_id) {
-  console.log(thread_id);
   if (!Tools.isNumber(thread_id)) {
     throw new Error('Trying to regenerate something unexistable!');
   }

@@ -39,6 +39,7 @@ let config = {
     }
   },
   log: {
+    logger: console.log,
     db: {
       noerr: /ER_(NO_SUCH_TABLE|DUP_ENTRY)/
     }

@@ -48,7 +48,7 @@ Thread.read = async function (board, id, withPosts, lastPostsNum, withSeparatedO
   let query = 'SELECT * FROM ??';
   if (id) query += ' WHERE `thread_id` = ?';
   if (order) {
-    query += ' ORDER BY ?';
+    query += ' ORDER BY ??';
     if (order === 'ASC')  query += ' ASC';
     if (order === 'DESC') query += ' DESC';
   }
@@ -74,13 +74,13 @@ Thread.read = async function (board, id, withPosts, lastPostsNum, withSeparatedO
         threads[i].opPost = await Post.readOne(board, threads[i]['thread_id']);
         threads[i].postCount = (await Post.countPosts(board, threads[i]['thread_id'])).pageCount;
 
-        let lastPostNumber = (await Post.readLast(board, threads[i]['thread_id'], false, 1/*, 1*/))[0];
+        let lastPostNumber = (await Post.readLast(board, threads[i]['thread_id'], false, 1))[0];
         threads[i].lastPostNumber = lastPostNumber
           ? lastPostNumber.id
           : threads[i].opPost.id;
 
         if (lastPostsNum) {
-          threads[i].lastPosts = await Post.readLast(board, threads[i]['thread_id'], false, lastPostsNum/*, 1*/);
+          threads[i].lastPosts = await Post.readLast(board, threads[i]['thread_id'], false, lastPostsNum);
           continue;
         }
         threads[i].posts = await Post.readAll(board, threads[i]['thread_id'], false);
@@ -141,7 +141,6 @@ Thread.delete = function (board, id, password) {
   return db.promisify(async function (resolve, reject) {
     let psto = await Post.readOne(board, id);
     let out = {ok: 0, exists: typeof psto === 'object' && !Array.isArray(psto)};
-    console.log(psto, out);
     if (!out.exists) {
       return resolve(out);
     }

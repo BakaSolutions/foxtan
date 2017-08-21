@@ -1,14 +1,18 @@
 let common = module.exports = {};
 
-const http = require('http'),
-    Busboy = require('busboy'),
-    Tools = require('../helpers/tools');
+const http = require('http');
+const Busboy = require('busboy');
+const Tools = require('../helpers/tools');
+const config = require('../helpers/config');
+
+const logger = config('log.logger');
 
 /**
  * Throws an error into a response
  * @param res
  * @param status
  * @param [msg]
+ * @param [e]
  */
 common.throw = function(res, status, msg) {
   let out = {};
@@ -19,6 +23,9 @@ common.throw = function(res, status, msg) {
     out.error = msg.code;
   } else {
     out.error = msg || http.STATUS_CODES[out.status];
+  }
+  if (out.status >= 500) {
+    logger(msg);
   }
   res.status(out.status || 200).json(out);
 };
