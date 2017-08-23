@@ -86,10 +86,10 @@ Thread.read = async function (board, id, withPosts, lastPostsNum, withSeparatedO
         }
 
         if (lastPostsNum) {
-          threads[i].lastPosts = await Post.readLast(board, threads[i]['thread_id'], false, lastPostsNum);
+          threads[i].lastPosts = await Post.readLast(board, threads[i]['thread_id'], !withSeparatedOp, lastPostsNum);
           continue;
         }
-        threads[i].posts = await Post.readAll(board, threads[i]['thread_id'], false);
+        threads[i].posts = await Post.readAll(board, threads[i]['thread_id'], !withSeparatedOp);
       }
     }
     return threads;
