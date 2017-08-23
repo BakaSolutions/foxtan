@@ -12,7 +12,7 @@ let post = module.exports = {};
  * @return {Object}
  */
 post.create = async function(fields) {
-  if (!Tools.isNumber(fields.thread)) {
+  if (!Tools.isNumber(+fields.threadNumber)) {
     return false;
   }
   let query = await db.create(fields);
