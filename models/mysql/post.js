@@ -113,6 +113,13 @@ Post.countPosts = async function (board, id) {
   })
 };
 
+Post.countOmitted = async function (board, thread_id, countPosts, lastPostsNumber) {
+  let postCount = countPosts || await Post.countPosts(board, thread_id);
+  let omitted = postCount.postCount - 1;
+  if (lastPostsNumber) omitted -= lastPostsNumber;
+  return Math.max(omitted, 0);
+};
+
 Post.update = function(board, post_id, fields) {
   return db.promisify(function (resolve, reject) {
     // TODO: Create post.update

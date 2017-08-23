@@ -71,13 +71,19 @@ Thread.read = async function (board, id, withPosts, lastPostsNum, withSeparatedO
     }
     if (withPosts) {
       for (let i = 0; i < threads.length; i++) {
-        threads[i].opPost = await Post.readOne(board, threads[i]['thread_id']);
-        threads[i].postCount = (await Post.countPosts(board, threads[i]['thread_id'])).pageCount;
+        let postCount = await Post.countPosts(board, threads[i]['thread_id']);
+        threads[i].postCount = postCount.postCount;
+        threads[i].omittedPosts = await Post.countOmitted(board, threads[i]['thread_id'], postCount, lastPostsNum);
 
+        let opPost = await Post.readOne(board, threads[i]['thread_id']);
         let lastPostNumber = (await Post.readLast(board, threads[i]['thread_id'], false, 1))[0];
         threads[i].lastPostNumber = lastPostNumber
           ? lastPostNumber.id
-          : threads[i].opPost.id;
+          : opPost.id;
+
+        if (withSeparatedOp) {
+          threads[i].opPost = opPost;
+        }
 
         if (lastPostsNum) {
           threads[i].lastPosts = await Post.readLast(board, threads[i]['thread_id'], false, lastPostsNum);
@@ -117,8 +123,8 @@ Thread.readAll = async function (board, withPosts, lastPostsNum, order, orderBy,
   return await Thread.read(board, null, withPosts, lastPostsNum, true, order, orderBy, limit, offset);
 };
 
-Thread.readPage = async function (board, lastPostsNum, limit, offset) {
-  return (await Thread.read(board, null, true, lastPostsNum, true, 'DESC', 'updated_at', limit, offset)).reverse();
+Thread.readPage = async function (board, lastPostsNum, withSeparatedOp, limit, offset) {
+  return (await Thread.read(board, null, true, lastPostsNum, withSeparatedOp, 'DESC', 'updated_at', limit, offset)).reverse();
 };
 
 Thread.countThreads = async function (board) {

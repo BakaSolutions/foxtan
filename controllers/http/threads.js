@@ -25,7 +25,9 @@ router.get("/:board/:page.json", async function (req, res) {
       for (let j = 0; j < out.threads[i].lastPosts.length; j++) {
         Common.removeInfoFromPost(out.threads[i].lastPosts[j]);
       }
-      Common.removeInfoFromPost(out.threads[i].opPost);
+      if (out.threads[i].opPost) {
+        Common.removeInfoFromPost(out.threads[i].opPost);
+      }
     }
     res.status(200).json(out);
   } catch (e) {
@@ -55,19 +57,6 @@ router.get("/:board/feed.json", function (req, res) {
 
 router.get("/:board/catalog.json", function (req, res) {
   Common.throw(res, 501);
-});
-
-router.post("/api/thread.create", async function (req, res) {
-  try {
-    await Common.parseForm(req);
-    let query = await model.create(req.body);
-    if (req.body.redirect) {
-      return res.redirect(303, '/' + query.board + '/res/' + query.thread + '.json')
-    }
-    return res.status(201).json(query);
-  } catch (e) {
-    return Common.throw(res, 500, e);
-  }
 });
 
 router.post("/api/thread.delete", async function (req, res) {

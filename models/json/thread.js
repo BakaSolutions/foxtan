@@ -52,7 +52,7 @@ thread.readPage = async function(board, page) {
   let limit = config('board.' + board + '.threadsPerPage', config('board.threadsPerPage'));
   let offset = limit * page;
   let lastPostsNum = config('board.' + board + '.lastPostsNumber', config('board.lastPostsNumber'));
-  out.threads = await db.readPage(board, lastPostsNum, limit, offset);
+  out.threads = await db.readPage(board, lastPostsNum, false, limit, offset);
 
   let lastPostNumber = await Board.getCounters(board);
   out.lastPostNumber = lastPostNumber[board];

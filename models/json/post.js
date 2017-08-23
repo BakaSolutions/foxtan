@@ -1,6 +1,7 @@
-const FS = require('../../helpers/fs');
 const thread = require('./thread');
+const FS = require('../../helpers/fs');
 const config = require('../../helpers/config');
+const Tools = require('../../helpers/tools');
 const db = require('../' + config('db.type') + '/post');
 
 let post = module.exports = {};
@@ -11,7 +12,9 @@ let post = module.exports = {};
  * @return {Object}
  */
 post.create = async function(fields) {
-  fields.thread = +fields.thread;
+  if (!Tools.isNumber(fields.thread)) {
+    return false;
+  }
   let query = await db.create(fields);
   if (!query) {
     return false;
