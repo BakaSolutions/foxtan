@@ -87,8 +87,13 @@ Post.readOne = async function (board, id) {
  * @return {Promise}
  */
 Post.readLast = async function (board, id, withOp, limit, offset) {
-  let posts = await Post.read(board, id, withOp, 'DESC', 'id', limit, offset);
-  return posts.reverse();
+  let out = [];
+  if (withOp) {
+    out.push(await Post.readOne(board, id));
+  }
+  let posts = await Post.read(board, id, false, 'DESC', 'id', limit, offset);
+  out.push(...posts.reverse());
+  return out;
 };
 
 /**
