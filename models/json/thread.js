@@ -3,6 +3,7 @@ const config = require('../../helpers/config');
 const Tools = require('../../helpers/tools');
 const db = require('../' + config('db.type') + '/thread');
 const Board = require('../json/board');
+const Post = require('../' + config('db.type') + '/post');
 let thread = module.exports = {};
 
 /**
@@ -29,7 +30,7 @@ thread.create = async function(fields) {
  * @param {Number} thread_id
  * @return {Object} query
  */
-thread.read = async function(board, thread_id) {
+thread.readOne = async function(board, thread_id) {
   let pattern = board + '/res/' + thread_id + '.json', thread;
   if (config('fs.cache.json')) {
     if (FS.existsSync(pattern)) {
@@ -42,12 +43,12 @@ thread.read = async function(board, thread_id) {
     }
   }
   if (!thread) {
-    thread = await db.readOne(board, thread_id, null, true);
+    thread = await db.readOne(board, thread_id, null, false);
   }
   return thread;
 };
 
-thread.readPage = async function(board, page) {
+thread.readPage = async function (board, page) {
   let out = {};
   let limit = config('board.' + board + '.threadsPerPage', config('board.threadsPerPage'));
   let offset = limit * page;

@@ -37,15 +37,12 @@ router.get("/:board/:page.json", async function (req, res) {
 
 router.get("/:board/res/:id.json", async function (req, res) {
   try {
-    let out = await model.read(req.params.board, req.params.id);
+    let out = await model.readOne(req.params.board, req.params.id);
     if(typeof out !== 'object' || out.length < 1) {
       return Common.throw(res, 404);
     }
-    if (out.opPost) {
-      Common.removeInfoFromPost(out.opPost);
-      out.posts.forEach(function (post) {
-        Common.removeInfoFromPost(post);
-      });
+    for (let i = 0; i < out.posts.length; i++) {
+      Common.removeInfoFromPost(out.posts[i]);
     }
     res.status(200).json(out);
   } catch (e) {
