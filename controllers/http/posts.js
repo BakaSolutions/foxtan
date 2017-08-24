@@ -7,7 +7,11 @@ let router = module.exports = require('express').Router();
 ['get', 'post'].forEach(function (method) {
   router[method]("/api/post.get", async function (req, res) {
     try {
-      await Common.parseForm(req);
+      if (method === 'post') {
+        await Common.parseForm(req);
+      } else {
+        req.body = req.query;
+      }
       let out = await Post.read(req.body.boardName, req.body.postNumber);
       if (!out || out.length < 1) {
         return Common.throw(res, 404);
