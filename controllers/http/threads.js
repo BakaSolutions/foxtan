@@ -41,10 +41,12 @@ router.get("/:board/res/:id.json", async function (req, res) {
     if(typeof out !== 'object' || out.length < 1) {
       return Common.throw(res, 404);
     }
-    Common.removeInfoFromPost(out.opPost);
-    out.posts.forEach(function (post) {
-      Common.removeInfoFromPost(post);
-    });
+    if (out.opPost) {
+      Common.removeInfoFromPost(out.opPost);
+      out.posts.forEach(function (post) {
+        Common.removeInfoFromPost(post);
+      });
+    }
     res.status(200).json(out);
   } catch (e) {
     return Common.throw(res, 500, e);
