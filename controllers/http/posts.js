@@ -31,6 +31,9 @@ router.post("/api/post.create", async function (req, res) {
       ? Thread
       : Post;
     let query = await model.create(req.body);
+    if (query instanceof Error) {
+      return Common.throw(res, 200, query);
+    }
     if (req.body.redirect) {
       return res.redirect(303, '/' + req.body.boardName + '/res/' + query.thread + '.json')
     }

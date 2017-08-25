@@ -124,7 +124,7 @@ Thread.readAll = async function (board, withPosts, lastPostsNum, order, orderBy,
 };
 
 Thread.readPage = async function (board, lastPostsNum, withSeparatedOp, limit, offset) {
-  return (await Thread.read(board, null, true, lastPostsNum, withSeparatedOp, 'DESC', 'updated_at', limit, offset)).reverse();
+  return (await Thread.read(board, null, true, lastPostsNum, withSeparatedOp, 'ASC', 'updated_at', limit, offset)).reverse();
 };
 
 Thread.countThreads = async function (board) {
@@ -132,6 +132,23 @@ Thread.countThreads = async function (board) {
     db.query('SELECT count(*) AS threadCount FROM ??', ['threads_' + board], function (err, queryData) {
       if (err) return reject(err);
       resolve(queryData[0]);
+    })
+  })
+};
+
+/**
+ * Update a thread entry with an info from defined post
+ * @param {String} board
+ * @param {Number} thread_id
+ * @param {Object} [fields]
+ * @return {Object} query
+ */
+Thread.update = async function (board, thread_id, fields) {
+  //TODO: Add parsing fields
+  return db.promisify(function (resolve, reject) {
+    db.query('UPDATE ?? SET `updated_at` = NOW() WHERE `thread_id`=?', ['threads_' + board, thread_id], function (err, queryData) {
+      if (err) return reject(err);
+      resolve(queryData);
     })
   })
 };

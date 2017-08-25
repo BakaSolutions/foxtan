@@ -12,8 +12,8 @@ let Post = module.exports = {};
  * @return {Object}
  */
 Post.create = async function(fields) {
-  if (!Tools.isNumber(+fields.threadNumber)) {
-    return false;
+  if (!Tools.isNumber(+fields.threadNumber) || !(await Thread.readOne(fields.boardName, fields.threadNumber))) {
+    return new Error('This thread doesn\'t exist!');
   }
   let query = await db.create(fields);
   if (!query) {
@@ -22,11 +22,16 @@ Post.create = async function(fields) {
   let out = { board: fields['boardName'], post: query['insertId'] };
   let post = await db.readOne(out.board, out.post);
   delete post.options;
+
+  if (!fields.sageru) {
+    await Thread.update(out.board, post.thread, out.post);
+  }
+
   if (config('fs.cache.json')) {
     try {
       let file = FS.readSync(out.board + '/res/' + post.thread + '.json');
       file = JSON.parse(file);
-      file.push(post);
+      file.posts.push(post);
       FS.writeSync(out.board + '/res/' + post.thread + '.json', JSON.stringify(file));
     } catch (e) {
       await Thread.regenerateJSON(out.board, post.thread);

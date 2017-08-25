@@ -12,7 +12,6 @@ const logger = config('log.logger');
  * @param res
  * @param status
  * @param [msg]
- * @param [e]
  */
 common.throw = function(res, status, msg) {
   let out = {};

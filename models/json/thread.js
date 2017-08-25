@@ -31,9 +31,9 @@ Thread.create = async function(fields) {
  * @return {Object} query
  */
 Thread.readOne = async function(board, thread_id) {
-  let pattern = board + '/res/' + thread_id + '.json'
   let thread;
   if (config('fs.cache.json')) {
+    let pattern = board + '/res/' + thread_id + '.json';
     if (FS.existsSync(pattern)) {
       let file = FS.readSync(pattern); //TODO: Read file async
       try {
@@ -55,7 +55,9 @@ Thread.readPage = async function (board, page) {
   let offset = limit * page;
   let lastPostsNum = config('board.' + board + '.lastPostsNumber', config('board.lastPostsNumber'));
   out.threads = await db.readPage(board, lastPostsNum, false, limit, offset);
-
+  if (!out.threads.length) {
+    return false;
+  }
   let lastPostNumber = await Board.getCounters(board);
   out.lastPostNumber = lastPostNumber[board];
   out.currentPage = page;
@@ -66,7 +68,9 @@ Thread.readPage = async function (board, page) {
 Thread.pageCount = async function (board, numOnly) {
   let limit = config('board.' + board + '.threadsPerPage', config('board.threadsPerPage'));
   let threadCount = await Thread.countThreads(board, true);
-  let pageCount = Math.floor(threadCount / limit + 1);
+  let pageCount = threadCount
+    ? Math.floor(threadCount / limit + 1)
+    : 0;
   if (numOnly) {
     return pageCount;
   }
@@ -87,20 +91,17 @@ Thread.countThreads = async function (board, numOnly) {
  * Update a JSON file with an info from defined post
  * @param {String} board
  * @param {Number} thread_id
- * @param {Number} post_id
+ * @param {Object} fields
  * @return {Object} query
  */
-Thread.update = async function(board, thread_id, post_id) {
-  let query = await db.update(board, thread_id, post_id);
-  if (query.length < 1 || !config('fs.cache.json')) {
+Thread.update = async function(board, thread_id, fields) {
+  let query = await db.update(board, thread_id, fields);
+  if (!query || !config('fs.cache.json')) {
     return query;
   }
-  let file = FS.readSync(board + '/res/' + Thread_id + '.json');
   //TODO: check for existing posts and replace them
   // for now use Thread.regenerateJSON()
-  file = JSON.parse(file);
-  Array.prototype.push.apply(file, query);
-  FS.writeSync(board + '/res/' + thread_id + '.json', JSON.stringify(file));
+  Thread.regenerateJSON(board, thread_id);
 };
 
 /**
