@@ -17,7 +17,7 @@ User.create = async function(fields) {
   if (!query) {
     return false;
   }
-  return post;
+  return query;
 };
 
 /**

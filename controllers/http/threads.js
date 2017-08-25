@@ -1,12 +1,13 @@
-const Common = require('../common'),
-    model = require('../../models/json/thread');
+const Common = require('../common');
+const Tools = require('../../helpers/tools');
+const model = require('../../models/json/thread');
 
 let router = module.exports = require('express').Router();
 
 router.get("/:board/pageCount.json", async function (req, res) {
   try {
     let out = await model.pageCount(req.params.board, false);
-    if (typeof out !== 'object' || out.length < 1) {
+    if (!Tools.isObject(out)) {
       return Common.throw(res, 404);
     }
     res.status(200).json(out);
@@ -18,7 +19,7 @@ router.get("/:board/pageCount.json", async function (req, res) {
 router.get("/:board/:page.json", async function (req, res) {
   try {
     let out = await model.readPage(req.params.board, +req.params.page);
-    if (typeof out !== 'object' || out.length < 1) {
+    if (!Tools.isObject(out)) {
       return Common.throw(res, 404);
     }
     for (let i = 0; i < out.threads.length; i++) {
@@ -38,7 +39,7 @@ router.get("/:board/:page.json", async function (req, res) {
 router.get("/:board/res/:id.json", async function (req, res) {
   try {
     let out = await model.readOne(req.params.board, req.params.id);
-    if(typeof out !== 'object' || out.length < 1) {
+    if(!Tools.isObject(out)) {
       return Common.throw(res, 404);
     }
     for (let i = 0; i < out.posts.length; i++) {

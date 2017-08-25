@@ -19,8 +19,8 @@ common.throw = function(res, status, msg) {
   if (status !== 200) {
     out.status = status || 500;
   }
-  if (typeof msg !== 'undefined' && msg.code) {
-    out.error = msg.code;
+  if (msg instanceof Error) {
+    out.error = msg.message || msg.code;
   } else {
     out.error = msg || http.STATUS_CODES[out.status];
   }
