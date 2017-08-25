@@ -1,17 +1,17 @@
-const thread = require('./thread');
+const Thread = require('./thread');
 const FS = require('../../helpers/fs');
 const config = require('../../helpers/config');
 const Tools = require('../../helpers/tools');
 const db = require('../' + config('db.type') + '/post');
 
-let post = module.exports = {};
+let Post = module.exports = {};
 
 /**
  * Appends a post to a JSON file
  * @param {Object} fields
  * @return {Object}
  */
-post.create = async function(fields) {
+Post.create = async function(fields) {
   if (!Tools.isNumber(+fields.threadNumber)) {
     return false;
   }
@@ -29,7 +29,7 @@ post.create = async function(fields) {
       file.push(post);
       FS.writeSync(out.board + '/res/' + post.thread + '.json', JSON.stringify(file));
     } catch (e) {
-      await thread.regenerateJSON(out.board, post.thread);
+      await Thread.regenerateJSON(out.board, post.thread);
     }
   }
   return post;
@@ -41,7 +41,7 @@ post.create = async function(fields) {
  * @param {Number} post_id
  * @return {Object} query
  */
-post.read = async function(board, post_id) {
+Post.read = async function(board, post_id) {
   //TODO: Read from .json if exists
   let queryData = await db.readOne(board, post_id);
   if (queryData === null || typeof queryData === 'undefined' || !queryData) {
@@ -50,7 +50,7 @@ post.read = async function(board, post_id) {
   return queryData;
 };
 
-post.update = async function(board, post_id, fields) {
+Post.update = async function(board, post_id, fields) {
   // TODO: Create post.update
 };
 
@@ -61,14 +61,14 @@ post.update = async function(board, post_id, fields) {
  * @param {String} password
  * @return {Boolean}
  */
-post.delete = async function(board, post_id, password) {
+Post.delete = async function(board, post_id, password) {
   let query = await db.delete(board, post_id, password);
   if (query.ok) {
-    thread.regenerateJSON(board, query.thread); //TODO: Delete post from JSON by picking
+    Thread.regenerateJSON(board, query.thread); //TODO: Delete post from JSON by picking
   }
   return query;
 };
 
-post.regenerate = async function(board, post_id) {
+Post.regenerate = async function(board, post_id) {
   //TODO: (re)markup
 };

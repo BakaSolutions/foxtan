@@ -1,13 +1,13 @@
 const db = require('../sql');
 
-let user = module.exports = {};
+let User = module.exports = {};
 
 /**
  * Creates a user
  * @param {Object} fields
  * @return {Promise}
  */
-user.create = async function(fields) {
+User.create = async function(fields) {
   let { login, password, role } = fields;
   //TODO: Create a validator
   return db.promisify(function (resolve, reject) {
@@ -19,7 +19,7 @@ user.create = async function(fields) {
   });
 };
 
-user.read = async function(login) {
+User.read = async function(login) {
   return db.promisify(function (resolve, reject) {
     db.query('SELECT * FROM ?? WHERE login = ? LIMIT 1', ['users', login], function (err, queryData) {
       if (err) reject(err);
@@ -32,7 +32,7 @@ user.read = async function(login) {
   });
 };
 
-user.readAll = async function() {
+User.readAll = async function() {
   let query = 'SELECT id, login, role FROM users';
   return db.promisify(function (resolve, reject) {
     db.query(query, function (err, queryData) {
@@ -48,15 +48,15 @@ user.readAll = async function() {
   });
 };
 
-user.update = async function() {
+User.update = async function() {
   return db.promisify(function (resolve, reject) {
     // TODO: Create user.update
   });
 };
 
-user.delete = async function(login) {
+User.delete = async function(login) {
   return db.promisify(async function (resolve, reject) {
-    let userToDelete = await user.read(login),
+    let userToDelete = await User.read(login),
         out = {ok: 0, exists: typeof userToDelete === 'object' && !Array.isArray(userToDelete)};
     if (!out.exists) {
       return resolve(out);

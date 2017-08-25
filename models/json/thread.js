@@ -3,21 +3,21 @@ const config = require('../../helpers/config');
 const Tools = require('../../helpers/tools');
 const db = require('../' + config('db.type') + '/thread');
 const Board = require('../json/board');
-const Post = require('../' + config('db.type') + '/post');
-let thread = module.exports = {};
+
+let Thread = module.exports = {};
 
 /**
  * Create a JSON file with OP
  * @param {Object} fields
  * @return {Object}
  */
-thread.create = async function(fields) {
+Thread.create = async function(fields) {
   let query = await db.create(fields);
   if (!query) {
     return false;
   }
   let out = { board: fields['boardName'], thread: query['insertId'] };
-  thread = await db.read(out.board, out.thread);
+  let thread = await db.read(out.board, out.thread);
   if (config('fs.cache.json')) {
     FS.writeSync(out.board + '/res/' + out.thread + '.json', JSON.stringify(thread));
   }
@@ -30,8 +30,9 @@ thread.create = async function(fields) {
  * @param {Number} thread_id
  * @return {Object} query
  */
-thread.readOne = async function(board, thread_id) {
-  let pattern = board + '/res/' + thread_id + '.json', thread;
+Thread.readOne = async function(board, thread_id) {
+  let pattern = board + '/res/' + thread_id + '.json'
+  let thread;
   if (config('fs.cache.json')) {
     if (FS.existsSync(pattern)) {
       let file = FS.readSync(pattern); //TODO: Read file async
@@ -48,7 +49,7 @@ thread.readOne = async function(board, thread_id) {
   return thread;
 };
 
-thread.readPage = async function (board, page) {
+Thread.readPage = async function (board, page) {
   let out = {};
   let limit = config('board.' + board + '.threadsPerPage', config('board.threadsPerPage'));
   let offset = limit * page;
@@ -58,13 +59,13 @@ thread.readPage = async function (board, page) {
   let lastPostNumber = await Board.getCounters(board);
   out.lastPostNumber = lastPostNumber[board];
   out.currentPage = page;
-  out.pageCount = await thread.pageCount(board, true);
+  out.pageCount = await Thread.pageCount(board, true);
   return out;
 };
 
-thread.pageCount = async function (board, numOnly) {
+Thread.pageCount = async function (board, numOnly) {
   let limit = config('board.' + board + '.threadsPerPage', config('board.threadsPerPage'));
-  let threadCount = await thread.countThreads(board, true);
+  let threadCount = await Thread.countThreads(board, true);
   let pageCount = Math.floor(threadCount / limit + 1);
   if (numOnly) {
     return pageCount;
@@ -74,7 +75,7 @@ thread.pageCount = async function (board, numOnly) {
   return out;
 };
 
-thread.countThreads = async function (board, numOnly) {
+Thread.countThreads = async function (board, numOnly) {
   let query = await db.countThreads(board);
   if (numOnly) {
     return query.threadCount || 0;
@@ -89,14 +90,14 @@ thread.countThreads = async function (board, numOnly) {
  * @param {Number} post_id
  * @return {Object} query
  */
-thread.update = async function(board, thread_id, post_id) {
+Thread.update = async function(board, thread_id, post_id) {
   let query = await db.update(board, thread_id, post_id);
   if (query.length < 1 || !config('fs.cache.json')) {
     return query;
   }
-  let file = FS.readSync(board + '/res/' + thread_id + '.json');
+  let file = FS.readSync(board + '/res/' + Thread_id + '.json');
   //TODO: check for existing posts and replace them
-  // for now use thread.regenerateJSON()
+  // for now use Thread.regenerateJSON()
   file = JSON.parse(file);
   Array.prototype.push.apply(file, query);
   FS.writeSync(board + '/res/' + thread_id + '.json', JSON.stringify(file));
@@ -108,7 +109,7 @@ thread.update = async function(board, thread_id, post_id) {
  * @param {Number} thread_id
  * @return {Object} query
  */
-thread.regenerateJSON = async function(board, thread_id) {
+Thread.regenerateJSON = async function(board, thread_id) {
   if (!Tools.isNumber(thread_id)) {
     throw new Error('Trying to regenerate something unexistable!');
   }
@@ -131,7 +132,7 @@ thread.regenerateJSON = async function(board, thread_id) {
  * @param {String} password
  * @return {Boolean}
  */
-thread.delete = async function(board, thread_id, password) {
+Thread.delete = async function(board, thread_id, password) {
   let query = await db.delete(board, thread_id, password);
   if (query && query.ok/* && query.isThread*/ && config('fs.cache.json')) {
     FS.unlinkSync(board + '/res/' + thread_id + '.json');

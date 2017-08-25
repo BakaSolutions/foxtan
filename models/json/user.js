@@ -2,14 +2,14 @@ const crypto = require('crypto');
 const config = require('../../helpers/config');
 const db = require('../' + config('db.type') + '/user');
 
-let user = module.exports = {};
+let User = module.exports = {};
 
 /**
  * Appends a user to a JSON file
  * @param {Object} fields
  * @return {Object}
  */
-user.create = async function(fields) {
+User.create = async function(fields) {
   fields.password = crypto.createHmac('sha1', config(''))
       .update(fields.password)
       .digest('hex');
@@ -25,7 +25,7 @@ user.create = async function(fields) {
  * @param {String} login
  * @return {Object} query
  */
-user.read = async function(login) {
+User.read = async function(login) {
   let queryData = await db.read(login);
   if (queryData === null || typeof queryData === 'undefined' || !queryData) {
     return [];
@@ -33,8 +33,8 @@ user.read = async function(login) {
   return queryData;
 };
 
-user.update = async function(login, fields) {
-  // TODO: Create user.update
+User.update = async function(login, fields) {
+  // TODO: Create User.update
 };
 
 /**
@@ -42,7 +42,7 @@ user.update = async function(login, fields) {
  * @param {String} login
  * @return {Boolean}
  */
-user.delete = async function(login) {
+User.delete = async function(login) {
   let query = await db.delete(login);
   return query;
 };
