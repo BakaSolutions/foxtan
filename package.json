@@ -23,12 +23,13 @@
   "dependencies": {
     "body-parser": "^1.17.2",
     "busboy": "^0.2.14",
-    "express": "^4.15.3",
+    "express": "^4.15.4",
     "figurecon": "github:rngnrs/figurecon",
     "merge": "^1.2.0",
-    "mysql": "^2.13.0"
+    "mysql": "^2.14.1",
+    "ws": "^3.1.0"
   },
   "devDependencies": {
-    "mocha": "^3.4.2"
+    "mocha": "^3.5.0"
   }
 }

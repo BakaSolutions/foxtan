@@ -1,33 +1,27 @@
-const Common = require('./common'),
-  Tools = require('../helpers/tools'),
-  express = require('express'),
-  path = require('path'),
-  bodyParser = require('body-parser');
+const express = require('express');
+const path = require('path');
+const bodyParser = require('body-parser');
+const server = require('http').createServer();
+
+const Common = require('./common');
+const Tools = require('../helpers/tools');
+const WS = require('./websocket');
+
+const Controllers = module.exports = {};
 
 /**
  * Inits controllers: requires all .js from /controllers/http/ and sets routers
  * @param app
  */
-module.exports.init = function (app) {
-  let plugins = Tools.requireAllSync('controllers/http', /\.js$/),
-    router = express.Router();
+Controllers.init = function (app) {
+  let plugins = Tools.requireAllSync('controllers/http', /\.js$/);
+  let router = express.Router();
   app.routers = [];
 
-  // Magic perfomance header! \( ^o^)/
-  /*app.use(async function (req, res, next) {
-    const start = new Date();
-    console.log(start);
-    await next();
-    const ms = new Date() - start;
-    console.log(ms);
-    res.set('X-Response-Time', ms + 'ms');
-    console.log(ms, ms);
-  });*/
-
-  plugins.forEach(function (plugin) {
-    router.use('/', plugin);
-    app.routers.push(plugin);
-  });
+  for (let i = 0; i < plugins.length; i++) {
+    router.use('/', plugins[i]);
+    app.routers.push(plugins[i]);
+  }
 
   app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -38,4 +32,20 @@ module.exports.init = function (app) {
   app.use('*', function (req, res) {
     Common.throw(res, 404);
   });
+
+  let WSInstance = new WS(server);
+  server.on('request', app);
+
+  let handlers = Tools.requireAllSync('controllers/websocket', /^((?!index).)*\.js$/);
+  for (let i = 0; i < handlers.length; i++) {
+    if (!Array.isArray(handlers[i])) {
+      handlers[i] = [ handlers[i] ];
+    }
+    for (let j = 0; j < handlers[i].length; j++) {
+      let { command, handler } = handlers[i][j];
+      WSInstance.use(command, handler);
+    }
+  }
+
+  return server;
 };

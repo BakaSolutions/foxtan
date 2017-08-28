@@ -48,9 +48,7 @@ Thread.read = async function (board, id, withPosts, lastPostsNum, withSeparatedO
   let query = 'SELECT * FROM ??';
   if (id) query += ' WHERE `thread_id` = ?';
   if (order) {
-    query += ' ORDER BY ??';
-    if (order === 'ASC')  query += ' ASC';
-    if (order === 'DESC') query += ' DESC';
+    query += ' ORDER BY ?? ' + order;
   }
   if (limit)  query += ' LIMIT ?';
   if (offset) query += ' OFFSET ?';
