@@ -14,7 +14,7 @@ module.exports = [
   },
 ];
 
-async function get(command, message, id, ws) {
+async function get(command, message, id, ws, err) {
   let out;
   switch (message) {
     case "BOARDS":
@@ -22,10 +22,10 @@ async function get(command, message, id, ws) {
       out = JSON.stringify(out);
       break;
     case "LPN":
-      out = 'last post numbers';
+      out = await Board.getCounters();
       break;
     default:
-      out = 'ti poputal';
+      return err(ws, 404, id);
       break;
   }
 
