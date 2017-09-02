@@ -7,11 +7,27 @@ class WS {
       server: server,
       path: '/ws'
     });
+
     this.instance.on('connection', (ws) => {
+      ws.isAlive = true;
+
+      ws.on('pong', () => {
+        ws.isAlive = true;
+      });
       ws.on('message', (message) => {
         this.onMessage(message, ws);
       });
     });
+
+    this.interval = setInterval(() => {
+      this.instance.clients.forEach(function each(ws) {
+        if (!ws.isAlive) {
+          return ws.terminate();
+        }
+        ws.isAlive = false;
+        ws.ping('NUS', false, true);
+      });
+    }, 30000);
   }
 
   use (command, handler) {
