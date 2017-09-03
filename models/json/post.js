@@ -77,3 +77,16 @@ Post.delete = async function(board, post_id, password) {
 Post.regenerate = async function(board, post_id) {
   //TODO: (re)markup
 };
+
+Post.countPosts = async function (board, thread, numOnly) {
+  let query;
+  try {
+    query = await db.countPosts(board, thread);
+  } catch (e) {
+    console.log(e);
+  }
+  if (numOnly) {
+    return query.postCount || 0;
+  }
+  return query || { postCount: 0 };
+};

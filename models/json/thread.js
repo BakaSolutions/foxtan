@@ -2,7 +2,8 @@ const FS = require('../../helpers/fs');
 const config = require('../../helpers/config');
 const Tools = require('../../helpers/tools');
 const db = require('../' + config('db.type') + '/thread');
-const Board = require('../json/board');
+const Board = require('./board');
+const Post = require('./post');
 
 let Thread = module.exports = {};
 
@@ -139,4 +140,27 @@ Thread.delete = async function(board, thread_id, password) {
     FS.unlinkSync(board + '/res/' + thread_id + '.json');
   }
   return query;
+};
+
+Thread.syncData = async function (includeHidden) {
+  let out = {
+    lastPostNumbers: {},
+    threadCounts: {}
+  };
+  let boards = await Board.readAll(includeHidden);
+  boards = Object.keys(boards);
+  for (let i = 0; i < boards.length; i++) {
+    let board = boards[i];
+    out.threadCounts[board] = {};
+    let pageCount = await Thread.pageCount(board, true);
+    for (let j = 0; j < pageCount; j++) {
+      let threads = await Thread.readPage(board, j);
+      out.lastPostNumbers[board] = threads.lastPostNumber;
+      for (let k = 0; k < threads.threads.length; k++) {
+        let id = threads.threads[k].thread_id;
+        out.threadCounts[board][id] = await Post.countPosts(board, id, true);
+      }
+    }
+  }
+  return out;
 };
