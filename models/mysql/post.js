@@ -1,6 +1,7 @@
-const db = require('../sql'),
-  board = require('./board'),
-  markup = require('../../core/markup');
+const db = require('../sql');
+const Board = require('./board');
+const Thread = require('./thread');
+const Markup = require('../../core/markup');
 
 let Post = module.exports = {};
 
@@ -13,14 +14,14 @@ Post.create = async function (fields) {
   let { boardName, threadNumber, name, email, subject, tripcode, capcode, text, password, sageru } = fields;
   sageru = sageru? 1 : null;
   let text_markup = text
-    ? markup.toHTML(text)
+    ? Markup.toHTML(text)
     : null;
   return db.promisify(function (resolve, reject) {
     db.query('INSERT INTO ?? (thread, name, email, subject, tripcode, capcode,' +
         'body, bodymarkup, password, sageru) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       ['posts_' + boardName, threadNumber, name, email, subject, tripcode, capcode, text, text_markup, password, sageru], async function (err, result) {
           if (err) return reject(err);
-          await board.incrementCounter(boardName);
+          await Board.incrementCounter(boardName);
           resolve(result);
         });
   });
@@ -109,17 +110,8 @@ Post.readAll = async function (board, id, withOp = true, limit, offset) {
   return await Post.read(board, id, withOp, null, null, limit, offset);
 };
 
-Post.countPosts = async function (board, id) {
-  return db.promisify(function (resolve, reject) {
-    db.query('SELECT count(*) AS postCount FROM ?? WHERE thread = ? OR id = ?', ['posts_' + board, id, id], function (err, queryData) {
-      if (err) return reject(err);
-      resolve(queryData[0]);
-    })
-  })
-};
-
 Post.countOmitted = async function (board, thread_id, countPosts, lastPostsNumber) {
-  let postCount = countPosts || await Post.countPosts(board, thread_id);
+  let postCount = countPosts || await Thread.countPosts(board, thread_id);
   let omitted = postCount.postCount - 1;
   if (lastPostsNumber) omitted -= lastPostsNumber;
   return Math.max(omitted, 0);

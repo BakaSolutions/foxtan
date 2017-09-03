@@ -1,5 +1,5 @@
-const mysql = require('mysql'),
-  config = require('../helpers/config');
+const mysql = require('mysql');
+const config = require('../helpers/config');
 
 let db = config('db.type');
 
@@ -30,9 +30,8 @@ module.exports.promisify = function(func) {
   let p = new Promise(function (resolve, reject) {
     func(resolve, reject);
   });
-  let self = this;
 
-  return p.catch(function (err) {
-    return self.catch(err)
+  return p.catch((err) => {
+    return this.catch(err)
   });
 };

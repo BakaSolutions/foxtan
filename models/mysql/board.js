@@ -1,5 +1,5 @@
-const db = require('../sql'),
-  Tools = require('../../helpers/tools');
+const db = require('../sql');
+const Tools = require('../../helpers/tools');
 
 let Board = module.exports = {},
   queries = {

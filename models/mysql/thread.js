@@ -1,6 +1,6 @@
 const db = require('../sql'),
   Post = require('./post'),
-  markup = require('../../core/markup');
+  Markup = require('../../core/markup');
 
 let Thread = module.exports = {};
 
@@ -11,7 +11,7 @@ let Thread = module.exports = {};
  */
 Thread.create = async function (fields) {
   fields.bodymarkup = fields.text
-      ? markup.toHTML(fields.text)
+      ? Markup.toHTML(fields.text)
       : null;
   fields.sageru = fields.sageru
       ? 1
@@ -69,7 +69,7 @@ Thread.read = async function (board, id, withPosts, lastPostsNum, withSeparatedO
     }
     if (withPosts) {
       for (let i = 0; i < threads.length; i++) {
-        let postCount = await Post.countPosts(board, threads[i]['thread_id']);
+        let postCount = await Thread.countPosts(board, threads[i]['thread_id']);
         threads[i].postCount = postCount.postCount;
         threads[i].omittedPosts = await Post.countOmitted(board, threads[i]['thread_id'], postCount, lastPostsNum);
 
@@ -128,6 +128,15 @@ Thread.readPage = async function (board, lastPostsNum, withSeparatedOp, limit, o
 Thread.countThreads = async function (board) {
   return db.promisify(function (resolve, reject) {
     db.query('SELECT count(*) AS threadCount FROM ??', ['threads_' + board], function (err, queryData) {
+      if (err) return reject(err);
+      resolve(queryData[0]);
+    })
+  })
+};
+
+Thread.countPosts = async function (board, id) {
+  return db.promisify(function (resolve, reject) {
+    db.query('SELECT count(*) AS postCount FROM ?? WHERE thread = ? OR id = ?', ['posts_' + board, id, id], function (err, queryData) {
       if (err) return reject(err);
       resolve(queryData[0]);
     })

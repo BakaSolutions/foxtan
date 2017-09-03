@@ -3,7 +3,7 @@ const config = require('../../helpers/config');
 const Tools = require('../../helpers/tools');
 const db = require('../' + config('db.type') + '/thread');
 const Board = require('./board');
-const Post = require('../' + config('db.type') + '/post');
+const Post = require('./post');
 
 let Thread = module.exports = {};
 
@@ -88,6 +88,19 @@ Thread.countThreads = async function (board, numOnly) {
   return query || { threadCount: 0 };
 };
 
+Thread.countPosts = async function (board, thread, numOnly) {
+  let query;
+  try {
+    query = await db.countPosts(board, thread);
+  } catch (e) {
+    console.log(e);
+  }
+  if (numOnly) {
+    return query.postCount || 0;
+  }
+  return query || { postCount: 0 };
+};
+
 /**
  * Update a JSON file with an info from defined post
  * @param {String} board
@@ -158,7 +171,7 @@ Thread.syncData = async function (includeHidden) {
       out.lastPostNumbers[board] = threads.lastPostNumber;
       for (let k = 0; k < threads.threads.length; k++) {
         let id = threads.threads[k].thread_id;
-        out.threadCounts[board][id] = (await Post.countPosts(board, id, true)).postCount;
+        out.threadCounts[board][id] = await Thread.countPosts(board, id, true);
       }
     }
   }

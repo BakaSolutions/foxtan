@@ -48,13 +48,17 @@ class WS {
   }
 
   onMessage (message, ws) {
+    let id;
+    if (message.indexOf(' @') >= 0) {
+      message = message.split(' @');
+      id = ' @' + message.pop();
+      message = message.join(' @');
+    }
+
     message = message.split(' ');
     let command = message.shift();
     message = message.join(' ');
 
-    message = message.split(' @');
-    let id = ' @' + message.pop();
-    message = message.join(' @');
 
     let sequence = this.handlers[command];
     if (!sequence) {
