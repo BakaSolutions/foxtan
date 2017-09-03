@@ -3,7 +3,7 @@ const config = require('../../helpers/config');
 const Tools = require('../../helpers/tools');
 const db = require('../' + config('db.type') + '/thread');
 const Board = require('./board');
-const Post = require('./post');
+const Post = require('../' + config('db.type') + '/post');
 
 let Thread = module.exports = {};
 
@@ -158,7 +158,7 @@ Thread.syncData = async function (includeHidden) {
       out.lastPostNumbers[board] = threads.lastPostNumber;
       for (let k = 0; k < threads.threads.length; k++) {
         let id = threads.threads[k].thread_id;
-        out.threadCounts[board][id] = await Post.countPosts(board, id, true);
+        out.threadCounts[board][id] = (await Post.countPosts(board, id, true)).postCount;
       }
     }
   }
