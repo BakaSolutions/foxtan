@@ -1,11 +1,10 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-const server = require('http').createServer();
 
 const Common = require('./common');
 const Tools = require('../helpers/tools');
-const WS = require('./websocket');
+const HTTPServer = require('./httpserver');
 
 const Controllers = module.exports = {};
 
@@ -14,6 +13,8 @@ const Controllers = module.exports = {};
  * @param app
  */
 Controllers.init = function (app) {
+  let { http: server, ws: WSInstance } = HTTPServer(app);
+
   let plugins = Tools.requireAllSync('controllers/http', /\.js$/);
   let router = express.Router();
   app.routers = [];
@@ -32,9 +33,6 @@ Controllers.init = function (app) {
   app.use('*', function (req, res) {
     Common.throw(res, 404);
   });
-
-  let WSInstance = new WS(server);
-  server.on('request', app);
 
   let handlers = Tools.requireAllSync('controllers/websocket', /^((?!index).)*\.js$/);
   for (let i = 0; i < handlers.length; i++) {

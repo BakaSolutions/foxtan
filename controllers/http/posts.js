@@ -1,6 +1,7 @@
 const Common = require('../common');
 const Post = require('../../models/json/post');
 const Thread = require('../../models/json/thread');
+const WS = require('../httpserver')().ws;
 
 let router = module.exports = require('express').Router();
 
@@ -27,13 +28,17 @@ let router = module.exports = require('express').Router();
 router.post("/api/post.create", async function (req, res) {
   try {
     await Common.parseForm(req);
-    let model = typeof req.body.threadNumber === 'undefined'
-      ? Thread
-      : Post;
+    let isThread = typeof req.body.threadNumber === 'undefined';
+    let model = isThread
+        ? Thread
+        : Post;
     let query = await model.create(req.body);
     if (query instanceof Error) {
       return Common.throw(res, 200, query);
     }
+    let pattern = 'LPN ' + req.body.boardName + ':' + query.thread;
+    if (!isThread) pattern += ':' + query.id;
+    await WS.broadcast(pattern);
     if (req.body.redirect) {
       return res.redirect(303, '/' + req.body.boardName + '/res/' + query.thread + '.json')
     }
@@ -48,9 +53,9 @@ router.post("/api/post.create", async function (req, res) {
 router.post("/api/post.delete", async function (req, res) {
   try {
     await Common.parseForm(req);
-    if (typeof req.body.password === 'undefined' || req.body.password === '') {
+    /*if (typeof req.body.password === 'undefined' || req.body.password === '') {
       return Common.throw(res, 200, "Please, define a password");
-    }
+    }*/
 
     let out = await Post.delete(req.body.boardName, req.body.postNumber, req.body.password);
     if (out.ok) {

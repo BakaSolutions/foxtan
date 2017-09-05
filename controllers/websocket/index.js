@@ -38,9 +38,7 @@ class WS {
   }
 
   broadcast (data) {
-    let client;
-    for (let i = 0; i < this.instance.clients.length; i++) {
-      client = this.instance.clients[i];
+    for (let client of this.instance.clients) {
       if (client.readyState === WebSocket.OPEN) {
         client.send(data);
       }

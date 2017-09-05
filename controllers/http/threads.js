@@ -62,9 +62,9 @@ router.get("/:board/catalog.json", function (req, res) {
 router.post("/api/thread.delete", async function (req, res) {
   try {
     await Common.parseForm(req);
-    if (typeof req.body.password === 'undefined' || req.body.password === '') {
+    /*if (typeof req.body.password === 'undefined' || req.body.password === '') {
       return Common.throw(res, 200, "Please, define a password");
-    }
+    }*/
     let out = await model.delete(req.body.boardName, req.body.postNumber, req.body.password);
     if (out.ok) {
       return res.status(200).json({

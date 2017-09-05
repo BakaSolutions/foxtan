@@ -3,7 +3,6 @@ const config = require('../../helpers/config');
 const Tools = require('../../helpers/tools');
 const db = require('../' + config('db.type') + '/thread');
 const Board = require('./board');
-const Post = require('./post');
 
 let Thread = module.exports = {};
 
