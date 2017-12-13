@@ -1,35 +1,36 @@
 {
-  "name": "sobaka",
-  "version": "0.0.1",
-  "description": "The server-oriented BAKA",
-  "main": "sobaka.js",
+  "name": "foxtan",
+  "version": "0.1.0",
+  "description": "Slyest imageboard engine that was ever made.",
+  "main": "foxtan.js",
   "scripts": {
-    "start": "node sobaka.js",
-    "start-dev": "NODE_ENV=development node sobaka.js",
-    "test": "mocha tests --check-leaks --reporter nyan",
-    "test-db": "mocha tests/mysql.js",
-    "test-json": "mocha tests/json.js"
+    "dev": "cross-env NODE_ENV=development node app/foxtan.js",
+    "start": "cross-env NODE_ENV=production node app/foxtan.js",
+    "test": "mocha tests --check-leaks --reporter nyan"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://rngnrs@bitbucket.org/rngnrs/sobaka.git"
+    "url": "git+https://rngnrs@bitbucket.org/rngnrs/foxtan.git"
   },
   "keywords": [
     "imageboard"
   ],
   "author": "rngnrs",
   "license": "MIT",
-  "homepage": "https://bitbucket.org/rngnrs/sobaka#readme",
+  "homepage": "https://bitbucket.org/rngnrs/foxtan#readme",
   "dependencies": {
-    "body-parser": "^1.17.2",
     "busboy": "^0.2.14",
-    "express": "^4.15.4",
     "figurecon": "github:rngnrs/figurecon",
-    "merge": "^1.2.0",
-    "mysql": "^2.14.1",
+    "koa": "^2.3.0",
+    "koa-router": "^7.2.1",
     "ws": "^3.1.0"
   },
   "devDependencies": {
+    "cross-env": "^5.1.0",
     "mocha": "^3.5.0"
+  },
+  "optionalDependencies": {
+    "koa-static": "^4.0.1",
+    "mongodb": "^2.2.33"
   }
 }

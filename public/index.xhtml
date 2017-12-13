@@ -2,21 +2,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="UTF-8" />
-  <title>Debugging &mdash; sobaka</title>
+  <title>Debugging &mdash; foxtan</title>
   <link rel="stylesheet" href="/css/sobaka.css" />
   <script src="/js/sobaka.js" type="text/javascript"></script>
 </head>
 <body>
 <h1>Create board</h1>
-<form action="/api/board.create" method="post" class="create-form">
+<form action="/api/v1/board.create" method="post" class="create-form">
   <table>
     <tr>
       <td><b>Board URI:</b></td>
-      <td><input name="uri" value="test" /></td>
+      <td><input name="board" value="test" /></td>
     </tr>
     <tr>
       <td><b>Title:</b></td>
-      <td><input name="title" /></td>
+      <td><input name="title" value="Тестовый раздел" /></td>
     </tr>
     <tr>
       <td><b>Subtitle:</b></td>
@@ -49,50 +49,8 @@
 <form action="/lastPostNumbers.json" class="create-form">
   <button>Submit</button>
 </form>
-<h1>Create thread</h1>
-<form action="/api/post.create" method="post" class="create-form">
-  <table>
-    <tr>
-      <td><b>[Hidden] Reply to board:</b></td>
-      <td><input name="boardName" value="test" /></td>
-    </tr>
-    <tr>
-      <td><b>Name:</b></td>
-      <td><input name="name" /></td>
-    </tr>
-    <tr>
-      <td><b>Subject:</b></td>
-      <td><input name="subject" maxlength="150" /></td>
-    </tr>
-    <tr>
-      <td><b>Text:</b></td>
-      <td>
-        <textarea name="text" cols="24" rows="4"/>
-      </td>
-    </tr>
-    <tr>
-      <td><b>Password:</b></td>
-      <td>
-        <input type="password" name="password" />
-      </td>
-    </tr>
-    <tr>
-      <td colspan="2">
-        <label>
-          <input type="checkbox" name="sageru" value="true" />
-          Sage
-        </label>
-        <label>
-          <input type="checkbox" name="redirect" value="true" />
-          Noko (redirect to thread)
-        </label>
-      </td>
-    </tr>
-  </table>
-  <button>Submit</button>
-</form>
 <h1>Create post</h1>
-<form action="/api/post.create" method="post" class="create-form">
+<form action="/api/v1/post.create" method="post" class="create-form">
   <table>
     <tr>
       <td><b>[Hidden] Reply to board:</b></td>
@@ -133,8 +91,22 @@
   </table>
   <button>Submit</button>
 </form>
-<h1>Get post [post]</h1>
-<form action="/api/post.get" method="post" class="create-form">
+<h1>Get post</h1>
+<form action="/api/v1/post.read" method="post" class="create-form">
+  <table>
+    <tr>
+      <td><b>Board:</b></td>
+      <td><input name="board" value="test" /></td>
+    </tr>
+    <tr>
+      <td><b>Number:</b></td>
+      <td><input type="number" name="post" value="1" /></td>
+    </tr>
+  </table>
+  <button>Submit</button>
+</form>
+<h1>Delete post with a password</h1>
+<form action="/api/v1/post.delete" method="post" class="create-form">
   <table>
     <tr>
       <td><b>Board:</b></td>
@@ -143,38 +115,6 @@
     <tr>
       <td><b>Number:</b></td>
       <td><input type="number" name="postNumber" value="1" /></td>
-    </tr>
-  </table>
-  <button>Submit</button>
-</form>
-<h1>Delete thread or post with a password</h1>
-<form action="/api/thread.delete" method="post" class="create-form">
-  <table>
-    <tr>
-      <td><b>Board:</b></td>
-      <td><input name="boardName" value="test" /></td>
-    </tr>
-    <tr>
-      <td><b>Number:</b></td>
-      <td><input type="number" name="postNumber" value="3" /></td>
-    </tr>
-    <tr>
-      <td><b>Password:</b></td>
-      <td><input type="password" name="password" /></td>
-    </tr>
-  </table>
-  <button>Submit</button>
-</form>
-<h1>Delete post with a password</h1>
-<form action="/api/post.delete" method="post" class="create-form">
-  <table>
-    <tr>
-      <td><b>Board:</b></td>
-      <td><input name="boardName" value="test" /></td>
-    </tr>
-    <tr>
-      <td><b>Number:</b></td>
-      <td><input type="number" name="postNumber" value="3" /></td>
     </tr>
     <tr>
       <td><b>Password:</b></td>
