@@ -58,7 +58,7 @@ class ThreadModel extends SuperModel {
    * @param {Number} [offset]
    * @return {Promise}
    */
-  async readAll({board = null, order = null, orderBy = 'ASC', limit = null, offset = null} = {}) {
+  async readAll({board = null, order = 'createdAt', orderBy = 'ASC', limit = null, offset = null} = {}) {
     return await this.read({
       whereKey: board ? 'boardName' : null,
       whereValue: board,
