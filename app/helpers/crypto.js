@@ -3,7 +3,7 @@ const crypto = require('crypto');
 let Crypto = module.exports = {};
 
 Crypto.verify = function (data, hash, method = 'sha256') {
-  if (!~['sha256'].indexOf(method)) {
+  if (['sha256'].indexOf(method) === -1) {
     return new Error('Wrong cryptographic algo');
   }
   return Crypto[method](data) === hash;

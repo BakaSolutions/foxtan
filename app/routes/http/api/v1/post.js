@@ -5,6 +5,7 @@ const ThreadModel = require('../../../../models/mongo/thread');
 const PostModel = require('../../../../models/mongo/post');
 const Controllers = require('../../../index');
 const Crypto = require('../../../../helpers/crypto');
+const Markup = require('../../../../helpers/markup');
 const Websocket = require('../../../websocket');
 let WS = Websocket();
 
@@ -53,7 +54,7 @@ router.post('create', async ctx => {
       ? threadInput.number
       : +query.threadNumber;
   postInput.subject = query.subject;
-  postInput.text =  // TODO: Разметка
+  postInput.text = await Markup.process(query.text, postInput.boardName, postInput.threadNumber, postInput.number);
   postInput.rawText = query.text;
   postInput.password = (typeof query.password !== 'undefined' && query.password !== '')
     ? Crypto.sha256(query.password)

@@ -83,9 +83,8 @@ class SuperModel {
     let query = SuperModel.prepareQuery(whereKey, whereValue);
 
     let type = ((query === null)
-        ? fields.length
-        : Object.keys(query).length)
-    === 1
+      ? fields.length
+      : Object.keys(query).length) === 1
         ? 'updateOne'
         : 'updateMany';
 
