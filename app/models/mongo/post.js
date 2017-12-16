@@ -76,7 +76,7 @@ class PostModel extends SuperModel {
    * @param {Number} [offset]
    * @return {Promise}
    */
-  async readAll({board, thread, order = null, orderBy = 'ASC', limit = null, offset = null}) {
+  async readAll({board, thread, order = 'createdAt', orderBy = 'ASC', limit = null, offset = null}) {
     return await this.read({
       whereKey: ['boardName', 'threadNumber'],
       whereValue: [board, thread],

@@ -61,10 +61,10 @@ router.post('create', async ctx => {
   postInput.sage = !!query.sageru;
 
   return new Promise(async resolve => {
-    if (isThread) {
-      await ThreadModel.create(threadInput);
-    }
-    let post = await PostModel.create(postInput);
+    let promise = (isThread)
+      ? ThreadModel.create(threadInput)
+      : Promise.resolve();
+    let post = promise.then(async () => await PostModel.create(postInput));
 
     let out = [
       postInput.boardName,
@@ -85,7 +85,7 @@ router.post('create', async ctx => {
       return setTimeout(() => {
         ctx.redirect(pathBack);
         return resolve();
-      }, 200);
+      }, 500);
     }
     ctx.status = 201;
     ctx.body = post;
