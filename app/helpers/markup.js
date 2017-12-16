@@ -4,33 +4,34 @@ const PostModel = require('../models/mongo/post');
 let Markup = module.exports = {};
 
 Markup.patterns = [
-  [/&gt;&gt;(\/?.+\/)?([0-9]+)/ig, async function (capture, matches, board, thread, post) { // /&gt;&gt;([0-9]{1,24})/ig
+  [/&gt;&gt;(\/?.+\/)?([0-9]+)/ig, async function (capture, matches, board, thread, post) {
     let [boardFromMatch, postFromMatch] = matches;
     if (boardFromMatch) board = boardFromMatch.replace(/\//g, '');
-    if (+postFromMatch !== thread) {
+    if (+postFromMatch !== thread && +postFromMatch !== post) {
       let query = await PostModel.readOne({
         board: board,
-        post: post
+        post: postFromMatch
       });
       if (!Tools.isObject(query)) {
         return capture;
       }
-      thread = query.thread;
+      thread = query.threadNumber;
     }
     return `<a href="/${board}/res/${thread}.html#${postFromMatch}">${capture}</a>`;
   }],
-  [/^\s*(&gt;[^&gt;].+)$/mg, '<span class="quotation">$1</span>'], // /^(?:&gt;)([^\r\n]+)/mg  ^\s?(&gt;[^&gt;]+)$
+  [/^(&gt;[^&gt;].+)$/mg, '<span class="quotation">$1</span>'],
   [/(https?:\/\/([a-zA-Z0-9\-.]+)\/?[a-zA-Z0-9?&=.:;#\/\-_~%+]*)/ig, '<a href="$1" title="$1" target="_blank">$2</a>'],
-  [/\s+--\s+/g, ' &mdash; '],
+  [/--\s+/g, '&mdash; '],
   [/\[b](.*)\[\/b]/ig, '<b>$1</b>'],
   [/\[i](.*)\[\/i]/ig, '<i>$1</i>'],
   [/\[u](.*)\[\/u]/ig, '<u>$1</u>'],
   [/\[s](.*)\[\/s]/ig, '<s>$1</s>'],
-  [/\s?\n/ig, '<br />'],
+  [/\s?\n/g, '<br />'],
+  [/(?:<br \/>){4,}/ig, new Array(4).join('<br />')],
 ];
 
 Markup.process = async function (text, board, thread, post) {
-  text = escape(text);
+  text = escape(text).trim();
 
   for (let i = 0; i < Markup.patterns.length; i++) {
     if (typeof Markup.patterns[i][1] === 'function') {
