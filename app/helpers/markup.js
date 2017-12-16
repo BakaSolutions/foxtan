@@ -20,7 +20,7 @@ Markup.patterns = [
     return `<a href="/${board}/res/${thread}.html#${postFromMatch}">${capture}</a>`;
   }],
   [/^(&gt;[^&gt;].+)$/mg, '<span class="quotation">$1</span>'],
-  [/(https?:\/\/([a-zA-Z0-9\-.]+)\/?[a-zA-Z0-9?&=.:;#\/\-_~%+]*)/ig, '<a href="$1" title="$1" target="_blank">$2</a>'],
+  [/((https?|s?ftp):\/\/[a-zA-Z0-9\-.]+)\/?[a-zA-Z0-9?&=.:;#\/\-_~%+]*/ig, processURL],
   [/--\s+/g, '&mdash; '],
   [/\[b](.*)\[\/b]/ig, '<b>$1</b>'],
   [/\[i](.*)\[\/i]/ig, '<i>$1</i>'],
@@ -77,4 +77,17 @@ function getMatches(string, regex) {
     capture: capture,
     matches: matches
   };
+}
+
+function processURL(href, matches) {
+  if (matches.length === 1) { // [url]href[/url]
+    matches = getMatches(href, /((https?|s?ftp):\/\/[a-zA-Z0-9\-.]+)/ig).matches[0];
+  }
+  let title = matches[0];
+  let protocol = matches[1];
+  href = decodeURIComponent(href);
+  let cl = (protocol.indexOf('s') > -1)
+      ? `class="secure"`
+      : '';
+  return `<a ${cl} href="${href}" title="${href}" target="_blank" rel=”noopener noreferrer nofollow”>${title}</a>`;
 }
