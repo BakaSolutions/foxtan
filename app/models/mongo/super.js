@@ -40,7 +40,7 @@ class SuperModel {
       : out.number;
   }
 
-  async read({whereKey = null, whereValue, order = null, orderBy, limit = null, offset = null} = {}) {
+  async read({whereKey = null, whereValue, order = null, orderBy, limit = null, offset = null, clear = true} = {}) {
     let Model = await mongo.collection(this.collection);
 
     let query = SuperModel.prepareQuery(whereKey, whereValue);
@@ -69,9 +69,11 @@ class SuperModel {
       // because we can process documents as they come in
       // until we reach the end.
 
-      out = out.map(entry => SuperModel.clearEntry(entry));
-    } else if (out !== null) {
-      out = SuperModel.clearEntry(out);
+      if (clear) {
+        out = out.map(entry => this.clearEntry(entry));
+      }
+    } else if (out !== null && clear) {
+      out = this.clearEntry(out);
     }
 
     return out;
@@ -91,7 +93,13 @@ class SuperModel {
     return await Model[type === 1 ? 'updateOne' : 'updateMany'](query, {$set: fields}, {upsert: true});
   }
 
-  static clearEntry(entry) {
+  async delete(fields = {}) {
+    let Model = await mongo.collection(this.collection);
+
+    return await Model[!Array.isArray(fields) ? 'deleteOne' : 'deleteMany'](fields);
+  }
+
+  clearEntry(entry) {
     if (ObjectID.isValid(entry['_id'])) {
       delete entry['_id'];
     }
@@ -112,6 +120,9 @@ class SuperModel {
     }
     let query = {};
     for (let i = 0; i < whereKey.length; i++) {
+      if (typeof whereValue[i] === 'undefined') {
+        continue;
+      }
       query[whereKey[i]] = whereValue[i];
     }
     return query;

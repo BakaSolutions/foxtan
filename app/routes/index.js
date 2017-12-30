@@ -1,8 +1,9 @@
 const Controllers = module.exports = {};
 
+const Busboy = require('busboy');
 const Tools = require('../helpers/tools');
 const config = require('../helpers/config');
-const Busboy = require('busboy');
+const UserModel = require('../models/mongo/user');
 const WS = require('./websocket');
 
 /**
@@ -24,7 +25,8 @@ Controllers.initHTTP = async app => {
 
   app.use(async (ctx, next) => {
     try {
-      if (!config('server.enableStatic')) {
+      await Controllers.parseForm(ctx);
+      if (config('server.enableStatic')) {
         ctx.set('Access-Control-Allow-Origin', '*');
       }
       await next();
@@ -35,6 +37,30 @@ Controllers.initHTTP = async app => {
           : {error: err.name, message: err.message};
       ctx.app.emit('error', err, ctx);
     }
+  });
+
+  app.keys = [Buffer.from(config('server.cookie.secret'))];
+  app.use(async (ctx, next) => {
+    let token;
+    let query = ctx.request.body;
+    if (query && query.token) {
+      token = query.token;
+    } else if (ctx.headers['X-Access-Token']) {
+      token = ctx.headers['X-Access-Token'];
+    } else {
+      token = ctx.cookies.get('accessToken', {signed: config('server.cookie.signed')})
+    }
+    if (!token) {
+      return await next();
+    }
+    try {
+      ctx.request.user = UserModel.checkToken(token);
+    } catch (e) {
+      ctx.throw(403, {
+        message: e.message
+      });
+    }
+    await next();
   });
 
   app.use(async (ctx, next) => {
@@ -69,7 +95,7 @@ Controllers.initHTTP = async app => {
   return app;
 };
 
-Controllers.initWebsocket = function(server) {
+Controllers.initWebsocket = server => {
   let WSInstance = WS(server);
 
   let handlers = Tools.requireAllSync('routes/websocket', /^(?!.*index)\w+\.js$/);
@@ -98,27 +124,35 @@ Controllers.fail = (ctx, out) => {
   return ctx.throw(500, out);
 };
 
-Controllers.parseForm = function(ctx) {
+Controllers.parseForm = ctx => {
+  if (!ctx.request.is('urlencoded', 'multipart')) {
+    return;
+  }
   return new Promise((resolve, reject) => {
     let busboy = new Busboy({ headers: ctx.req.headers });
     let fields = {};
-    /*busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
+    busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
       console.log('File [' + fieldname + ']: filename: ' + filename + ', encoding: ' + encoding + ', mimetype: ' + mimetype);
-      file.on('data', function(data) {
+      file.on('data', data => {
         console.log('File [' + fieldname + '] got ' + data.length + ' bytes');
       });
-      file.on('end', function() {
+      file.on('end', () => {
         console.log('File [' + fieldname + '] Finished');
       });
-    });*/ // TODO: Parse files
-    busboy.on('field', function(fieldname, val) {
+    }); // TODO: Parse files
+    busboy.on('field', (fieldname, val) => {
       fields[fieldname] = val;
     });
-    busboy.on('finish', function() {
-      resolve(ctx.request.body = fields);
+    busboy.on('finish', () => {
+      busboy = null;
+      if (Object.keys(fields).length) {
+        ctx.request.body = fields;
+      }
+      resolve(ctx.request.body);
     });
     busboy.on('error', reject);
+
     ctx.req.pipe(busboy);
-    setTimeout(() => reject(new Error('Body parsing timeout')), 1000);
+    setTimeout(() => reject('Body parsing timeout'), 1000);
   });
 };

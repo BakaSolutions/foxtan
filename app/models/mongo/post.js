@@ -17,7 +17,7 @@ class PostModel extends SuperModel {
           lastPostNumber: out.ops[0].number
         }
       });
-      return SuperModel.clearEntry(out.ops[0]);
+      return super.clearEntry(out.ops[0]);
     }).then(async out => {
       if (!out.sage) {
         await ThreadModel.update({

@@ -3,14 +3,12 @@ const router = require('koa-router')({ prefix: '/api/v1/post.' });
 const BoardModel = require('../../../../models/mongo/board');
 const ThreadModel = require('../../../../models/mongo/thread');
 const PostModel = require('../../../../models/mongo/post');
-const Controllers = require('../../../index');
 const Crypto = require('../../../../helpers/crypto');
 const Markup = require('../../../../helpers/markup');
 const Websocket = require('../../../websocket');
 let WS = Websocket();
 
 router.post('create', async ctx => {
-  await Controllers.parseForm(ctx);
   let query = ctx.request.body;
 
   let lastNumber = await PostModel.last({
@@ -97,10 +95,9 @@ router.post('create', async ctx => {
   });
 });
 
-['get', 'post'].forEach(function (method) {
+['get', 'post'].forEach((method) => {
   router[method]('read', async (ctx) => {
     if (method === 'post') {
-      await Controllers.parseForm(ctx);
       ctx.request.query = ctx.request.body;
     }
 
@@ -125,5 +122,38 @@ router.post('create', async ctx => {
     });
   });
 });
+
+
+router.post('delete', async (ctx) => {
+  let query = ctx.request.body;
+
+  let postInput = {
+    number: query.number
+  };
+
+  for (let key in postInput) {
+    if (typeof postInput[key] === 'undefined' || postInput[key] === '') {
+      return ctx.throw(400, `Wrong \`${key}\` parameter.`);
+    }
+  }
+
+  let check = await PostModel.readOne(query.number);
+  if (check === null) {
+    return ctx.throw(409, 'Post doesn\'t exist.');
+  }
+  let out = [
+    check.boardName,
+    check.threadNumber,
+    check.number
+  ];
+  return new Promise(async resolve => {
+    ctx.body = await PostModel.delete(postInput);
+    WS.broadcast('RNDR ' + JSON.stringify(out));
+    return resolve();
+  }).catch(e => {
+    return ctx.throw(500, e);
+  });
+});
+
 
 module.exports = router;

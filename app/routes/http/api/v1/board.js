@@ -4,7 +4,6 @@ const BoardModel = require('../../../../models/mongo/board');
 const Controllers = require('../../../index');
 
 router.post('create', async (ctx) => {
-  await Controllers.parseForm(ctx);
   let query = ctx.request.body;
 
   let boardInput = {
@@ -20,18 +19,44 @@ router.post('create', async (ctx) => {
 
   for (let key in boardInput) {
     if (typeof boardInput[key] === 'undefined' || boardInput[key] === '') {
-      ctx.throw(400, `Wrong \`${key}\` parameter.`);
+      return ctx.throw(400, `Wrong \`${key}\` parameter.`);
     }
   }
 
   let check = await BoardModel.readOne(query.board);
   if (check !== null) {
-    ctx.throw(409, 'Board already exists.');
+    return ctx.throw(409, 'Board already exists.');
   }
 
   return new Promise(async resolve => {
     await BoardModel.create(boardInput);
     ctx.body = await BoardModel.readOne(boardInput.board);
+    return resolve();
+  }).catch(e => {
+    return ctx.throw(500, e);
+  });
+});
+
+router.post('delete', async (ctx) => {
+  let query = ctx.request.body;
+
+  let boardInput = {
+    board: query.board
+  };
+
+  for (let key in boardInput) {
+    if (typeof boardInput[key] === 'undefined' || boardInput[key] === '') {
+      return ctx.throw(400, `Wrong \`${key}\` parameter.`);
+    }
+  }
+
+  let check = await BoardModel.readOne(query.board);
+  if (check === null) {
+    return ctx.throw(409, 'Board doesn\'t exist.');
+  }
+
+  return new Promise(async resolve => {
+    ctx.body = await BoardModel.delete(boardInput);
     return resolve();
   }).catch(e => {
     return ctx.throw(500, e);

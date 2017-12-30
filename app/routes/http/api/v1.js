@@ -1,4 +1,4 @@
-const router = require('koa-router')({ prefix: '' });
+const router = require('koa-router')();
 const ThreadModel = require('../../../models/mongo/thread');
 const CounterModel = require('../../../models/mongo/counter');
 const Controllers = require('../../index');
