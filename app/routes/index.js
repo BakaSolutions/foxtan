@@ -3,7 +3,7 @@ const Controllers = module.exports = {};
 const Busboy = require('busboy');
 const Tools = require('../helpers/tools');
 const config = require('../helpers/config');
-const UserModel = require('../models/mongo/user');
+//const UserModel = require('../models/mongo/user');
 const WS = require('./websocket');
 
 /**
@@ -39,7 +39,7 @@ Controllers.initHTTP = async app => {
     }
   });
 
-  app.keys = [Buffer.from(config('server.cookie.secret'))];
+  /*app.keys = [Buffer.from(config('server.cookie.secret'))];
   app.use(async (ctx, next) => {
     let token;
     let query = ctx.request.body;
@@ -61,7 +61,7 @@ Controllers.initHTTP = async app => {
       });
     }
     await next();
-  });
+  });*/
 
   app.use(async (ctx, next) => {
     const start = +new Date;
