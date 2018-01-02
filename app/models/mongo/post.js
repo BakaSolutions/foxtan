@@ -36,13 +36,15 @@ class PostModel extends SuperModel {
    * Reads a post with defined number
    * @param {String} board
    * @param {Number} post
+   * @param {Boolean} clear
    * @return {Promise}
    */
-  async readOne({board, post}) {
+  async readOne({board, post, clear}) {
     return await this.read({
       whereKey: ['boardName', 'number'],
       whereValue: [board, +post],
-      limit: 1
+      limit: 1,
+      clear: clear
     });
   }
 

@@ -71,24 +71,18 @@ router.post('create', async ctx => {
       postInput.number
     ];
     WS.broadcast('RNDR ' + JSON.stringify(out));
-    if (typeof query.redirect !== 'undefined' && query.redirect !== '') {
-      let map = {
-        ':board': postInput.boardName,
-        ':thread': postInput.threadNumber,
-        ':post': postInput.number
-      };
-      query.redirect = query.redirect.replace(/:(?:board|thread|post)/g, m => map[m]);
-      let pathBack = (ctx.req.headers['origin'] === 'null')
-        ? query.redirect
-        : ctx.req.headers['origin'] + '/' + query.redirect;
-      return setTimeout(() => {
-        ctx.redirect(pathBack);
-        return resolve();
-      }, 500);
+
+    let map = {
+      ':board': postInput.boardName,
+      ':thread': postInput.threadNumber,
+      ':post': postInput.number
+    };
+    if (isRedirect(query)) {
+      return await redirect(ctx, query, /:(?:board|thread|post)/g, map);
     }
+
     ctx.status = 201;
     ctx.body = post;
-
     return resolve();
   }).catch(e => {
     return ctx.throw(500, e);
@@ -126,34 +120,115 @@ router.post('create', async ctx => {
 
 router.post('delete', async (ctx) => {
   let query = ctx.request.body;
+  let promises = [];
 
-  let postInput = {
-    number: query.number
-  };
+  if (typeof query.post === 'undefined') {
+    return ctx.throw(400, 'No posts to delete!');
+  }
+  if (typeof query.password === 'undefined') {
+    return ctx.throw(400, 'No password');
+  }
 
-  for (let key in postInput) {
-    if (typeof postInput[key] === 'undefined' || postInput[key] === '') {
-      return ctx.throw(400, `Wrong \`${key}\` parameter.`);
+  if (!Array.isArray(query.post)) {
+    query.post = [ query.post ];
+  }
+  for (let i = 0; i < query.post.length; i++) {
+    promises[i] = new Promise(async resolve => {
+      let post = query.post[i].split(':');
+
+      let postInput = {
+        boardName: post[0],
+        number: +post[1]
+      };
+
+      for (let key in postInput) {
+        if (typeof postInput[key] === 'undefined' || postInput[key] === '') {
+          return resolve(/*`Wrong \`${key}\` parameter.`*/);
+        }
+      }
+
+      let check = await PostModel.readOne({
+        board: postInput.boardName,
+        post: postInput.number
+      });
+      if (check === null) {
+        return resolve(/*'Post doesn\'t exist.'*/);
+      }
+      let out = [
+        check.boardName,
+        check.threadNumber,
+        check.number
+      ];
+      WS.broadcast('RNDR ' + JSON.stringify(out));
+
+      return resolve(postInput);
+    });
+  }
+
+  return Promise.all(promises).then((postInput) => {
+    if (!postInput || !Array.isArray(postInput)) {
+      return;
     }
-  }
-
-  let check = await PostModel.readOne(query.number);
-  if (check === null) {
-    return ctx.throw(409, 'Post doesn\'t exist.');
-  }
-  let out = [
-    check.boardName,
-    check.threadNumber,
-    check.number
-  ];
-  return new Promise(async resolve => {
-    ctx.body = await PostModel.delete(postInput);
-    WS.broadcast('RNDR ' + JSON.stringify(out));
-    return resolve();
+    let commonResult = {ok: 0, n: 0};
+    let promises = [];
+    for (let i = 0; i < postInput.length; i++) {
+      promises[i] = new Promise(async (resolve, reject) => {
+        let post = await PostModel.readOne({
+          board: postInput[i].boardName,
+          post: postInput[i].number,
+          clear: false
+        });
+        if (!Crypto.verify(query.password, post.password)) {
+          return resolve();
+        }
+        let { result } = await PostModel.delete(postInput[i]);
+        if (!result) {
+          return resolve();
+        }
+        if (result.ok) {
+          commonResult.ok = 1;
+        }
+        commonResult.n += result.n;
+        resolve();
+      })
+    }
+    return Promise.all(promises).then(() => {
+      return commonResult;
+    });
+  }).then(async (result) => {
+    if (isRedirect(query)) {
+      return await redirect(ctx, ctx.request.body);
+    }
+    ctx.status = result.ok && result.n
+        ? 200
+        : 401;
+    ctx.body = result;
   }).catch(e => {
     return ctx.throw(500, e);
   });
 });
+
+function isRedirect(query) {
+  console.log(
+    !(typeof query.redirect === 'undefined' || query.redirect === ''),
+    (typeof query.redirect !== 'undefined' && query.redirect !== '')
+  );
+  return !(typeof query.redirect === 'undefined' || query.redirect === '');
+}
+
+function redirect(ctx, query, regexp, map) {
+  return new Promise(resolve => {
+    if (typeof query.redirect !== 'undefined' && query.redirect !== '') {
+      if (typeof map !== 'undefined') {
+        query.redirect = query.redirect.replace(regexp, m => map[m]);
+      }
+      return setTimeout(() => {
+        ctx.redirect(query.redirect);
+        return resolve();
+      }, 1000);
+    }
+  })
+}
 
 
 module.exports = router;

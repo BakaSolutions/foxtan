@@ -172,13 +172,10 @@ tools.sortObject = function(object, order = 'asc') {
  * @returns {Array}
  */
 tools.flattenArray = function(a) {
-  let out = [];
-  for(let i = 0; i < a.length; i++) {
-    if(Array.isArray(a[i])) {
-      out = out.concat(this.flattenArray(a[i]));
-    } else {
-      out.push(a[i]);
+  return a.reduce((result, current) => {
+    if(Array.isArray(current)) {
+      current = this.flattenArray(current);
     }
-  }
-  return out;
+    return result.concat(current);
+  }, []);
 };

@@ -125,6 +125,7 @@ Controllers.fail = (ctx, out) => {
 };
 
 Controllers.parseForm = ctx => {
+  ctx.request.body = {};
   if (!ctx.request.is('urlencoded', 'multipart')) {
     return;
   }
@@ -141,7 +142,20 @@ Controllers.parseForm = ctx => {
       });
     }); // TODO: Parse files
     busboy.on('field', (fieldname, val) => {
-      fields[fieldname] = val;
+      let matches = fieldname.match(/(.+)\[(.*)]$/);
+      if (!matches) {
+        return fields[fieldname] = val;
+      }
+      if (!fields[matches[1]]) {
+        fields[matches[1]] = [];
+      }
+      if (!matches[2]) {
+        return fields[matches[1]].push(val);
+      }
+      if (!fields[matches[1]][matches[2]]) {
+        fields[matches[1]][matches[2]] = [];
+      }
+      fields[matches[1]][matches[2]].push(val);
     });
     busboy.on('finish', () => {
       busboy = null;

@@ -76,6 +76,8 @@ class ThreadModel extends SuperModel {
    * @return {Promise}
    */
   async getCounters({boards, threads} = {}) {
+    const PostModel = require('./post');
+
     if (typeof boards === 'undefined') {
       boards = await BoardModel.readAll();
       boards = boards.map(function(board) {
@@ -96,11 +98,16 @@ class ThreadModel extends SuperModel {
       if (!out[board]) {
         out[board] = {};
       }
-      let threadEntry = await this.readOne({
+      let postEntry = await PostModel.readAll({
         board: board,
-        thread: number
+        thread: number,
+        order: 'createdAt',
+        orderBy: 'DESC',
+        limit: 1
       });
-      out[board][number] = threadEntry['number'];
+      out[board][number] = postEntry !== null
+        ? postEntry.number
+        : null;
     }
     return threads.length === 1
       ? out[boards[0]][threads[0]]
