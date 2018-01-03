@@ -1,5 +1,6 @@
 const ThreadModel = require('../../models/mongo/thread');
 const PostModel = require('../../models/mongo/post');
+const CounterModel = require('../../models/mongo/counter');
 const Tools = require('../../helpers/tools');
 
 module.exports = [
@@ -23,7 +24,9 @@ async function thread(command, message, id, ws, err) {
     thread: thread
   }).then(async out => {
     if (out === null) {
-      return err(ws, 404, id);
+      let counter = await CounterModel.readOne(board);
+      let wasPosted = (id <= counter);
+      return err(ws, wasPosted ? 410 : 404, id);
     }
     out.posts = await PostModel.readAll({
       board: board,

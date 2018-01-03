@@ -58,7 +58,6 @@ class WS {
     let command = message.shift();
     message = message.join(' ');
 
-
     let sequence = this.handlers[command];
     if (!sequence) {
       return this.throw(ws, 404, id);

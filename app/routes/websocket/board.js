@@ -60,13 +60,13 @@ async function board(command, message, id, ws, err) {
       });
       break;
     default:
-      let page = +message;
-      if (!Tools.isNumber(+page)) {
+      let pageNumber = +message;
+      if (!Tools.isNumber(+pageNumber)) {
         return err(ws, 404, id);
       }
       out = ThreadModel.readPage({
         board: board,
-        page: page
+        page: pageNumber
       }).then(async page => {
         if (!page.length) {
           return err(ws, 404, id);
@@ -76,6 +76,11 @@ async function board(command, message, id, ws, err) {
             board: board,
             post: +page[i].number
           });
+          if (opPost === null) {
+            let message = `There's a thread, but no OP-post: ${board}/${page[i].number}`;
+            console.log(message);
+            throw new Error(message);
+          }
           page[i].posts = [ opPost ];
 
           let posts = await PostModel.readAll({
@@ -85,7 +90,11 @@ async function board(command, message, id, ws, err) {
             orderBy: 'DESC',
             limit: config('board.lastPostsNumber')
           });
-
+          if (posts === null || !posts.length) {
+            let message = `There's a thread, but no posts: ${board}/${page[i].number}`;
+            console.log(message);
+            throw new Error(message);
+          }
           if (posts[posts.length - 1].number === posts[posts.length - 1].threadNumber) {
             posts.pop();
           }

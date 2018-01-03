@@ -93,10 +93,14 @@ class SuperModel {
     return await Model[type === 1 ? 'updateOne' : 'updateMany'](query, {$set: fields}, {upsert: true});
   }
 
-  async delete(fields = {}) {
+  async deleteOne(fields = {}) {
     let Model = await mongo.collection(this.collection);
+    return await Model.deleteOne(fields);
+  }
 
-    return await Model[!Array.isArray(fields) ? 'deleteOne' : 'deleteMany'](fields);
+  async deleteMany(fields = {}) {
+    let Model = await mongo.collection(this.collection);
+    return await Model.deleteMany(fields);
   }
 
   clearEntry(entry) {

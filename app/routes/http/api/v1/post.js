@@ -78,7 +78,8 @@ router.post('create', async ctx => {
       ':post': postInput.number
     };
     if (isRedirect(query)) {
-      return await redirect(ctx, query, /:(?:board|thread|post)/g, map);
+      await redirect(ctx, query, /:(?:board|thread|post)/g, map);
+      return resolve();
     }
 
     ctx.status = 201;
@@ -125,9 +126,9 @@ router.post('delete', async (ctx) => {
   if (typeof query.post === 'undefined') {
     return ctx.throw(400, 'No posts to delete!');
   }
-  if (typeof query.password === 'undefined') {
+  /*if (typeof query.password === 'undefined') {
     return ctx.throw(400, 'No password');
-  }
+  }*/
 
   if (!Array.isArray(query.post)) {
     query.post = [ query.post ];
@@ -149,59 +150,46 @@ router.post('delete', async (ctx) => {
 
       let check = await PostModel.readOne({
         board: postInput.boardName,
-        post: postInput.number
+        post: postInput.number,
+        clear: false
       });
       if (check === null) {
-        return resolve(/*'Post doesn\'t exist.'*/);
+        return resolve(0);
+      }
+      /*if (!Crypto.verify(query.password || '', check.password)) {
+        return resolve(0);
+      }*/
+      if (check.number === check.threadNumber) {  // Delete thread
+        await ThreadModel.deleteOne(postInput);
+        postInput = {
+          boardName: check.boardName,
+          threadNumber: check.number
+        };
       }
       let out = [
         check.boardName,
         check.threadNumber,
         check.number
       ];
-      WS.broadcast('RNDR ' + JSON.stringify(out));
-
-      return resolve(postInput);
+      WS.broadcast('REM ' + JSON.stringify(out));
+      let { result } = await PostModel.deleteMany(postInput);
+      if (!result) {
+        result = {n: 0};
+      }
+      resolve(result.n);
     });
   }
 
-  return Promise.all(promises).then((postInput) => {
-    if (!postInput || !Array.isArray(postInput)) {
-      return;
-    }
-    let commonResult = {ok: 0, n: 0};
-    let promises = [];
-    for (let i = 0; i < postInput.length; i++) {
-      promises[i] = new Promise(async (resolve, reject) => {
-        let post = await PostModel.readOne({
-          board: postInput[i].boardName,
-          post: postInput[i].number,
-          clear: false
-        });
-        if (!Crypto.verify(query.password, post.password)) {
-          return resolve();
-        }
-        let { result } = await PostModel.delete(postInput[i]);
-        if (!result) {
-          return resolve();
-        }
-        if (result.ok) {
-          commonResult.ok = 1;
-        }
-        commonResult.n += result.n;
-        resolve();
-      })
-    }
-    return Promise.all(promises).then(() => {
-      return commonResult;
-    });
+  return Promise.all(promises).then((postInputs) => {
+    return {
+      deleted: postInputs.reduce((input, current) => {
+        return current + input;
+      }, 0)
+    };
   }).then(async (result) => {
     if (isRedirect(query)) {
       return await redirect(ctx, ctx.request.body);
     }
-    ctx.status = result.ok && result.n
-        ? 200
-        : 401;
     ctx.body = result;
   }).catch(e => {
     return ctx.throw(500, e);

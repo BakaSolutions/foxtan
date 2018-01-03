@@ -56,7 +56,7 @@ router.post('delete', async (ctx) => {
   }
 
   return new Promise(async resolve => {
-    ctx.body = await BoardModel.delete(boardInput);
+    ctx.body = await BoardModel.deleteOne(boardInput);
     return resolve();
   }).catch(e => {
     return ctx.throw(500, e);
