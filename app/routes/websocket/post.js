@@ -1,5 +1,6 @@
 const PostModel = require('../../models/mongo/post');
 const Tools = require('../../helpers/tools');
+const CounterModel = require('../../models/mongo/counter');
 
 module.exports = [
   {
@@ -20,9 +21,11 @@ async function post(command, message, id, ws, err) {
   await PostModel.readOne({
     board: board,
     post: post
-  }).then(out => {
+  }).then(async out => {
     if (out === null) {
-      return err(ws, 404, id);
+      let counter = await CounterModel.readOne(board);
+      let wasPosted = (id <= counter);
+      return err(ws, wasPosted ? 410 : 404, id);
     }
 
     out = JSON.stringify(out);

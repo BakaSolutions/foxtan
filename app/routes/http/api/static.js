@@ -2,7 +2,7 @@ const router = require('koa-router')();
 
 const config = require('../../../helpers/config');
 const Tools = require('../../../helpers/tools');
-const BoardModel = require('../../../models/mongo/board');
+const BoardLogic = require('../../../logic/board');
 const PostModel = require('../../../models/mongo/post');
 const ThreadModel = require('../../../models/mongo/thread');
 const CounterModel = require('../../../models/mongo/counter');
@@ -30,21 +30,13 @@ const Controllers = require('../../index');
  */
 
 router.all('/', async ctx => {
-  ctx.body = {
+  Controllers.success(ctx, {
     engine: 'Foxtan/' + config('server.version')
-  }
+  });
 });
 
 router.get('/boards.json', async ctx => {
-  return await BoardModel.readAll().then(boards => {
-    let out = {};
-    for (let i = 0; i < boards.length; i++) {
-      let board = boards[i].board;
-      delete boards[i].board;
-      out[board] = boards[i];
-    }
-    return out;
-  }).then(
+  await BoardLogic.readAll().then(
     out => Controllers.success(ctx, out),
     out => Controllers.fail(ctx, out)
   )
@@ -52,7 +44,7 @@ router.get('/boards.json', async ctx => {
 
 router.get('/:board/board.json', async ctx => {
   let board = ctx.params.board;
-  return await BoardModel.readOne(board).then(
+  return await BoardLogic.readOne(board).then(
     out => Controllers.success(ctx, out),
     out => Controllers.fail(ctx, out)
   )

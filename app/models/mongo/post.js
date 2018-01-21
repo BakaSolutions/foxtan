@@ -35,7 +35,7 @@ class PostModel extends SuperModel {
   /**
    * Reads a post with defined number
    * @param {String} board
-   * @param {Number} post
+   * @param {String|Number} post
    * @param {Boolean} [clear]
    * @return {Promise}
    */
