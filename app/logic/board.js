@@ -1,8 +1,10 @@
+const CommonLogic = require('./common');
+
 const BoardModel = require('../models/mongo/board');
 
 let Board = module.exports = {};
 
-Board.create = async (fields, ctx) => {
+Board.create = async fields => {
 
   let boardInput = {
     board: fields.board,
@@ -12,27 +14,30 @@ Board.create = async (fields, ctx) => {
     closed: !!fields.closed || false,
     bumpLimit: fields.bumpLimit || 500,
     maxBoardSize: fields.maxBoardSize || -1,
-    createdAt: new Date()
+    createdAt: new Date
   };
 
-  for (let key in boardInput) {
-    if (typeof boardInput[key] === 'undefined' || boardInput[key] === '') {
-      return ctx.throw(400, `Wrong \`${key}\` parameter.`); //TODO: Make it a separate function! Damn you!
-    }
+  let keys = CommonLogic.hasEmpty(boardInput);
+  if (keys) {
+    throw {
+      status: 400,
+      message: `Wrong parameter: \`${keys}\`.`
+    };
   }
   
   let check = await BoardModel.readOne(fields.board);
   if (check !== null) {
-    return ctx.throw(409, 'Board already exists.');
+    throw {
+      status: 409,
+      message: `Board already exists.`
+    };
   }
 
-  return new Promise(async resolve => {
-    await BoardModel.create(boardInput);
-    resolve(await BoardModel.readOne(boardInput.board));
-  })
+  await BoardModel.create(boardInput);
+  return Board.readOne(boardInput.board);
 };
 
-Board.readOne = async (board) => {
+Board.readOne = async board => {
   return await BoardModel.readOne(board);
 };
 
@@ -48,20 +53,25 @@ Board.readAll = async () => {
   });
 };
 
-Board.delete = async (fields, ctx) => {
+Board.delete = async fields => {
   let boardInput = {
     board: fields.board
   };
 
-  for (let key in boardInput) {
-    if (typeof boardInput[key] === 'undefined' || boardInput[key] === '') {
-      return ctx.throw(400, `Wrong \`${key}\` parameter.`);
-    }
+  let keys = CommonLogic.hasEmpty(boardInput);
+  if (keys) {
+    throw {
+      status: 400,
+      message: `Wrong parameters: \`${keys}\`.`
+    };
   }
 
   let check = await BoardModel.readOne(fields.board);
-  if (check === null) {
-    return ctx.throw(409, 'Board doesn\'t exist.');
+  if (!check) {
+    throw {
+      status: 409,
+      message: `Board doesn't exist.`
+    };
   }
 
   return await BoardModel.deleteOne(boardInput);

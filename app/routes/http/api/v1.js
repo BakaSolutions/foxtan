@@ -1,5 +1,5 @@
 const router = require('koa-router')();
-const ThreadModel = require('../../../models/mongo/thread');
+const ThreadLogic = require('../../../logic/thread');
 const CounterModel = require('../../../models/mongo/counter');
 const Controllers = require('../../index');
 
@@ -15,7 +15,7 @@ router.get('/api/v1/', async ctx => {
 });
 
 router.get('/api/v1/sync.data', async ctx => {
-  return await ThreadModel.syncData().then(
+  return await ThreadLogic.syncData().then(
     out => Controllers.success(ctx, out),
     out => Controllers.fail(ctx, out)
   );

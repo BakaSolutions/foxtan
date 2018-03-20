@@ -12,7 +12,7 @@ let toString = {}.toString;
 });
 
 
-tools.createBitMask = function (bits, params) {
+tools.createBitMask = (bits, params) => {
   let out = 0;
   for (let param in params) {
     if (params[param]) {
@@ -22,16 +22,16 @@ tools.createBitMask = function (bits, params) {
   return out.toString(2);
 };
 
-tools.checkBitMask = function (bit, mask) {
+tools.checkBitMask = (bit, mask) => {
   return !!(bit & mask);
 };*/
 
-tools.moduleAvailable = function (name) {
+tools.moduleAvailable = name => {
   try {
     require.resolve(name);
     return true;
   } catch(e) {
-
+    //
   }
   return false;
 };
@@ -42,16 +42,18 @@ tools.moduleAvailable = function (name) {
  * @param [mask]
  * @returns {Promise}
  */
-tools.requireAll = async function (src, mask) {
+tools.requireAll = async (src, mask) => {
   if (!Array.isArray(src)) {
     src = [ src ];
   }
   let plugins = [];
   src.forEach((source) => {
     let filePath = path.join(__dirname, '/../', source);
-    plugins.push(new Promise(function(resolve, reject) {
-      fs.readdir(filePath, function(err, files) {
-        if (err) reject(err);
+    plugins.push(new Promise((resolve, reject) => {
+      fs.readdir(filePath, (err, files) => {
+        if (err) {
+          return reject(err);
+        }
         resolve(requireAll(mask, files, filePath));
       });
     }));
@@ -69,12 +71,12 @@ tools.requireAll = async function (src, mask) {
  * @param [mask]
  * @returns {*}
  */
-tools.requireAllSync = function (src, mask) {
+tools.requireAllSync = (src, mask) => {
   if (!Array.isArray(src)) {
     src = [ src ];
   }
   let plugins = [];
-  src.forEach(function (source) {
+  src.forEach((source) => {
     let filePath = path.join(__dirname, '/../', source);
     let files = fs.readdirSync(filePath);
     [].push.apply(plugins, requireAll(mask, files, filePath));
@@ -89,12 +91,12 @@ tools.requireAllSync = function (src, mask) {
  * @param {String} filePath
  * @returns {Array}
  */
-function requireAll(mask, files, filePath) { // TODO: Do it recursively
+function requireAll(mask, files, filePath) {
   let o = [];
   if (typeof files === 'undefined') {
     return o;
   }
-  files.forEach(function (file) {
+  files.forEach((file) => {
     if(mask && !mask.test(file)) {
       return false;
     }
@@ -115,16 +117,18 @@ function requireAll(mask, files, filePath) { // TODO: Do it recursively
  * @param m
  * @returns {*|default}
  */
-tools.requireWrapper = function (m) {
-  return (m && m.default) || m;
-};
+tools.requireWrapper = m => (m && m.default) || m;
 
 /**
- * Check if a variable is an object but not a mop
+ * Check if a variable is an object but not a map
  * @param obj
+ * @param {boolean} [nullable]
  * @returns {boolean}
  */
-tools.isObject = function(obj) {
+tools.isObject = (obj, nullable = true) => {
+  if (!nullable && obj === null) {
+    return false;
+  }
   return toString.call(obj) === '[object Object]';
 };
 
@@ -133,28 +137,23 @@ tools.isObject = function(obj) {
  * @param obj
  * @returns {boolean}
  */
-tools.isMap = function(obj) {
-  return toString.call(obj) === '[object Map]';
-};
+tools.isMap = obj => toString.call(obj) === '[object Map]';
 
 /**
  * Check if a variable is a number
  * @param n
  * @returns {boolean}
  */
-tools.isNumber = function(n) {
-  return +n === n;
-  // NOTE: Such an interesting hack! It's fair to use:
-  // return !isNaN(parseFloat(n)) && isFinite(n);
-};
+tools.isNumber = n => +n === n;
+  //!isNaN(parseFloat(n)) && isFinite(n);
 
-tools.sortObject = function(object, order = 'asc') {
+tools.sortObject = (object, order = 'asc') => {
   let arr = [];
   let out = {};
   for (let key in object) {
     arr.push(key);
   }
-  arr.sort(function(a, b) {
+  arr.sort((a, b) => {
     return a.toLowerCase().localeCompare(b.toLowerCase());
   });
   if (order === 'desc') {
@@ -171,10 +170,10 @@ tools.sortObject = function(object, order = 'asc') {
  * @param {Array} a
  * @returns {Array}
  */
-tools.flattenArray = function(a) {
+tools.flattenArray = a => {
   return a.reduce((result, current) => {
-    if(Array.isArray(current)) {
-      current = this.flattenArray(current);
+    if (Array.isArray(current)) {
+      current = tools.flattenArray(current);
     }
     return result.concat(current);
   }, []);

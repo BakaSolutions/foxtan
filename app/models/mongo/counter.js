@@ -1,4 +1,3 @@
-//const config = require('../../helpers/config');
 const SuperModel = require('./super');
 
 class CounterModel extends SuperModel {
@@ -25,7 +24,7 @@ class CounterModel extends SuperModel {
     }).then(counter => {
       let out = {};
         out[counter['_id']] = counter.lastPostNumber;
-      return out;
+      return out[board];
     });
   }
 

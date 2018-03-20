@@ -23,12 +23,12 @@ router.post('create', async ctx => {
 });
 
 ['get', 'post'].forEach((method) => {
-  router[method]('read', async (ctx) => {
+  router[method]('read', async ctx => {
     if (method === 'post') {
       ctx.request.query = ctx.request.body;
     }
 
-    await PostLogic.readOne(ctx.request.query, ctx)
+    await PostLogic.readOne(ctx.request.query)
       .then(
         out => Controllers.success(ctx, out),
         out => Controllers.fail(ctx, out)
@@ -41,7 +41,7 @@ router.post('delete', async (ctx) => {
   let query = ctx.request.body;
 
   await PostLogic.delete(query, ctx)
-    .then(async (result) => {
+    .then(async result => {
       if (isRedirect(query)) {
         return await redirect(ctx, ctx.request.body);
       }

@@ -1,5 +1,6 @@
-const ThreadModel = require('../../models/mongo/thread');
-const Tools = require('../../helpers/tools');
+const ThreadLogic = require('../../logic/thread');
+
+const Controllers = require('./index');
 
 module.exports = [
   {
@@ -8,22 +9,9 @@ module.exports = [
   },
 ];
 
-async function sync(command, message, id, ws, err) {
-  await ThreadModel.syncData().then(out => {
-    if (out === null || !Tools.isObject(out)) {
-      return err(ws, 404, id);
-    }
-
-    out = JSON.stringify(out);
-
-    if (id) {
-      out += id;
-    } else {
-      out = command + ' ' + out;
-    }
-    ws.send(out);
-
-  }).catch(e => {
-    return err(ws, 500, id, e);
-  });
+async function sync(command, message, id, ws) {
+  await ThreadLogic.syncData().then(
+    out => Controllers.success(ws, out, id),
+    out => Controllers.fail(ws, out, id)
+  );
 }

@@ -1,7 +1,6 @@
 const config = require('../../helpers/config');
 const SuperModel = require('./super');
 const BoardModel = require('./board');
-const CounterModel = require('./counter');
 
 class ThreadModel extends SuperModel {
 
@@ -114,30 +113,6 @@ class ThreadModel extends SuperModel {
       : out;
   }
 
-
-  /**
-   * Return some counters to be a client synced
-   * @return {Promise}
-   */
-  async syncData() {
-    const PostModel = require('./post');
-    let out = {
-      lastPostNumbers: await CounterModel.read(),
-      threadCounts: {}
-    };
-    await this.readAll().then(async threads => {
-      for (let i = 0; i < threads.length; i++) {
-        if (typeof out.threadCounts[threads[i].boardName] === 'undefined') {
-          out.threadCounts[threads[i].boardName] = {};
-        }
-        out.threadCounts[threads[i].boardName][+threads[i].number] = await PostModel.count({
-          whereKey: ['boardName', 'threadNumber'],
-          whereValue: [threads[i].boardName, +threads[i].number]
-        });
-      }
-    });
-    return out;
-  }
 }
 
 module.exports = new ThreadModel();

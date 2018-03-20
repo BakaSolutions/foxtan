@@ -1,5 +1,4 @@
 const WebSocket = require('ws');
-let instance;
 
 class WS {
   constructor (server) {
@@ -9,7 +8,7 @@ class WS {
       path: '/ws'
     });
 
-    this.instance.on('connection', (ws) => {
+    this.instance.on('connection', ws => {
       ws.isAlive = true;
 
       ws.on('pong', () => {
@@ -21,13 +20,13 @@ class WS {
     });
 
     this.interval = setInterval(() => {
-      this.instance.clients.forEach(function each(ws) {
-        if (!ws.isAlive) {
-          return ws.terminate();
+      for (let client of this.instance.clients) {
+        if (!client.isAlive) {
+          return client.terminate();
         }
-        ws.isAlive = false;
-        ws.ping('NUS', false, true);
-      });
+        client.isAlive = false;
+        client.ping('NUS', false, true);
+      }
     }, 30000);
   }
 
@@ -48,7 +47,7 @@ class WS {
 
   onMessage (message, ws) {
     let id;
-    if (message.indexOf(' @') >= 0) {
+    if (/ @[0-9a-f]+$/.test(message)) {
       message = message.split(' @');
       id = ' @' + message.pop();
       message = message.join(' @');
@@ -60,39 +59,61 @@ class WS {
 
     let sequence = this.handlers[command];
     if (!sequence) {
-      return this.throw(ws, 404, id);
+      return fail(ws, {status: 404}, id);
     }
     sequence = sequence.slice();
 
-    function solveMiddleware(command, message, id, ws, err) {
+    function solveMiddleware(command, message, id, ws) {
       if (!sequence.length) {
         return;
       }
-      let fn = sequence.shift();
 
+      let fn = sequence.shift();
       function next() {
-        solveMiddleware(command, message, id, ws, err);
+        solveMiddleware(command, message, id, ws);
       }
-      fn(command, message, id, ws, err, next);
+      fn(command, message, id, ws, next).then(next);
     }
 
-    solveMiddleware(command, message, id, ws, this.throw);
-  }
-
-  throw (ws, code, id, err) {
-    let out = 'FAIL ';
-    out += (code)
-      ? code
-      : 500;
-    if (err) out += ' #' + err;
-    if (id)  out += id;
-    ws.send(out);
+    solveMiddleware(command, message, id, ws);
   }
 }
 
-module.exports = (server) => {
+let instance;
+
+module.exports = server => {
   if (!instance) {
     instance = new WS(server);
   }
   return instance;
 };
+
+function success(ws, out, id) {
+  if (typeof out === 'object') {
+    try {
+      out = JSON.stringify(out);
+    } catch (e) {
+      //
+    }
+  }
+  if (id) {
+    out += id;
+  }
+  ws.send(out);
+}
+module.exports.success = success;
+
+function fail(ws, out, id) {
+  let output = 'FAIL ';
+  output += out
+      ? out.status || 500
+      : 500;
+  if (out.message) {
+    output += ' #' + out.message;
+  }
+  if (id) {
+    output += id;
+  }
+  ws.send(output);
+}
+module.exports.fail = fail;

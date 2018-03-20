@@ -1,11 +1,8 @@
 const router = require('koa-router')();
 
 const config = require('../../../helpers/config');
-const Tools = require('../../../helpers/tools');
 const BoardLogic = require('../../../logic/board');
-const PostModel = require('../../../models/mongo/post');
-const ThreadModel = require('../../../models/mongo/thread');
-const CounterModel = require('../../../models/mongo/counter');
+const ThreadLogic = require('../../../logic/thread');
 const Controllers = require('../../index');
 
 /**
@@ -44,15 +41,21 @@ router.get('/boards.json', async ctx => {
 
 router.get('/:board/board.json', async ctx => {
   let board = ctx.params.board;
-  return await BoardLogic.readOne(board).then(
+
+  await BoardLogic.readOne(board).then(
     out => Controllers.success(ctx, out),
     out => Controllers.fail(ctx, out)
   )
 });
 
+/**
+ * Why do we use ThreadLogic instead of BoardLogic in the routers below?
+ * Coz we grab threads, not boards!
+ */
 router.get('/:board/pageCount.json', async ctx => {
   let board = ctx.params.board;
-  return await ThreadModel.countPage({
+
+  await ThreadLogic.countPage({
     board: board,
     limit: ctx.request.query.limit || config('board.threadsPerPage')
   }).then(
@@ -64,54 +67,8 @@ router.get('/:board/pageCount.json', async ctx => {
 router.get('/:board/:page.json', async ctx => {
   let board = ctx.params.board;
   let page = +ctx.params.page;
-  if (!Tools.isNumber(page)) {
-    return ctx.throw(400, 'Wrong `page` parameter.');
-  }
-  return await ThreadModel.readPage({
-    board: board,
-    page: page
-  }).then(async page => {
-    if (!page.length) {
-      return ctx.throw(404);
-    }
-    for (let i = 0; i < page.length; i++) {
-      let opPost = await PostModel.readOne({
-        board: board,
-        post: +page[i].number
-      });
-      page[i].posts = [ opPost ];
 
-      let posts = await PostModel.readAll({
-        board: board,
-        thread: +page[i].number,
-        order: 'createdAt',
-        orderBy: 'DESC',
-        limit: config('board.lastPostsNumber')
-      });
-
-      if (posts[posts.length - 1].number === posts[posts.length - 1].threadNumber) {
-        posts.pop();
-      }
-      posts.reverse();
-      page[i].posts.push(...posts);
-
-      let count = await PostModel.count({
-        whereKey: ['boardName', 'threadNumber'],
-        whereValue: [board, +page[i].number]
-      });
-      page[i].omittedPosts = count - page[i].posts.length;
-    }
-    return page;
-  }).then(async threads => {
-    return {
-      threads: threads,
-      lastPostNumber: await CounterModel.readOne(board),
-      pageCount: await ThreadModel.countPage({
-        board: board,
-        limit: ctx.request.query.limit || config('board.threadsPerPage')
-      })
-    }
-  }).then(
+  await ThreadLogic.readPage(board, page, ctx.request.query.limit).then(
     out => Controllers.success(ctx, out),
     out => Controllers.fail(ctx, out)
   );
@@ -119,57 +76,30 @@ router.get('/:board/:page.json', async ctx => {
 
 router.get('/:board/feed/:page.json', async ctx => {
   let board = ctx.params.board;
-  let page = ctx.params.page;
-  if (!Tools.isNumber(+page)) {
-    ctx.throw(400, 'Wrong `page` parameter.');
-  }
-  return await ThreadModel.readAll({
-    board: board,
-    order: 'createdAt',
-    orderBy: 'DESC',
-    limit: config('board.threadsPerPage'),
-    offset: page * config('board.threadsPerPage')
-  }).then(
+  let page = +ctx.params.page;
+
+  await ThreadLogic.readPage(board, page).then(
     out => Controllers.success(ctx, out),
     out => Controllers.fail(ctx, out)
   );
 });
 
 router.get('/:board/cat/:type/:page.json', async ctx => {
-  let board = ctx.params.board;
-  let page = ctx.params.page;
-  if (!Tools.isNumber(+page)) {
-    ctx.throw(400, 'Wrong `page` parameter.');
-  }
-  let options = {
-    board: board,
-    orderBy: 'DESC',
-    limit: config('board.threadsPerPage'),
-    offset: page * config('board.threadsPerPage')
-  };
-  let type = ctx.params.type;
+  let {board, page, type} = ctx.params;
+
+  let order;
   switch (type) {
     case 'recent':
-      options['order'] = 'createdAt';
+      order = 'createdAt';
       break;
     case 'bumped':
-      options['order'] = 'updatedAt';
+      order = 'updatedAt';
       break;
     default:
       return ctx.throw(400, 'Wrong `type` parameter.');
   }
-  return await ThreadModel.readAll(options).then(async page => {
-    if (!page.length) {
-      return ctx.throw(404);
-    }
-    for (let i = 0; i < page.length; i++) {
-      page[i].opPost = await PostModel.readOne({
-        board: board,
-        post: +page[i].number
-      });
-    }
-    return page;
-  }).then(
+
+  await ThreadLogic.readCatPage(board, page, order).then(
     out => Controllers.success(ctx, out),
     out => Controllers.fail(ctx, out)
   );
@@ -177,49 +107,9 @@ router.get('/:board/cat/:type/:page.json', async ctx => {
 
 router.get('/:board/res/:thread/:last.json', async ctx => {
   let board = ctx.params.board;
-  let thread = ctx.params.thread;
-  if (!Tools.isNumber(+thread)) {
-    ctx.throw(400, 'Wrong `thread` parameter.');
-  }
-  let last = ctx.params.last;
-  if (!Tools.isNumber(+last) || last < 3) {
-    ctx.throw(400, 'Wrong `last` parameter.');
-  }
-  return await ThreadModel.readOne({
-    board: board,
-    thread: thread
-  }).then(async out => {
-    if (out === null) {
-      return ctx.throw(404);
-    }
-    let opPost = await PostModel.readOne({
-      board: board,
-      post: thread
-    });
-    out.posts = [ opPost ];
-
-    let posts = await PostModel.readAll({
-      board: board,
-      thread: +thread,
-      order: 'createdAt',
-      orderBy: 'DESC',
-      limit: +last || config('board.lastPostsNumber'),
-      offset: 0
-    });
-
-    if (posts[posts.length - 1].number === posts[posts.length - 1].threadNumber) {
-      posts.pop();
-    }
-    posts.reverse();
-    out.posts.push(...posts);
-
-    let count = await PostModel.count({
-      whereKey: ['boardName', 'threadNumber'],
-      whereValue: [board, +thread]
-    });
-    out.omittedPosts = count - out.posts.length;
-    return out;
-  }).then(
+  let thread = +ctx.params.thread;
+  let last = +ctx.params.last;
+  await ThreadLogic.readOne(board, thread, last).then(
     out => Controllers.success(ctx, out),
     out => Controllers.fail(ctx, out)
   );
@@ -227,29 +117,10 @@ router.get('/:board/res/:thread/:last.json', async ctx => {
 
 router.get('/:board/res/:thread.json', async ctx => {
   let board = ctx.params.board;
-  let thread = ctx.params.thread;
-  if (!Tools.isNumber(+thread)) {
-    ctx.throw(400, 'Wrong `thread` parameter.');
-  }
-  return await ThreadModel.readOne({
-    board: board,
-    thread: thread
-  }).then(async out => {
-    if (out === null) {
-      return ctx.throw(404);
-    }
-    out.posts = await PostModel.readAll({
-      board: board,
-      thread: +thread
-    });
-    out.lastPostNumber = await ThreadModel.getCounters({
-      boards: board,
-      threads: +thread
-    });
-    return out;
-  }).then(
-    out => Controllers.success(ctx, out),
-    out => Controllers.fail(ctx, out)
+  let thread = +ctx.params.thread;
+  await ThreadLogic.readOne(board, thread).then(
+      out => Controllers.success(ctx, out),
+      out => Controllers.fail(ctx, out)
   );
 });
 

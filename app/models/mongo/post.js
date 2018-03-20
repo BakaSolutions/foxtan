@@ -24,7 +24,7 @@ class PostModel extends SuperModel {
           whereKey: ['boardName', 'number'],
           whereValue: [out.boardName, out.threadNumber],
           fields: {
-            updatedAt: new Date()
+            updatedAt: new Date
           }
         })
       }

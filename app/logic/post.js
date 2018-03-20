@@ -1,3 +1,5 @@
+const CommonLogic = require('./common');
+
 const CounterModel = require('../models/mongo/counter');
 const BoardModel = require('../models/mongo/board');
 const ThreadModel = require('../models/mongo/thread');
@@ -11,14 +13,20 @@ let WS = Websocket();
 
 let Post = module.exports = {};
 
-Post.create = async (fields, ctx) => {
+Post.create = async fields => {
   let board = await BoardModel.readOne(fields.boardName);
 
   if (!board) {
-    return ctx.throw(404, new Error(`Board doesn't exist!`));
+    throw {
+      status: 404,
+      message: `Board doesn't exist!`
+    };
   }
   if (board.closed) {
-    return ctx.throw(403, new Error(`Board is closed`));
+    throw {
+      status: 403,
+      message: `Board is closed!`
+    };
   }
 
   let lastNumber = await PostModel.last({
@@ -26,7 +34,7 @@ Post.create = async (fields, ctx) => {
     whereValue: fields.boardName
   });
 
-  let now = new Date();
+  let now = new Date;
   let threadInput = {
     boardName: fields.boardName,
     number: ++lastNumber,
@@ -34,9 +42,7 @@ Post.create = async (fields, ctx) => {
     updatedAt: now
   };
 
-  let isThread =
-    (typeof fields.threadNumber === 'undefined'
-         || fields.threadNumber === '');
+  let isThread = CommonLogic.isEmpty(fields.threadNumber);
 
   if (!isThread) {
     let thread = await ThreadModel.readOne({
@@ -44,10 +50,16 @@ Post.create = async (fields, ctx) => {
       thread: fields.threadNumber
     });
     if (!thread) {
-      return ctx.throw(404, new Error(`Thread doesn't exist!`));
+      throw {
+        status: 404,
+        message: `Thread doesn't exist!`
+      };
     }
     if (thread.closed) {
-      return ctx.throw(403, new Error('Thread is closed.'));
+      throw {
+        status: 403,
+        message: `Thread is closed!`
+      };
     }
   }
 
@@ -57,14 +69,16 @@ Post.create = async (fields, ctx) => {
     subject: fields.subject,
     text: await Markup.process(fields.text, threadInput.boardName, threadInput.threadNumber, threadInput.number),
     rawText: fields.text,
-    password: (typeof fields.password !== 'undefined' && fields.password !== '')
-      ? Crypto.sha256(fields.password)
-      : null,
+    password: CommonLogic.isEmpty(fields.password)
+      ? null
+      : Crypto.sha256(fields.password),
     sage: !!fields.sageru,
   };
 
   return new Promise(async resolve => {
-    let promise = (isThread) ? ThreadModel.create(threadInput) : Promise.resolve();
+    let promise = isThread
+      ? ThreadModel.create(threadInput)
+      : Promise.resolve();
 
     let post = promise.then(async () => await PostModel.create(postInput));
 
@@ -79,54 +93,67 @@ Post.create = async (fields, ctx) => {
   });
 };
 
-Post.readOne = async (fields, ctx) => {
+Post.readOne = async fields => {
   let board = fields.board;
-  let post = fields.post;
+  let post = +fields.post;
 
-  if (typeof board === 'undefined') {
-    ctx.throw(400, 'Board parameter is missed.');
+  if (!board) {
+    throw {
+      status: 400,
+      message: `Board parameter is missed.`
+    };
   }
-  if (typeof post === 'undefined') {
-    ctx.throw(400, 'Post parameter is missed.');
+  if (!post) {
+    throw {
+      status: 400,
+      message: `Post parameter is missed.`
+    };
   }
 
   return await PostModel.readOne({
     board: board,
     post: post
   }).then(async out => {
-    if (out === null) {
+    if (!out) {
       let counter = await CounterModel.readOne(board);
       let wasPosted = (post <= counter);
-      return ctx.throw(wasPosted ? 410 : 404);
+      let status = wasPosted ? 410 : 404;
+      throw {
+        status: status
+      };
     }
     return out;
   });
 };
 
-Post.delete = async (fields, ctx) => {
-  if (typeof fields.post === 'undefined') {
-    return ctx.throw(400, 'No posts to delete!');
+Post.delete = async fields => {
+  if (!fields.post) {
+    throw {
+      status: 400,
+      message: `No posts to delete!`
+    };
   }
-  /*if (typeof fields.password === 'undefined') { TODO: Enable after tests
-    return ctx.throw(400, 'No password');
+  /*if (!fields.password) { TODO: Enable after tests
+    throw {
+      status: 400,
+      message: `No password!`
+    };
   }*/
   if (!Array.isArray(fields.post)) {
     fields.post = [ fields.post ];
   }
 
-  let promises = fields.post.reduce((previous, current, i) => {
-    return previous.push(new Promise(async resolve => {
-      let post = fields.post[i].split(':');
+  let promises = fields.post.reduce((previous, current) => {
+    previous.push(new Promise(async resolve => {
+      let post = current.split(':');
 
       let postInput = {
         boardName: post[0],
         number: +post[1]
       };
 
-      for (let key in postInput) {
-        if (typeof postInput[key] === 'undefined' || postInput[key] === '') {
-          return resolve(0);
-        }
+      if (CommonLogic.hasEmpty(postInput)) {
+        return resolve(0);
       }
 
       let check = await PostModel.readOne({
@@ -134,7 +161,7 @@ Post.delete = async (fields, ctx) => {
         post: postInput.number,
         clear: false
       });
-      if (check === null) {
+      if (!check) {
         return resolve(0);
       }
       /*if (!Crypto.verify(fields.password || '', check.password)) {
@@ -167,14 +194,15 @@ Post.delete = async (fields, ctx) => {
         commonResult += result.n;
       }
       resolve(commonResult);
-    }));
+      }).catch(() => {
+        return 0;
+      })
+    );
+    return previous;
   }, []);
-
   return Promise.all(promises).then((postInputs) => {
     return {
-      deleted: postInputs.reduce((input, current) => {
-        return current + input;
-      }, 0)
+      deleted: postInputs.reduce((input, current) => current + input, 0)
     };
   });
 };

@@ -3,7 +3,7 @@ const Controllers = module.exports = {};
 const Busboy = require('busboy');
 const Tools = require('../helpers/tools');
 const config = require('../helpers/config');
-//const UserModel = require('../models/mongo/user');
+const UserLogic = require('../logic/user');
 const WS = require('./websocket');
 
 /**
@@ -39,13 +39,10 @@ Controllers.initHTTP = async app => {
     }
   });
 
-  /*app.keys = [Buffer.from(config('server.cookie.secret'))];
+  app.keys = [Buffer.from(config('server.cookie.secret'))];
   app.use(async (ctx, next) => {
     let token;
-    let query = ctx.request.body;
-    if (query && query.token) {
-      token = query.token;
-    } else if (ctx.headers['X-Access-Token']) {
+    if (ctx.headers['X-Access-Token']) {
       token = ctx.headers['X-Access-Token'];
     } else {
       token = ctx.cookies.get('accessToken', {signed: config('server.cookie.signed')})
@@ -54,14 +51,14 @@ Controllers.initHTTP = async app => {
       return await next();
     }
     try {
-      ctx.request.user = UserModel.checkToken(token);
+      ctx.request.user = UserLogic.checkToken(token);
     } catch (e) {
       ctx.throw(403, {
         message: e.message
       });
     }
     await next();
-  });*/
+  });
 
   app.use(async (ctx, next) => {
     const start = +new Date;
@@ -91,8 +88,6 @@ Controllers.initHTTP = async app => {
       console.log('[ERR]', ctx.header.host, ctx.status, ctx.url, err.message);
     }
   });
-
-  return app;
 };
 
 Controllers.initWebsocket = server => {
@@ -109,19 +104,6 @@ Controllers.initWebsocket = server => {
       WSInstance.use(command, handler);
     }
   }
-
-  return WSInstance;
-};
-
-Controllers.success = (ctx, out) => {
-  if (out === null) {
-    return ctx.throw(404);
-  }
-  ctx.body = out;
-};
-
-Controllers.fail = (ctx, out) => {
-  return ctx.throw(500, out);
 };
 
 Controllers.parseForm = ctx => {
@@ -169,4 +151,22 @@ Controllers.parseForm = ctx => {
     ctx.req.pipe(busboy);
     setTimeout(() => reject('Body parsing timeout'), 1000);
   });
+};
+
+Controllers.isAJAXRequested = ctx => {
+  return ctx.headers["X-Requested-With"] === "XMLHttpRequest";
+};
+
+Controllers.success = (ctx, out) => {
+  if (!out) {
+    return ctx.throw(404);
+  }
+  ctx.body = out;
+};
+
+Controllers.fail = (ctx, out) => {
+  let code = out
+    ? out.status || 500
+    : 500;
+  return ctx.throw(code, out.message, out);
 };
