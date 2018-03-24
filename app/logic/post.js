@@ -80,16 +80,20 @@ Post.create = async fields => {
       ? ThreadModel.create(threadInput)
       : Promise.resolve();
 
-    let post = promise.then(async () => await PostModel.create(postInput));
+    promise.then(async () => await PostModel.create(postInput))
+      .then(async () => {
+        let out = [
+          postInput.boardName,
+          postInput.threadNumber,
+          postInput.number
+        ];
 
-    let out = [
-      postInput.boardName,
-      postInput.threadNumber,
-      postInput.number
-    ];
-
-    WS.broadcast('RNDR ' + JSON.stringify(out));
-    return resolve(post);
+        WS.broadcast('RNDR ' + JSON.stringify(out));
+        return resolve(await Post.readOne({
+          board: out[0],
+          post: out[2]
+        }));
+      });
   });
 };
 
