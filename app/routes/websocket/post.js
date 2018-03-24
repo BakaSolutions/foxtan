@@ -16,7 +16,7 @@ async function post(command, message, id, ws) {
     post: +post
   };
   await PostLogic.readOne(input).then(
-    out => Controllers.success(ws, out),
-    out => Controllers.fail(ws, out)
+    out => Controllers.success(ws, out, id),
+    out => Controllers.fail(ws, out, id)
   );
 }

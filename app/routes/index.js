@@ -3,7 +3,7 @@ const Controllers = module.exports = {};
 const Busboy = require('busboy');
 const Tools = require('../helpers/tools');
 const config = require('../helpers/config');
-const UserLogic = require('../logic/user');
+//const UserLogic = require('../logic/user');
 const WS = require('./websocket');
 
 /**
@@ -28,6 +28,7 @@ Controllers.initHTTP = async app => {
       await Controllers.parseForm(ctx);
       if (config('server.enableStatic')) {
         ctx.set('Access-Control-Allow-Origin', '*');
+        ctx.set('Access-Control-Allow-Headers', 'X-Requested-With');
       }
       await next();
     } catch (err) {
@@ -39,7 +40,7 @@ Controllers.initHTTP = async app => {
     }
   });
 
-  app.keys = [Buffer.from(config('server.cookie.secret'))];
+  /*app.keys = [Buffer.from(config('server.cookie.secret'))];
   app.use(async (ctx, next) => {
     let token;
     if (ctx.headers['X-Access-Token']) {
@@ -58,7 +59,7 @@ Controllers.initHTTP = async app => {
       });
     }
     await next();
-  });
+  });*/
 
   app.use(async (ctx, next) => {
     const start = +new Date;
@@ -153,9 +154,7 @@ Controllers.parseForm = ctx => {
   });
 };
 
-Controllers.isAJAXRequested = ctx => {
-  return ctx.headers["X-Requested-With"] === "XMLHttpRequest";
-};
+Controllers.isAJAXRequested = ctx => ctx.headers["x-requested-with"] === "XMLHttpRequest";
 
 Controllers.success = (ctx, out) => {
   if (!out) {
