@@ -30,4 +30,4 @@ let config = {
   }
 };
 
-module.exports = new Figurecon(__dirname + "../../config.js", config);
+module.exports = new Figurecon(__dirname + "/../../config.js", config);

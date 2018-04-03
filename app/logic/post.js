@@ -29,10 +29,7 @@ Post.create = async fields => {
     };
   }
 
-  let lastNumber = await PostModel.last({
-    whereKey: 'boardName',
-    whereValue: fields.boardName
-  });
+  let lastNumber = await CounterModel.readOne(fields.boardName);
 
   let now = new Date;
   let threadInput = {
