@@ -21,11 +21,7 @@ class CounterModel extends SuperModel {
       whereKey: '_id',
       whereValue: board,
       limit: 1
-    }).then(counter => {
-      let out = {};
-        out[counter['_id']] = counter.lastPostNumber;
-      return out[board];
-    });
+    }).then(counter => counter ? counter.lastPostNumber : 0);
   }
 
 }
