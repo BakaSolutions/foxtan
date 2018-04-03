@@ -7,14 +7,15 @@ const ThreadModel = require('../models/mongo/thread');
 
 let Thread = module.exports = {};
 
-Thread.countPage = async board => {
+Thread.countPage = async ({board, limit} = {}) => {
   if (!board) {
     throw {
       status: 400
     }
   }
   return await ThreadModel.countPage({
-    board: board
+    board: board,
+    limit: limit || config('board.threadsPerPage')
   });
 };
 

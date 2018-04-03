@@ -22,7 +22,7 @@ class ThreadModel extends SuperModel {
     });
   }
 
-  async countPage({board, limit = config('board.threadsPerPage')} = {}) {
+  async countPage({board, limit} = {}) {
     let out = await this.count({
       whereKey: 'boardName',
       whereValue: board

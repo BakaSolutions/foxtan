@@ -79,7 +79,7 @@ tools.requireAllSync = (src, mask) => {
   src.forEach((source) => {
     let filePath = path.join(__dirname, '/../', source);
     let files = fs.readdirSync(filePath);
-    [].push.apply(plugins, requireAll(mask, files, filePath));
+    plugins = plugins.concat(requireAll(mask, files, filePath));
   });
   return plugins;
 };

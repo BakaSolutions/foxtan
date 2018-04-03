@@ -57,7 +57,7 @@ router.get('/:board/pageCount.json', async ctx => {
 
   await ThreadLogic.countPage({
     board: board,
-    limit: ctx.request.query.limit || config('board.threadsPerPage')
+    limit: ctx.request.query.limit
   }).then(
     out => Controllers.success(ctx, {pageCount: out}),
     out => Controllers.fail(ctx, out)
