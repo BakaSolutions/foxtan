@@ -1,6 +1,6 @@
 const router = require('koa-router')({ prefix: '/api/v1/post.' });
 
-const Controllers = require('../../../index');
+const Controller = require('../../index');
 const PostLogic = require('../../../../logic/post');
 
 router.post('create', async ctx => {
@@ -8,7 +8,7 @@ router.post('create', async ctx => {
 
   await PostLogic.create(query, ctx).then(
     out => {
-      if (!Controllers.isAJAXRequested(ctx) && isRedirect(query)) {
+      if (!Controller.isAJAXRequested(ctx) && isRedirect(query)) {
         let map = {
           ':board': out.boardName,
           ':thread': out.threadNumber,
@@ -16,9 +16,9 @@ router.post('create', async ctx => {
         };
         return redirect(ctx, query, /:(?:board|thread|post)/g, map);
       }
-      Controllers.success(ctx, out);
+      Controller.success(ctx, out);
     },
-    out => Controllers.fail(ctx, out)
+    out => Controller.fail(ctx, out)
   )
 });
 
@@ -30,8 +30,8 @@ router.post('create', async ctx => {
 
     await PostLogic.readOne(ctx.request.query)
       .then(
-        out => Controllers.success(ctx, out),
-        out => Controllers.fail(ctx, out)
+        out => Controller.success(ctx, out),
+        out => Controller.fail(ctx, out)
       )
   });
 });
@@ -47,8 +47,8 @@ router.post('delete', async ctx => {
       }
       return result;
     }).then(
-      out => Controllers.success(ctx, out),
-      out => Controllers.fail(ctx, out)
+      out => Controller.success(ctx, out),
+      out => Controller.fail(ctx, out)
     )
 });
 

@@ -3,7 +3,7 @@ const router = require('koa-router')();
 const config = require('../../../helpers/config');
 const BoardLogic = require('../../../logic/board');
 const ThreadLogic = require('../../../logic/thread');
-const Controllers = require('../../index');
+const Controller = require('../index');
 
 /**
  * These routers [should] write files after requests.
@@ -27,15 +27,15 @@ const Controllers = require('../../index');
  */
 
 router.all('/', async ctx => {
-  Controllers.success(ctx, {
+  Controller.success(ctx, {
     engine: 'Foxtan/' + config('server.version')
   });
 });
 
 router.get('/boards.json', async ctx => {
   await BoardLogic.readAll().then(
-    out => Controllers.success(ctx, out),
-    out => Controllers.fail(ctx, out)
+    out => Controller.success(ctx, out),
+    out => Controller.fail(ctx, out)
   )
 });
 
@@ -43,8 +43,8 @@ router.get('/:board/board.json', async ctx => {
   let board = ctx.params.board;
 
   await BoardLogic.readOne(board).then(
-    out => Controllers.success(ctx, out),
-    out => Controllers.fail(ctx, out)
+    out => Controller.success(ctx, out),
+    out => Controller.fail(ctx, out)
   )
 });
 
@@ -59,8 +59,8 @@ router.get('/:board/pageCount.json', async ctx => {
     board: board,
     limit: ctx.request.query.limit
   }).then(
-    out => Controllers.success(ctx, {pageCount: out}),
-    out => Controllers.fail(ctx, out)
+    out => Controller.success(ctx, {pageCount: out}),
+    out => Controller.fail(ctx, out)
   )
 });
 
@@ -69,8 +69,8 @@ router.get('/:board/:page.json', async ctx => {
   let page = +ctx.params.page;
 
   await ThreadLogic.readPage(board, page, ctx.request.query.limit).then(
-    out => Controllers.success(ctx, out),
-    out => Controllers.fail(ctx, out)
+    out => Controller.success(ctx, out),
+    out => Controller.fail(ctx, out)
   );
 });
 
@@ -79,8 +79,8 @@ router.get('/:board/feed/:page.json', async ctx => {
   let page = +ctx.params.page;
 
   await ThreadLogic.readPage(board, page).then(
-    out => Controllers.success(ctx, out),
-    out => Controllers.fail(ctx, out)
+    out => Controller.success(ctx, out),
+    out => Controller.fail(ctx, out)
   );
 });
 
@@ -100,8 +100,8 @@ router.get('/:board/cat/:type/:page.json', async ctx => {
   }
 
   await ThreadLogic.readCatPage(board, page, order).then(
-    out => Controllers.success(ctx, out),
-    out => Controllers.fail(ctx, out)
+    out => Controller.success(ctx, out),
+    out => Controller.fail(ctx, out)
   );
 });
 
@@ -110,8 +110,8 @@ router.get('/:board/res/:thread/:last.json', async ctx => {
   let thread = +ctx.params.thread;
   let last = +ctx.params.last;
   await ThreadLogic.readOne(board, thread, last).then(
-    out => Controllers.success(ctx, out),
-    out => Controllers.fail(ctx, out)
+    out => Controller.success(ctx, out),
+    out => Controller.fail(ctx, out)
   );
 });
 
@@ -119,8 +119,8 @@ router.get('/:board/res/:thread.json', async ctx => {
   let board = ctx.params.board;
   let thread = +ctx.params.thread;
   await ThreadLogic.readOne(board, thread).then(
-      out => Controllers.success(ctx, out),
-      out => Controllers.fail(ctx, out)
+      out => Controller.success(ctx, out),
+      out => Controller.fail(ctx, out)
   );
 });
 

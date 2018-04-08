@@ -1,6 +1,6 @@
 const router = require('koa-router')({ prefix: '/api/v1/board.' });
 
-const Controllers = require('../../../index');
+const Controller = require('../../index');
 const BoardLogic = require('../../../../logic/board');
 
 router.post('create', async (ctx) => {
@@ -8,8 +8,8 @@ router.post('create', async (ctx) => {
 
   await BoardLogic.create(query, ctx)
     .then(
-      out => Controllers.success(ctx, out),
-      out => Controllers.fail(ctx, out)
+      out => Controller.success(ctx, out),
+      out => Controller.fail(ctx, out)
     )
 });
 
@@ -18,8 +18,8 @@ router.post('delete', async (ctx) => {
 
   await BoardLogic.delete(query, ctx)
     .then(
-      out => Controllers.success(ctx, out),
-      out => Controllers.fail(ctx, out)
+      out => Controller.success(ctx, out),
+      out => Controller.fail(ctx, out)
     )
 });
 

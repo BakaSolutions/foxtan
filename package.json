@@ -18,6 +18,7 @@
   "homepage": "https://bitbucket.org/rngnrs/foxtan#readme",
   "dependencies": {
     "busboy": "^0.2.14",
+    "crc": "^3.5.0",
     "figurecon": "github:rngnrs/figurecon",
     "jwt-simple": "^0.5.1",
     "koa": "^2.3.0",

@@ -1,6 +1,6 @@
 const ThreadLogic = require('../../logic/thread');
 
-const Controllers = require('./index');
+const Controller = require('./index');
 
 module.exports = [
   {
@@ -11,7 +11,7 @@ module.exports = [
 
 async function sync(command, message, id, ws) {
   await ThreadLogic.syncData().then(
-    out => Controllers.success(ws, out, id),
-    out => Controllers.fail(ws, out, id)
+    out => Controller.success(ws, out, id),
+    out => Controller.fail(ws, out, id)
   );
 }

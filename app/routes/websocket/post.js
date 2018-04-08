@@ -1,6 +1,6 @@
 const PostLogic = require('../../logic/post');
 
-const Controllers = require('./index');
+const Controller = require('./index');
 
 module.exports = [
   {
@@ -16,7 +16,7 @@ async function post(command, message, id, ws) {
     post: +post
   };
   await PostLogic.readOne(input).then(
-    out => Controllers.success(ws, out, id),
-    out => Controllers.fail(ws, out, id)
+    out => Controller.success(ws, out, id),
+    out => Controller.fail(ws, out, id)
   );
 }

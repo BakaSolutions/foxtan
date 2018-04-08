@@ -4,6 +4,7 @@ const CounterModel = require('../models/mongo/counter');
 const BoardModel = require('../models/mongo/board');
 const ThreadModel = require('../models/mongo/thread');
 const PostModel = require('../models/mongo/post');
+const AttachmentLogic = require('./attachment');
 
 const Markup = require('../helpers/markup');
 const Crypto = require('../helpers/crypto');
@@ -69,7 +70,7 @@ Post.create = async fields => {
     password: CommonLogic.isEmpty(fields.password)
       ? null
       : Crypto.sha256(fields.password),
-    sage: !!fields.sageru,
+    sage: !!fields.sage,
   };
 
   return new Promise(async resolve => {
@@ -104,7 +105,7 @@ Post.readOne = async fields => {
       message: `Board parameter is missed.`
     };
   }
-  if (!post) {
+  if (!post || post < 1) {
     throw {
       status: 400,
       message: `Post parameter is missed.`
@@ -120,7 +121,8 @@ Post.readOne = async fields => {
       let wasPosted = (post <= counter);
       let status = wasPosted ? 410 : 404;
       throw {
-        status: status
+        status: status,
+        message: wasPosted ? `Post was deleted.`: `Post doesn't exist yet!`
       };
     }
     return out;

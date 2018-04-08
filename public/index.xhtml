@@ -64,7 +64,7 @@
   </div>
 </form>
 <h1>Create post</h1>
-<form action="/api/v1/post.create" method="post" class="create-form">
+<form action="/api/v1/post.create" method="post" class="create-form" enctype="multipart/form-data">
   <div>
     <table>
       <tr>
@@ -90,6 +90,18 @@
         </td>
       </tr>
       <tr>
+        <td><b>File 0:</b></td>
+        <td>
+          <input type="file" name="file0" />
+        </td>
+      </tr>
+      <tr>
+        <td><b>File 1:</b></td>
+        <td>
+          <input type="file" name="file1" />
+        </td>
+      </tr>
+      <tr>
         <td><b>Password:</b></td>
         <td>
           <input type="password" name="password" />
@@ -101,6 +113,20 @@
             <input type="checkbox" name="sageru" value="true" />
             Sage!!1
           </label>
+        </td>
+      </tr>
+    </table>
+    <button>Submit</button>
+  </div>
+</form>
+<h1>Create hash [experimental]</h1>
+<form action="/api/v1/file.createHash" method="post" class="create-form" enctype="multipart/form-data">
+  <div>
+    <table>
+      <tr>
+        <td><b>File:</b></td>
+        <td>
+          <input type="file" name="file" />
         </td>
       </tr>
     </table>

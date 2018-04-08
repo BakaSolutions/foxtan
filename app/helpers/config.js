@@ -27,7 +27,8 @@ let config = {
     socket: '/tmp/sock',
     enableStatic: true,
     version: packageJSON.version
-  }
+  },
+  tmpdir: '/tmp/foxtan' // or require('os').tmpdir()
 };
 
 module.exports = new Figurecon(__dirname + "/../../config.js", config);
