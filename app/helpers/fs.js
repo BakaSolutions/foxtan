@@ -20,7 +20,7 @@ const ROOT = path.normalize(path.join(__dirname, '/../../'));
  * @returns {String}
  */
 FS.normalize = filePath => {
-  let rooted = filePath.indexOf(ROOT) === 0 || filePath.indexOf(config('tmpDir')) === 0;
+  let rooted = filePath.indexOf(ROOT) === 0 || filePath.indexOf(config('tmpdir')) === 0;
   return path.normalize(rooted
     ? filePath
     : path.join(ROOT, filePath));
@@ -31,7 +31,7 @@ FS.normalize = filePath => {
  * @param {String} filePath
  * @returns {boolean}
  */
-FS.check = filePath => filePath.indexOf(ROOT) === 0 || filePath.indexOf(config('tmpDir')) === 0;
+FS.check = filePath => filePath.indexOf(ROOT) === 0 || filePath.indexOf(config('tmpdir')) === 0;
 
 /**
  * Read file synchronously with checking the filePath

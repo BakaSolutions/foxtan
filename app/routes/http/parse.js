@@ -17,6 +17,11 @@ module.exports = ctx => {
     setTimeout(() => reject('Body parsing timeout'), 5000);
 
     busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
+
+      if (!filename) { //TODO: Filter mimetype
+        return file.resume();
+      }
+
       let extension = path.parse(filename).ext;
       let tmpPath = path.join(config('tmpdir'), +new Date + extension);
 
