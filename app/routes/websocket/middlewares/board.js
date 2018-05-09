@@ -1,17 +1,17 @@
-const BoardLogic = require('../../logic/board');
-const ThreadLogic = require('../../logic/thread');
-const CounterModel = require('../../models/mongo/counter');
+const BoardLogic = require('../../../logic/board');
+const ThreadLogic = require('../../../logic/thread');
+const CounterModel = require('../../../models/mongo/counter');
 
-const Controller = require('./index');
+const Controller = require('../index');
 
 module.exports = [
   {
     command: 'GET',
-    handler: get
+    middleware: get
   },
   {
     command: 'BOARD',
-    handler: board
+    middleware: board
   }
 ];
 
@@ -43,18 +43,17 @@ async function getLastPostNumbers(command, message, id, ws, next) {
 }
 
 async function board(command, message, id, ws) {
-  message = message.split(' ');
-  let board = message.shift();
-  message = message.join('');
+  let [board, limit] = message.split(' ');
 
-  switch (message) {
+  switch (limit) {
     case "COUNT":
-      return await ThreadLogic.countPage(board).then(
+      limit = +limit;
+      return await ThreadLogic.countPage({board, limit}).then(
         out => Controller.success(ws, out, id),
         out => Controller.fail(ws, out, id)
       );
     default:
-      let page = +message;
+      let page = +limit;
       return await ThreadLogic.readPage(board, page).then(
         out => Controller.success(ws, out, id),
         out => Controller.fail(ws, out, id)

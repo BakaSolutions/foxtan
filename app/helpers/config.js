@@ -1,5 +1,7 @@
 const Figurecon = require('figurecon');
 const packageJSON = require('../../package.json');
+const path = require('path');
+const os = require('os');
 
 let config = {
   board: {
@@ -28,7 +30,17 @@ let config = {
     enableStatic: true,
     version: packageJSON.version
   },
-  tmpdir: '/tmp/foxtan' // or require('os').tmpdir()
+  directories: {
+    root: path.resolve(__dirname, '../..'),
+    temporary: path.resolve(os.tmpdir(), 'foxtan'),
+
+    public: path.resolve(__dirname, '../../public'),
+    upload: path.resolve(__dirname, '../../public/res')
+  },
+  paths: { // with forward slashes!
+    public: 'http://127.0.0.1:1337/',
+    upload: 'http://127.0.0.1:1337/res/'
+  }
 };
 
 module.exports = new Figurecon(__dirname + "/../../config.js", config);

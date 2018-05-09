@@ -19,19 +19,20 @@ Thread.countPage = async ({board, limit} = {}) => {
   });
 };
 
-Thread.readOne = async (board, thread, last = null) => {
+Thread.readOne = async (board, thread, last = config('board.lastPostsNumber')) => {
   if (!Tools.isNumber(thread)) {
     throw {
       status: 400,
       message: 'Wrong `thread` parameter.'
     };
   }
-  if (last !== null && last < 3) {
+  if (last !== config('board.lastPostsNumber') && last < 3) {
     throw {
       status: 400,
       message: 'Wrong `last` parameter.'
     };
   }
+
   let out = await ThreadModel.readOne({
     board: board,
     thread: thread
@@ -42,6 +43,17 @@ Thread.readOne = async (board, thread, last = null) => {
     };
   }
 
+  let count = await PostModel.count({
+    whereKey: ['boardName', 'threadNumber'],
+    whereValue: [board, thread]
+  });
+
+  let offset = 1;
+
+  if (last && count > last) {
+    offset = count - last;
+  }
+
   let opPost = await PostModel.readOne({
     board: board,
     post: thread
@@ -49,25 +61,17 @@ Thread.readOne = async (board, thread, last = null) => {
   out.posts = [ opPost ];
 
   let posts = await PostModel.readAll({
-    board: board,
-    thread: thread,
+    board,
+    thread,
     order: 'createdAt',
-    orderBy: 'DESC',
+    orderBy: 'ASC',
     limit: last !== null
-      ? last || config('board.lastPostsNumber')
+      ? last
       : null,
-    offset: 0
+    offset
   });
-  if (posts[posts.length - 1].number === posts[posts.length - 1].threadNumber) {
-    posts.pop();
-  }
-  posts.reverse();
-  out.posts.push(...posts);
 
-  let count = await PostModel.count({
-    whereKey: ['boardName', 'threadNumber'],
-    whereValue: [board, thread]
-  });
+  out.posts.push(...posts);
   out.omittedPosts = count - out.posts.length;
 
   return out;

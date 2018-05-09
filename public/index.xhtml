@@ -7,7 +7,13 @@
   <script src="/js/sobaka.js" type="text/javascript"></script>
 </head>
 <body>
-<h1>Create board</h1>  
+<h1>General info</h1>
+<form action="/" class="create-form">
+  <div>
+    <button>Submit</button>
+  </div>
+</form>
+<h1>Create board</h1>
 <form action="/api/v1/board.create" method="post" class="create-form">
   <div>
     <table>
@@ -92,13 +98,13 @@
       <tr>
         <td><b>File 0:</b></td>
         <td>
-          <input type="file" name="file0" />
+          <input type="file" name="file[]" />
         </td>
       </tr>
       <tr>
         <td><b>File 1:</b></td>
         <td>
-          <input type="file" name="file1" />
+          <input type="file" name="file[]" />
         </td>
       </tr>
       <tr>
@@ -110,23 +116,9 @@
       <tr>
         <td colspan="2">
           <label>
-            <input type="checkbox" name="sageru" value="true" />
+            <input type="checkbox" name="sage" value="true" />
             Sage!!1
           </label>
-        </td>
-      </tr>
-    </table>
-    <button>Submit</button>
-  </div>
-</form>
-<h1>Create hash [experimental]</h1>
-<form action="/api/v1/file.createHash" method="post" class="create-form" enctype="multipart/form-data">
-  <div>
-    <table>
-      <tr>
-        <td><b>File:</b></td>
-        <td>
-          <input type="file" name="file" />
         </td>
       </tr>
     </table>

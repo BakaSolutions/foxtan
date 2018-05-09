@@ -1,29 +1,32 @@
 const path = require('path');
 const fs = require('fs');
 const { promisify } = require('util');
+const mime = require("mime");
 
 const stat = promisify(fs.stat);
 const readdir = promisify(fs.readdir);
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
-
+const rename = promisify(fs.rename);
 
 const Pledge = Promise; //require('./promise'); TODO: Import from Kuri
 const config = require('./config');
+const Tools = require('./tools');
 
 let FS = module.exports = {};
-const ROOT = path.normalize(path.join(__dirname, '/../../'));
+const ROOT = Tools.flattenArray(Object.values(config('directories')));
 
 /**
  * Normalizes the path (removes all unnecessary "../")
  * @param {String} filePath
+ * @param {String} [rootType]
  * @returns {String}
  */
-FS.normalize = filePath => {
-  let rooted = filePath.indexOf(ROOT) === 0 || filePath.indexOf(config('tmpdir')) === 0;
+FS.normalize = (filePath, rootType = 'root') => {
+  let rooted = FS.check(filePath);
   return path.normalize(rooted
     ? filePath
-    : path.join(ROOT, filePath));
+    : path.join(config('directories')[rootType], filePath));
 };
 
 /**
@@ -31,7 +34,10 @@ FS.normalize = filePath => {
  * @param {String} filePath
  * @returns {boolean}
  */
-FS.check = filePath => filePath.indexOf(ROOT) === 0 || filePath.indexOf(config('tmpdir')) === 0;
+FS.check = filePath => {
+  let filterArray = ROOT.filter(dir => filePath.indexOf(dir) === 0);
+  return filterArray.length > 0;
+};
 
 /**
  * Read file synchronously with checking the filePath
@@ -73,10 +79,11 @@ FS.unlinkSync = filePath => {
  * Write content into file synchronously with checking the filePath
  * @param {String} filePath
  * @param {String, Buffer} content
+ * @param {String} [rootType]
  * @returns {boolean}
  */
-FS.writeFileSync = (filePath, content) => {
-  filePath = FS.normalize(filePath);
+FS.writeFileSync = (filePath, content, rootType) => {
+  filePath = FS.normalize(filePath, rootType);
   if (!FS.check(filePath)) {
     return false;
   }
@@ -110,12 +117,20 @@ FS.existsSync = filePath => {
 /**
  * Creates new folder _recursively_
  * @param {String|Array} dir
+ * @param {String} [rootType]
  * @returns {boolean}
  */
-FS.mkdirSync = dir => {
+FS.mkdirSync = (dir, rootType) => {
+
   if (!Array.isArray(dir)) {
     dir = [ dir ];
+  } else {
+    dir = FS.normalize(dir, rootType);
+    if (!FS.check(dir)) {
+      return false;
+    }
   }
+
   if (FS.existsSync(dir[0]) || dir.length < 1) {
     return true;
   }
@@ -138,7 +153,7 @@ FS.mkdirSync = dir => {
 
 FS.readdirSync = (dir, recursive = true) => {
   dir = FS.normalize(dir);
-  if(!FS.check(dir)) {
+  if (!FS.check(dir)) {
     return false;
   }
 
@@ -159,7 +174,7 @@ FS.readdirSync = (dir, recursive = true) => {
 FS.copyFile = async (source, target) => {
   return new Pledge((resolve, reject) => {
     source = FS.normalize(source);
-    if(!FS.check(source)) {
+    if (!FS.check(source)) {
       return reject('Forbidden');
     }
     let rd = fs.createReadStream(source);
@@ -176,8 +191,8 @@ FS.copyFile = async (source, target) => {
   });
 };
 
-FS.createWriteStream = filePath => {
-  filePath = FS.normalize(filePath);
+FS.createWriteStream = (filePath, rootType) => {
+  filePath = FS.normalize(filePath, rootType);
 
   if (!FS.check(filePath)) {
     return false;
@@ -222,9 +237,9 @@ FS.readFile = async (filePath, encoding = 'utf8') => {
   });
 };
 
-FS.writeFile = async (filePath, content) => {
+FS.writeFile = async (filePath, content, rootType) => {
   return new Pledge(async (resolve, reject) => {
-    filePath = FS.normalize(filePath);
+    filePath = FS.normalize(filePath, rootType);
     if (!FS.check(filePath)) {
       return reject('Forbidden');
     }
@@ -238,3 +253,31 @@ FS.writeFile = async (filePath, content) => {
     resolve(out);
   });
 };
+
+
+FS.renameFile = async (old, mew, rootType) => {
+  return new Pledge(async (resolve, reject) => {
+    old = FS.normalize(old);
+    if (!FS.check(old)) {
+      return reject('Forbidden');
+    }
+
+    mew = FS.normalize(mew, rootType);
+    if (!FS.check(mew)) {
+      return reject('Forbidden');
+    }
+
+    let dir = path.parse(mew).dir + path.sep;
+    if (!FS.existsSync(dir)) {
+      FS.mkdirSync(dir);
+    }
+
+    let out = await rename(old, mew).catch(async () => await FS.copyFile(old, mew));
+
+    resolve(out);
+  });
+};
+
+FS.getMime = async filePath => await mime.getType(filePath);
+
+FS.getExtension = async filePath => await mime.getExtension(filePath);

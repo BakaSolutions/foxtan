@@ -2,54 +2,119 @@ const Crypto = require('../../helpers/crypto');
 const FS = require('../../helpers/fs');
 const AttachmentModel = require('../../models/mongo/attachment');
 
-let Attachment = {};
+class Attachment {
 
-Attachment.createHash = data => Crypto.crc32(data);
+  constructor(file) {
+    this.file = file;
+  }
 
-Attachment.store = async (hash, {boardName, postNumber, extension} = {}, data) => {
-  let label = {
-    boardName,
-    postNumber
-  };
-  let now = new Date;
-
-  let exists = AttachmentModel.readOne({
-    _id: hash
-  });
-  if (!exists) {
-    await AttachmentModel.create({
-      _id: hash,
-      posts: [
-        label
-      ],
-      ext: extension,
-      createdAt: now,
-      updatedAt: now
-    });
-  } else {
-    exists.posts.push(label);
-
-    await AttachmentModel.update({
-      whereKey: '_id',
-      whereValue: hash,
-      fields: {
-        posts: exists.posts,
-        updatedAt: now
+  async createHash() {
+    if (!this.file) {
+      throw {
+        status: 500,
+        message: `Can't create a hash without a file.`
       }
-    })
+    }
+    return this.hash = Crypto.crc32(await FS.readFile(this.file.path, null));
   }
 
-  await FS.writeFile(`/public/res/${hash}.${extension}`, data);
-};
+  async store() {
+    if (!this.hash) {
+      await this.createHash();
+    }
 
-Attachment.unlink = hash => {
-  let meta = AttachmentModel.readOne({
-    _id: hash
-  });
-  if (!meta) {
-    return false;
+    let label = {
+      boardName: this.file.boardName,
+      postNumber: this.file.postNumber
+    };
+    let now = new Date;
+
+    let exists = await this.exists();
+
+    if (!exists) {
+      let mimeSplit = this.file.mime.split('/');
+      let extension = mimeSplit[1] || this.file.mime;
+      let filePath = `${this.hash}.${extension}`;
+
+      await AttachmentModel.create({
+        _id: this.hash,
+        posts: [
+          label
+        ],
+        mime: this.file.mime,
+        size: this.file.size,
+        path: filePath,
+        createdAt: now,
+        updatedAt: now
+      });
+
+      await FS.renameFile(this.file.path, filePath, 'upload');
+
+      return this;
+    }
+
+    if (exists.posts.indexOf(label) === -1) {
+      exists.posts.push(label);
+
+      await AttachmentModel.update({
+        whereKey: '_id',
+        whereValue: this.hash,
+        fields: {
+          posts: exists.posts,
+          updatedAt: now
+        }
+      })
+    }
+
+    return this;
   }
-  FS.unlinkSync(`/public/res/${hash}.${meta.ext}`);
-};
+
+  async exists() {
+    return await AttachmentModel.readOne({
+      _id: this.hash,
+      clear: false
+    });
+  }
+
+  async delete(boardName, postNumber) {
+    let exists = await this.exists();
+    if (!exists) {
+      return true;
+    }
+
+    let neededToDeleteFile = await this._deleteHash(boardName, postNumber);
+    if (neededToDeleteFile) {
+      await this._deleteFile(exists);
+    }
+  }
+
+  async _deleteHash(boardName, postNumber) {
+    let index = exists.posts.indexOf({boardName, postNumber}) === -1;
+
+    if (exists.posts.length > 1) {
+      return await AttachmentModel.update({
+        whereKey: '_id',
+        whereValue: this.hash,
+        fields: {
+          posts: exists.posts.splice(index, 1),
+          updatedAt: now
+        }
+      })
+    }
+
+    return await AttachmentModel.deleteOne({
+      '_id': this.hash
+    });
+  }
+
+  _deleteFile(meta) {
+    if (!meta) {
+      return false;
+    }
+    let extension = meta.mime.split('/')[1];
+    return FS.unlinkSync(`${config('directories.upload') + this.hash}.${extension}`);
+  }
+
+}
 
 module.exports = Attachment;

@@ -3,6 +3,22 @@ const path = require('path');
 const config = require('../../helpers/config');
 const FS = require('../../helpers/fs');
 
+function correctFieldMatching(fields, field, value) {
+  let matches = field.match(/(.+)\[(.*)]$/);
+  if (!matches) {
+    return fields[field] = value;
+  }
+  if (!fields[matches[1]]) {
+    fields[matches[1]] = [];
+  }
+  if (!matches[2]) {
+    return fields[matches[1]].push(value);
+  }
+  if (!fields[matches[1]][matches[2]]) {
+    fields[matches[1]][matches[2]] = [];
+  }
+  fields[matches[1]][matches[2]].push(value);
+}
 
 module.exports = ctx => {
   ctx.request.body = {};
@@ -14,58 +30,40 @@ module.exports = ctx => {
     let fields = {};
 
     ctx.req.pipe(busboy);
-    setTimeout(() => reject('Body parsing timeout'), 5000);
+    setTimeout(() => resolve('Body parsing timeout'), 5000);
 
-    busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
+    busboy.on('file', (fieldname, file, filename, encoding) => {
 
       if (!filename) { //TODO: Filter mimetype
         return file.resume();
       }
 
       let extension = path.parse(filename).ext;
-      let tmpPath = path.join(config('tmpdir'), +new Date + extension);
-
-      console.log('File [' + fieldname + '] ' + tmpPath);
+      let tmpPath = path.join(config('directories.temporary'), +new Date + extension);
 
       setTimeout(() => {
         FS.unlinkSync(tmpPath);
       }, 300000);
 
-      file.pipe(FS.createWriteStream(tmpPath));
 
       let size = 0;
 
-      file.on('data', data => {
-        size += data.length;
-      });
-      file.on('end', () => {
-        fields[fieldname] = {
-          encoding: encoding,
-          mime: mimetype,
+      file.on('data', data => size += data.length);
+
+      file.pipe(FS.createWriteStream(tmpPath)).on('close', async () => {
+        correctFieldMatching(fields, fieldname, {
+          encoding,
+          mime: await FS.getMime(tmpPath),
+          extension: await FS.getExtension(tmpPath) || extension,
           name: filename,
-          size: size,
+          size,
           path: tmpPath
-        };
-        console.log('File [' + fieldname + '] Finished.');
-        console.log(fields[fieldname]);
+        });
       });
     });
 
     busboy.on('field', (fieldname, val) => {
-      let matches = fieldname.match(/(.+)\[(.*)]$/);
-      if (!matches) {
-        return fields[fieldname] = val;
-      }
-      if (!fields[matches[1]]) {
-        fields[matches[1]] = [];
-      }
-      if (!matches[2]) {
-        return fields[matches[1]].push(val);
-      }
-      if (!fields[matches[1]][matches[2]]) {
-        fields[matches[1]][matches[2]] = [];
-      }
-      fields[matches[1]][matches[2]].push(val);
+      correctFieldMatching(fields, fieldname, val)
     });
 
     busboy.on('finish', () => {

@@ -1,11 +1,11 @@
-const PostLogic = require('../../logic/post');
+const PostLogic = require('../../../logic/post');
 
-const Controller = require('./index');
+const Controller = require('../index');
 
 module.exports = [
   {
     command: 'POST',
-    handler: post
+    middleware: post
   },
 ];
 

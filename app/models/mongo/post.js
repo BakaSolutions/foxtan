@@ -1,6 +1,7 @@
 const SuperModel = require('./super');
 const ThreadModel = require('./thread');
 const CounterModel = require('./counter');
+const AttachmentModel = require('./attachment');
 
 class PostModel extends SuperModel {
 
@@ -17,7 +18,7 @@ class PostModel extends SuperModel {
           lastPostNumber: out.ops[0].number
         }
       });
-      return super.clearEntry(out.ops[0]);
+      return this.clearEntry(out.ops[0]);
     }).then(async out => {
       if (!out.sage) {
         await ThreadModel.update({
@@ -29,6 +30,32 @@ class PostModel extends SuperModel {
         })
       }
       return out;
+    });
+  }
+
+  async read({limit, clear = true} = {}) {
+    return await super.read(...arguments).then(async out => {
+      if (!out) {
+        return out;
+      }
+
+      if (!Array.isArray(out)) {
+        out = [ out ];
+      }
+
+      out = await Promise.all(out.map(async entry => {
+        if (clear) {
+          entry = this.clearEntry(entry);
+        }
+        if (!entry.files.length) {
+          return entry;
+        }
+        return await this._appendAttachments(entry);
+      }));
+
+      return limit !== 1
+          ? out
+          : out[0];
     });
   }
 
@@ -44,7 +71,7 @@ class PostModel extends SuperModel {
       whereKey: ['boardName', 'number'],
       whereValue: [board, +post],
       limit: 1,
-      clear: clear
+      clear
     });
   }
 
@@ -82,12 +109,29 @@ class PostModel extends SuperModel {
     return await this.read({
       whereKey: ['boardName', 'threadNumber'],
       whereValue: [board, thread],
-      order: order,
-      orderBy: orderBy,
-      limit: limit,
-      offset: offset
+      order,
+      orderBy,
+      limit,
+      offset
     })
   }
+
+  clearEntry(entry) {
+    super.clearEntry(entry);
+    delete entry.password;
+    return entry;
+  }
+
+  async _appendAttachments(post) {
+    for (let i = 0; i < post.files.length; i++) {
+      let hash = post.files[i];
+      post.files[i] = await AttachmentModel.readOne({
+        _id: hash
+      });
+    }
+    return post;
+  }
+
 
 }
 

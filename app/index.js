@@ -1,18 +1,24 @@
 const Koa = require('koa');
+const http = require('http');
+
 const app = new Koa();
+const server = http.createServer();
+
 const config = require('./helpers/config');
 const routes = require('./routes');
-const server = require('http').createServer();
 
 (async () => {
+
   server.on('request', app.callback());
   await routes.initWebsocket(server);
   await routes.initHTTP(app);
 
-  switch (config('server.output'))  {
+  switch (config('server.output')) {
+
     case 'socket':
       server.listen(config('server.socket'), onListening(config('server.socket')));
       break;
+
     default:
       server.listen(
           config('server.port'),
@@ -21,6 +27,7 @@ const server = require('http').createServer();
       );
       break;
   }
+
 })();
 
 function onListening (address) {

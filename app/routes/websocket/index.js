@@ -2,7 +2,7 @@ const WebSocket = require('ws');
 
 class WS {
   constructor (server) {
-    this.handlers = [];
+    this.middlewares = {};
     this.instance = new WebSocket.Server({
       server: server,
       path: '/ws'
@@ -14,9 +14,7 @@ class WS {
       ws.on('pong', () => {
         ws.isAlive = true;
       });
-      ws.on('message', (message) => {
-        this.onMessage(message, ws);
-      });
+      ws.on('message', message => this.onMessage(message, ws));
     });
 
     this.interval = setInterval(() => {
@@ -31,10 +29,10 @@ class WS {
   }
 
   use (command, handler) {
-    if (!this.handlers[command]) {
-      this.handlers[command] = [];
+    if (!this.middlewares[command]) {
+      this.middlewares[command] = [];
     }
-    this.handlers[command].push(handler);
+    this.middlewares[command].push(handler);
   }
 
   broadcast (data) {
@@ -54,10 +52,10 @@ class WS {
     }
 
     message = message.split(' ');
-    let command = message.shift();
+    let command = message.shift().toUpperCase();
     message = message.join(' ');
 
-    let sequence = this.handlers[command];
+    let sequence = this.middlewares[command];
     if (!sequence) {
       return fail(ws, {status: 404}, id);
     }

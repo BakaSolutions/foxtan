@@ -1,11 +1,11 @@
-const ThreadLogic = require('../../logic/thread');
+const ThreadLogic = require('../../../logic/thread');
 
-const Controller = require('./index');
+const Controller = require('../index');
 
 module.exports = [
   {
     command: 'SYNC',
-    handler: sync
+    middleware: sync
   },
 ];
 

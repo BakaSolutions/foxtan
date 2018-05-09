@@ -13,11 +13,6 @@ HTTP.fail = (ctx, out) => {
   let code = out
     ? out.status || 500
     : 500;
-  /*ctx.body =
-    !HTTP.isAJAXRequested(ctx)
-      ? out.message
-      : out;
-  ctx.status = code;*/
   return ctx.throw(code, out);
 };
 

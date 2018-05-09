@@ -1,6 +1,6 @@
 const crypto = require('crypto');
-const FS = require('./fs');
 const crc = require('crc');
+
 let Crypto = module.exports = {};
 
 Crypto.verify = function (data, hash, method = 'sha256') {
@@ -13,9 +13,4 @@ Crypto.verify = function (data, hash, method = 'sha256') {
 
 Crypto.sha256 = data => crypto.createHash('sha256').update(data).digest("hex");
 
-Crypto.crc32 = async (data, file) => {
-  if (file) {
-    data = await FS.readFile(data, null);
-  }
-  return crc.crc32(data).toString(16);
-};
+Crypto.crc32 = data => crc.crc32(data).toString(16);

@@ -8,6 +8,24 @@ class ThreadModel extends SuperModel {
     super('thread');
   }
 
+  async read({clear = true} = {}) {
+    return await super.read(...arguments).then(async out => {
+      if (!out || !clear) {
+        return out;
+      }
+
+      if (!Array.isArray(out)) {
+        out = [ out ];
+      }
+
+      out = out.map(entry => this.clearEntry(entry));
+
+      return out.length > 1
+          ? out
+          : out[0];
+    });
+  }
+
   /**
    * Reads a thread with defined number
    * @param {String} board

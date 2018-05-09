@@ -4,7 +4,7 @@ const CounterModel = require('../models/mongo/counter');
 const BoardModel = require('../models/mongo/board');
 const ThreadModel = require('../models/mongo/thread');
 const PostModel = require('../models/mongo/post');
-const AttachmentLogic = require('./attachment');
+const Attachment = require('./attachment');
 
 const Markup = require('../helpers/markup');
 const Crypto = require('../helpers/crypto');
@@ -63,20 +63,43 @@ Post.create = async fields => {
 
   let postInput = {
     __proto__: threadInput,
-    threadNumber: isThread ? threadInput.number : +fields.threadNumber,
+    threadNumber:
+      isThread
+        ? threadInput.number
+        : +fields.threadNumber,
     subject: fields.subject,
-    text: await Markup.process(fields.text, threadInput.boardName, threadInput.threadNumber, threadInput.number),
+    text: await Markup.process(
+      fields.text,
+      threadInput.boardName,
+      threadInput.threadNumber,
+      threadInput.number
+    ),
     rawText: fields.text,
-    password: CommonLogic.isEmpty(fields.password)
-      ? null
-      : Crypto.sha256(fields.password),
+    password:
+      CommonLogic.isEmpty(fields.password)
+        ? null
+        : Crypto.sha256(fields.password),
     sage: !!fields.sage,
+    files: []
   };
 
+  let files = fields.file || [];
+  for (let i = 0; i < files.length; i++) {
+    let file = files[i];
+    file.boardName = postInput.boardName;
+    file.postNumber = postInput.number;
+    let attachment = await new Attachment(file).store();
+    let hash = attachment.hash;
+    if (postInput.files.indexOf(hash) === -1) {
+      postInput.files.push(hash);
+    }
+  }
+
   return new Promise(async resolve => {
-    let promise = isThread
-      ? ThreadModel.create(threadInput)
-      : Promise.resolve();
+    let promise =
+      isThread
+        ? ThreadModel.create(threadInput)
+        : Promise.resolve();
 
     promise.then(async () => await PostModel.create(postInput))
       .then(async () => {
@@ -87,10 +110,13 @@ Post.create = async fields => {
         ];
 
         WS.broadcast('RNDR ' + JSON.stringify(out));
-        return resolve(await Post.readOne({
+
+        let post = await Post.readOne({
           board: out[0],
           post: out[2]
-        }));
+        });
+
+        resolve(post);
       });
   });
 };
@@ -122,7 +148,7 @@ Post.readOne = async fields => {
       let status = wasPosted ? 410 : 404;
       throw {
         status: status,
-        message: wasPosted ? `Post was deleted.`: `Post doesn't exist yet!`
+        message: wasPosted ? `Post was deleted.` : `Post doesn't exist yet!`
       };
     }
     return out;
@@ -142,70 +168,115 @@ Post.delete = async fields => {
       message: `No password!`
     };
   }*/
-  if (!Array.isArray(fields.post)) {
-    fields.post = [ fields.post ];
+
+  return await deletePosts(fields.post, fields.password);
+};
+
+
+async function deletePosts(posts, password) {
+  if (!Array.isArray(posts)) {
+    posts = [ posts ];
   }
 
-  let promises = fields.post.reduce((previous, current) => {
-    previous.push(new Promise(async resolve => {
-      let post = current.split(':');
+  let promises = posts.reduce((results, post) => {
+    results.push(
+      new Promise(async resolve => {
+        post = post.split(':');
 
-      let postInput = {
-        boardName: post[0],
-        number: +post[1]
-      };
+        let postInput = {
+          boardName: post[0],
+          number: +post[1]
+        };
 
-      if (CommonLogic.hasEmpty(postInput)) {
-        return resolve(0);
-      }
-
-      let check = await PostModel.readOne({
-        board: postInput.boardName,
-        post: postInput.number,
-        clear: false
-      });
-      if (!check) {
-        return resolve(0);
-      }
-      /*if (!Crypto.verify(fields.password || '', check.password)) {
-        return resolve(0);
-      }*/
-
-      let commonResult = 0;
-
-      if (check.number === check.threadNumber) {  // Delete thread
-        let { result } = await ThreadModel.deleteOne(postInput);
-        if (result) {
-          commonResult += result.n;
+        if (CommonLogic.hasEmpty(postInput)) {
+          return resolve(0);
         }
 
-        postInput = {
-          boardName: check.boardName,
-          threadNumber: check.number
-        };
-      }
+        resolve(await deletePost(postInput, password));
 
-      let out = [
-        check.boardName,
-        check.threadNumber,
-        check.number
-      ];
-      WS.broadcast('REM ' + JSON.stringify(out));
-
-      let { result } = await PostModel.deleteMany(postInput);
-      if (result) {
-        commonResult += result.n;
-      }
-      resolve(commonResult);
-      }).catch(() => {
-        return 0;
-      })
+        await deleteFile(post.files, password);
+      }).catch(() => 0)
     );
-    return previous;
+    return results;
   }, []);
-  return Promise.all(promises).then((postInputs) => {
-    return {
-      deleted: postInputs.reduce((input, current) => current + input, 0)
-    };
+
+  let deletedPosts = Promise.all(promises).then(results => results.reduce((a, b) => a + b, 0));
+  return {deleted: deletedPosts};
+}
+
+
+async function deletePost({boardName, postNumber, threadNumber} = {}, password) {
+  let post = await PostModel.readOne({
+    board: boardName,
+    post: postNumber,
+    clear: false
   });
-};
+  if (!post) {
+    return 0;
+  }
+  /*if (!Crypto.verify(password || '', post.password)) {
+    return 0;
+  }*/
+
+  let commonResult = 0;
+
+  if (post.number === post.threadNumber) { // Delete thread
+    let { result } = await ThreadModel.deleteOne({boardName, postNumber});
+    if (!result) {
+      return 0;
+    }
+  }
+
+  let out = [
+    post.boardName,
+    post.threadNumber,
+    post.number
+  ];
+  WS.broadcast('REM ' + JSON.stringify(out)); // TODO: Create WS events
+
+  let { result } = await PostModel.deleteMany({boardName, threadNumber});
+  if (result) {
+    commonResult += result.n;
+  }
+  return commonResult;
+}
+
+
+async function deleteFiles(hashes, password) {
+  if (!Array.isArray(hashes)) {
+    hashes = [ hashes ];
+  }
+
+  let promises = hashes.reduce((results, hash) => {
+    results.push(
+      new Promise(async resolve => {
+        if (CommonLogic.isEmpty(hash)) {
+          return resolve(0);
+        }
+
+        resolve(await deleteFile(hash, password));
+      }).catch(() => 0)
+    );
+    return results;
+  }, []);
+
+  let deletedFiles = Promise.all(promises).then(results => results.reduce((a, b) => a + b, 0));
+  return {deleted: deletedFiles};
+}
+
+
+async function deleteFile(hash, boardName, postNumber, password) {
+  let post = await PostModel.readOne({
+    board: boardName,
+    post: postNumber,
+    clear: false
+  });
+  if (!post) {
+    return 0;
+  }
+  /*if (!Crypto.verify(password || '', post.password)) {
+    return 0;
+  }*/
+  let attachment = new Attachment(null, hash);
+  return await attachment.delete(boardName, postNumber);
+}

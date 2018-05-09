@@ -7,6 +7,7 @@ class SuperModel {
 
   constructor(type) {
     this.collection = type;
+    this.ObjectID = ObjectID;
   }
 
   async create(fields) {
@@ -40,7 +41,7 @@ class SuperModel {
       : out.number;
   }
 
-  async read({whereKey = null, whereValue, order = null, orderBy, limit = null, offset = null, clear = true} = {}) {
+  async read({whereKey = null, whereValue, order = null, orderBy, limit = null, offset = null} = {}) {
     let Model = await mongo.collection(this.collection);
 
     let query = SuperModel.prepareQuery(whereKey, whereValue);
@@ -68,12 +69,6 @@ class SuperModel {
       // but forEach is better than toArray
       // because we can process documents as they come in
       // until we reach the end.
-
-      if (clear) {
-        out = out.map(entry => this.clearEntry(entry));
-      }
-    } else if (out !== null && clear) {
-      out = this.clearEntry(out);
     }
 
     return out;
@@ -103,11 +98,10 @@ class SuperModel {
     return await Model.deleteMany(fields);
   }
 
-  clearEntry(entry) {
-    if (ObjectID.isValid(entry['_id'])) {
-      delete entry['_id'];
+  clearEntry(entry, forceDelete) {
+    if (forceDelete || this.ObjectID.isValid(entry._id)) {
+      delete entry._id;
     }
-    delete entry['password'];
     return entry;
   }
 

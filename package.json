@@ -23,6 +23,8 @@
     "jwt-simple": "^0.5.1",
     "koa": "^2.3.0",
     "koa-router": "^7.2.1",
+    "mime": "^2.3.1",
+    "mmmagic": "^0.5.0",
     "ws": "^3.1.0"
   },
   "devDependencies": {},

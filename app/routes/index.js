@@ -16,6 +16,7 @@ Controllers.initHTTP = async app => {
       ],
       /\.js$/
   );
+
   for (let i = 0; i < middlewares.length; i++) {
     middlewares[i].middleware(app);
   }
@@ -28,6 +29,7 @@ Controllers.initHTTP = async app => {
       ],
       /\.js$/
   );
+
   for (let i = 0; i < routes.length; i++) {
     app.use(routes[i].routes());
     app.use(routes[i].allowedMethods());
@@ -36,17 +38,26 @@ Controllers.initHTTP = async app => {
 };
 
 Controllers.initWebsocket = server => {
+
   let WSInstance = WS(server);
 
-  let handlers = Tools.requireAllSync('routes/websocket', /^(?!.*index)\w+\.js$/);
+  let middlewares = Tools.requireAllSync('routes/websocket/middlewares', /\.js$/);
 
-  for (let i = 0; i < handlers.length; i++) {
-    if (!Array.isArray(handlers[i])) {
-      handlers[i] = [ handlers[i] ];
+  for (let i = 0; i < middlewares.length; i++) {
+
+    if (!Array.isArray(middlewares[i])) {
+      middlewares[i] = [ middlewares[i] ];
     }
-    for (let j = 0; j < handlers[i].length; j++) {
-      let { command, handler } = handlers[i][j];
-      WSInstance.use(command, handler);
+
+    for (let j = 0; j < middlewares[i].length; j++) {
+      let { command, middleware } = middlewares[i][j];
+      if (!command || !middleware) {
+        console.log(`A middleware for command ${command} is broken.`);
+        continue;
+      }
+      WSInstance.use(command, middleware);
     }
+
   }
+
 };

@@ -1,8 +1,8 @@
 const router = require('koa-router')();
 
-const config = require('../../../helpers/config');
 const BoardLogic = require('../../../logic/board');
 const ThreadLogic = require('../../../logic/thread');
+const IndexLogic = require('../../../logic');
 const Controller = require('../index');
 
 /**
@@ -27,9 +27,7 @@ const Controller = require('../index');
  */
 
 router.all('/', async ctx => {
-  Controller.success(ctx, {
-    engine: 'Foxtan/' + config('server.version')
-  });
+  Controller.success(ctx, IndexLogic.index());
 });
 
 router.get('/boards.json', async ctx => {

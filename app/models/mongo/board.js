@@ -7,6 +7,24 @@ class BoardModel extends SuperModel {
     super('board');
   }
 
+  async read({limit, clear = true} = {}) {
+    return await super.read(...arguments).then(async out => {
+      if (!out || !clear) {
+        return out;
+      }
+
+      if (!Array.isArray(out)) {
+        out = [ out ];
+      }
+
+      out = out.map(entry => this.clearEntry(entry));
+
+      return limit !== 1
+          ? out
+          : out[0];
+    });
+  }
+
   /**
    * Reads a board with defined board
    * @param {String} board
