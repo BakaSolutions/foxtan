@@ -84,7 +84,8 @@ Post.create = async fields => {
   };
 
   let files = fields.file || [];
-  for (let i = 0; i < files.length; i++) {
+  let fileAmount = Math.min(files.length, board.fileLimit);
+  for (let i = 0; i < fileAmount; i++) {
     let file = files[i];
     file.boardName = postInput.boardName;
     file.postNumber = postInput.number;

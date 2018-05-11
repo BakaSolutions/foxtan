@@ -15,9 +15,9 @@ function correctFieldMatching(fields, field, value) {
     return fields[matches[1]].push(value);
   }
   if (!fields[matches[1]][matches[2]]) {
-    fields[matches[1]][matches[2]] = [];
+    return fields[matches[1]][matches[2]] = value;
   }
-  fields[matches[1]][matches[2]].push(value);
+  fields[matches[1]][matches[2]] = [...fields[matches[1]][matches[2]], value];
 }
 
 module.exports = ctx => {

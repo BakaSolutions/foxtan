@@ -31,6 +31,10 @@ Markup.patterns = [
 ];
 
 Markup.process = async function (text, board, thread, post) {
+  if (!text) {
+    return '';
+  }
+
   text = escape(text).trim();
 
   for (let i = 0; i < Markup.patterns.length; i++) {

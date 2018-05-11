@@ -14,6 +14,7 @@ Board.create = async fields => {
     closed: !!fields.closed || false,
     bumpLimit: fields.bumpLimit || 500,
     maxBoardSize: fields.maxBoardSize || -1,
+    fileLimit: fields.fileLimit || 0,
     createdAt: new Date
   };
 
