@@ -8,7 +8,7 @@ class ThreadModel extends SuperModel {
     super('thread');
   }
 
-  async read({clear = true} = {}) {
+  async read({limit, clear = true} = {}) {
     return await super.read(...arguments).then(async out => {
       if (!out || !clear) {
         return out;
@@ -20,7 +20,7 @@ class ThreadModel extends SuperModel {
 
       out = out.map(entry => this.clearEntry(entry));
 
-      return out.length > 1
+      return limit > 1
           ? out
           : out[0];
     });
