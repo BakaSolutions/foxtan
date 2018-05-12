@@ -43,6 +43,7 @@ class Attachment {
         ],
         mime: this.file.mime,
         size: this.file.size,
+        name: this.file.name,
         path: filePath,
         createdAt: now,
         updatedAt: now
