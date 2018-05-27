@@ -1,8 +1,12 @@
-const fs = require('fs');
 const path = require('path');
+
+const FS = require('./fs');
 
 let tools = module.exports = {};
 let toString = {}.toString;
+
+tools.filePaths = Symbol('_filePaths');
+tools.fileNames = Symbol('_fileNames');
 
 /*Object.defineProperty(tools, 'consts', {
   value: {},
@@ -38,71 +42,32 @@ tools.moduleAvailable = name => {
 
 /**
  * Requires all files in a defined directory
- * @param src
+ * @param sources
  * @param [mask]
  * @returns {Promise}
  */
-tools.requireAll = async (src, mask) => {
-  if (!Array.isArray(src)) {
-    src = [ src ];
-  }
-  let plugins = [];
-  src.forEach((source) => {
-    let filePath = path.join(__dirname, '/../', source);
-    plugins.push(new Promise((resolve, reject) => {
-      fs.readdir(filePath, (err, files) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(requireAll(mask, files, filePath));
-      });
-    }));
-  });
-  return Promise.all(plugins).then((promises) => {
-    return tools.flattenArray(promises.filter((plugin) => {
-      return Array.isArray(plugin) && plugin.length;
-    }));
-  });
-};
-
-/**
- * Requires all files in a defined directory synchronously
- * @param src
- * @param [mask]
- * @returns {*}
- */
-tools.requireAllSync = (src, mask) => {
-  if (!Array.isArray(src)) {
-    src = [ src ];
-  }
-  let plugins = [];
-  src.forEach((source) => {
-    let filePath = path.join(__dirname, '/../', source);
-    let files = fs.readdirSync(filePath);
-    plugins = plugins.concat(requireAll(mask, files, filePath));
-  });
-  return plugins;
+tools.requireAll = async (sources, mask) => {
+  let {filePaths, fileNames} = await tools.readAll(sources, mask, -1);
+  let out = _requireAll(filePaths);
+  out[tools.filePaths] = filePaths;
+  out[tools.fileNames] = fileNames;
+  return out;
 };
 
 /**
  * Common function for requireAll* functions
- * @param [mask]
  * @param files
- * @param {String} filePath
  * @returns {Array}
  */
-function requireAll(mask, files, filePath) {
+function _requireAll(files) {
   let o = [];
   if (typeof files === 'undefined') {
     return o;
   }
-  files.forEach((file) => {
-    if(mask && !mask.test(file)) {
-      return false;
-    }
-    delete require.cache[require.resolve(path.join(filePath, file))];
+  files.forEach(file => {
+    delete require.cache[require.resolve(file)];
     try {
-      o[o.length] = tools.requireWrapper(require(path.join(filePath, file)));
+      o[o.length] = tools.requireWrapper(require(file));
     } catch (e) {
       let stack = e.stack.split('\n');
       let title = stack.shift();
@@ -111,6 +76,36 @@ function requireAll(mask, files, filePath) {
   });
   return o;
 }
+
+tools.readAll = (sources, mask, fullPath = true) => {
+  if (!Array.isArray(sources)) {
+    sources = [ sources ];
+  }
+  let out = [];
+  sources.forEach(async source => {
+    out.push(new Promise(async resolve => {
+      let dir = path.normalize(path.join(__dirname, '/../', source));
+      let filePaths = (await FS.readdir(dir, true)).filter(filePath => mask && mask.test(filePath.replace(dir, '')) || !mask);
+      let fileNames = filePaths.map(filePath => filePath.replace(dir, ''));
+      resolve({filePaths, fileNames});
+    }));
+  });
+  return Promise.all(out).then(promises => {
+    switch (fullPath) {
+      case 1:
+      case true:
+        return promises.reduce((prev, curr) => prev.concat(curr.filePaths), []);
+      case 0:
+      case false:
+        return promises.reduce((prev, curr) => prev.concat(curr.fileNames), []);
+      default:
+        return {
+          filePaths: promises.reduce((prev, curr) => prev.concat(curr.filePaths), []),
+          fileNames: promises.reduce((prev, curr) => prev.concat(curr.fileNames), [])
+        }
+    }
+  });
+};
 
 /**
  * Wraps file into a pluggable module
@@ -178,3 +173,5 @@ tools.flattenArray = a => {
     return result.concat(current);
   }, []);
 };
+
+tools.capitalize = string => string.toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase());

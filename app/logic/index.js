@@ -7,7 +7,8 @@ Index.index = () => {
     engine: 'Foxtan/' + config('server.version'),
     paths: {
       public: config('paths.public'),
-      upload: config('paths.upload')
+      upload: config('paths.upload'),
+      thumb: config('paths.thumb')
     }
   };
-}
+};

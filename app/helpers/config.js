@@ -22,6 +22,17 @@ let config = {
       url: 'mongodb://localhost:27017/foxtantest'
     }
   },
+  files: {
+    maxWidth: 10000,
+    maxHeight: 10000,
+    thumbnailExtension: 'jpeg',
+    thumbnailOptions: {
+      quality: 42,
+      progressive: true
+    },
+    thumbnailWidth: 200,
+    thumbnailHeight: 200
+  },
   server: {
     host: '0.0.0.0', // or 'localhost',
     output: 'port', // or 'socket'
@@ -34,12 +45,14 @@ let config = {
     root: path.resolve(__dirname, '../..'),
     temporary: path.resolve(os.tmpdir(), 'foxtan'),
 
-    public: path.resolve(__dirname, '../../public'),
-    upload: path.resolve(__dirname, '../../public/res')
+    public: path.resolve(__dirname, '../../public') + path.sep,
+    upload: path.resolve(__dirname, '../../public/res') + path.sep,
+    thumb: path.resolve(__dirname, '../../public/res/thumb') + path.sep
   },
   paths: { // with forward slashes!
     public: 'http://127.0.0.1:1337/',
-    upload: 'http://127.0.0.1:1337/res/'
+    upload: 'http://127.0.0.1:1337/res/',
+    thumb: 'http://127.0.0.1:1337/res/thumb/'
   }
 };
 

@@ -11,10 +11,8 @@ const rename = promisify(fs.rename);
 
 const Pledge = Promise; //require('./promise'); TODO: Import from Kuri
 const config = require('./config');
-const Tools = require('./tools');
 
 let FS = module.exports = {};
-const ROOT = Tools.flattenArray(Object.values(config('directories')));
 
 /**
  * Normalizes the path (removes all unnecessary "../")
@@ -35,7 +33,7 @@ FS.normalize = (filePath, rootType = 'root') => {
  * @returns {boolean}
  */
 FS.check = filePath => {
-  let filterArray = ROOT.filter(dir => filePath.indexOf(dir) === 0);
+  let filterArray = Object.values(config('directories')).filter(dir => filePath.indexOf(dir) === 0);
   return filterArray.length > 0;
 };
 

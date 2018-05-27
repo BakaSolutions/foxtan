@@ -37,11 +37,11 @@ Controllers.initHTTP = async app => {
 
 };
 
-Controllers.initWebsocket = server => {
+Controllers.initWebsocket = async server => {
 
   let WSInstance = WS(server);
 
-  let middlewares = Tools.requireAllSync('routes/websocket/middlewares', /\.js$/);
+  let middlewares = await Tools.requireAll('routes/websocket/middlewares', /\.js$/);
 
   for (let i = 0; i < middlewares.length; i++) {
 

@@ -1,5 +1,6 @@
 const Crypto = require('../../helpers/crypto');
 const FS = require('../../helpers/fs');
+const Tools = require('../../helpers/tools');
 const AttachmentModel = require('../../models/mongo/attachment');
 
 class Attachment {
@@ -16,6 +17,14 @@ class Attachment {
       }
     }
     return this.hash = Crypto.crc32(await FS.readFile(this.file.path, null));
+  }
+
+  async checkFile() {
+    return false;
+  }
+
+  async createThumb() {
+    return false;
   }
 
   async store() {
@@ -36,7 +45,7 @@ class Attachment {
       let extension = mimeSplit[1] || this.file.mime;
       let filePath = `${this.hash}.${extension}`;
 
-      await AttachmentModel.create({
+      let out = {
         _id: this.hash,
         posts: [
           label
@@ -47,14 +56,22 @@ class Attachment {
         path: filePath,
         createdAt: now,
         updatedAt: now
-      });
+      };
 
-      await FS.renameFile(this.file.path, filePath, 'upload');
+      let thumb = await this.createThumb(filePath);
+
+      if (thumb) {
+        out.thumb = thumb;
+      }
+
+      await AttachmentModel.create(out);
+
+      this.file.path = await FS.renameFile(this.file.path, filePath, 'upload');
 
       return this;
     }
 
-    if (exists.posts.indexOf(label) === -1) {
+    if (!exists.posts.includes(label)) {
       exists.posts.push(label);
 
       await AttachmentModel.update({
@@ -66,8 +83,6 @@ class Attachment {
         }
       })
     }
-
-    return this;
   }
 
   async exists() {
@@ -118,4 +133,17 @@ class Attachment {
 
 }
 
-module.exports = Attachment;
+let out = {
+  Attachment
+};
+
+(async () => {
+  let types = await Tools.requireAll('logic/attachment/', /^(?!index\.).*?js$/);
+  let typeNames = types[Tools.fileNames].map(type => Tools.capitalize(type.split('.')[0]));
+  for (let typeIndex in typeNames) {
+    let typeName = typeNames[typeIndex];
+    out[typeName] = types[typeIndex];
+  }
+})();
+
+module.exports = out;

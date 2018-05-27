@@ -6,8 +6,9 @@ const ThreadModel = require('../models/mongo/thread');
 const PostModel = require('../models/mongo/post');
 const Attachment = require('./attachment');
 
-const Markup = require('../helpers/markup');
 const Crypto = require('../helpers/crypto');
+const Markup = require('../helpers/markup');
+const Tools = require('../helpers/tools');
 
 const Websocket = require('../routes/websocket');
 let WS = Websocket();
@@ -89,9 +90,17 @@ Post.create = async fields => {
     let file = files[i];
     file.boardName = postInput.boardName;
     file.postNumber = postInput.number;
-    let attachment = await new Attachment(file).store();
+    if (!file.mime) {
+      continue;
+    }
+    let type = Tools.capitalize(file.mime.split('/')[0]);
+    let attachment = (!Attachment[type])
+      ? new Attachment(file)
+      : new Attachment[type](file);
+    await attachment.checkFile();
+    await attachment.store();
     let hash = attachment.hash;
-    if (postInput.files.indexOf(hash) === -1) {
+    if (!postInput.files.includes(hash)) {
       postInput.files.push(hash);
     }
   }
