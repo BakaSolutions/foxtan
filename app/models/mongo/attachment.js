@@ -26,8 +26,7 @@ class AttachmentModel extends SuperModel {
 
   async readOne({_id, clear}) {
     return await this.read({
-      whereKey: '_id',
-      whereValue: _id,
+      query: { _id },
       limit: 1,
       clear
     });

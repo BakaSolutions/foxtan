@@ -16,18 +16,22 @@ class SuperModel {
     return await Model[!Array.isArray(fields) ? 'insertOne' : 'insertMany'](fields);
   }
 
-  async count({whereKey, whereValue} = {}) {
+  async count({query, whereKey, whereValue} = {}) {
     let Model = await mongo.collection(this.collection);
 
-    let query = SuperModel.prepareQuery(whereKey, whereValue);
+    if (!query) {
+      query = SuperModel.prepareQuery(whereKey, whereValue);
+    }
 
     return await Model.count(query);
   }
 
-  async last({whereKey = null, whereValue = {}, limit = 1} = {}) {
+  async last({query, whereKey = null, whereValue = {}, limit = 1} = {}) {
     let Model = await mongo.collection(this.collection);
 
-    let query = SuperModel.prepareQuery(whereKey, whereValue);
+    if (!query) {
+      query = SuperModel.prepareQuery(whereKey, whereValue);
+    }
 
     let options = {
       limit: limit,
@@ -41,10 +45,12 @@ class SuperModel {
       : out.number;
   }
 
-  async read({whereKey = null, whereValue, order = null, orderBy, limit = null, offset = null} = {}) {
+  async read({query, whereKey = null, whereValue, order = null, orderBy, limit = null, offset = null} = {}) {
     let Model = await mongo.collection(this.collection);
 
-    let query = SuperModel.prepareQuery(whereKey, whereValue);
+    if (!query) {
+      query = SuperModel.prepareQuery(whereKey, whereValue);
+    }
 
     let sortObject = null;
 
@@ -74,10 +80,12 @@ class SuperModel {
     return out;
   }
 
-  async update({whereKey = null, whereValue, fields} = {}) {
+  async update({query, whereKey = null, whereValue, fields} = {}) {
     let Model = await mongo.collection(this.collection);
 
-    let query = SuperModel.prepareQuery(whereKey, whereValue);
+    if (!query) {
+      query = SuperModel.prepareQuery(whereKey, whereValue);
+    }
 
     let type = ((query === null)
       ? fields.length
@@ -104,6 +112,10 @@ class SuperModel {
     }
     return entry;
   }
+
+  /**
+    @deprecated
+   */
 
   static prepareQuery(whereKey, whereValue) {
     if (typeof whereKey === 'undefined' || whereKey === null) {

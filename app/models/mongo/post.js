@@ -12,8 +12,9 @@ class PostModel extends SuperModel {
   async create() {
     return await super.create(...arguments).then(async out => {
       await CounterModel.update({
-        whereKey: '_id',
-        whereValue: out.ops[0].boardName,
+        query: {
+          _id: out.ops[0].boardName
+        },
         fields: {
           lastPostNumber: out.ops[0].number
         }
@@ -22,8 +23,10 @@ class PostModel extends SuperModel {
     }).then(async out => {
       if (!out.sage) {
         await ThreadModel.update({
-          whereKey: ['boardName', 'number'],
-          whereValue: [out.boardName, out.threadNumber],
+          query: {
+            boardName: out.boardName,
+            number: out.threadNumber
+          },
           fields: {
             updatedAt: new Date
           }
@@ -68,8 +71,10 @@ class PostModel extends SuperModel {
    */
   async readOne({board, post, clear}) {
     return await this.read({
-      whereKey: ['boardName', 'number'],
-      whereValue: [board, +post],
+      query: {
+        boardName: board,
+        number: +post
+      },
       limit: 1,
       clear
     });
@@ -86,8 +91,10 @@ class PostModel extends SuperModel {
   async readPage({board, thread, page = 0, limit = 0}) {
     let offset = page * limit;
     return await this.readAll({
-      whereKey: ['boardName', 'threadNumber'],
-      whereValue: [board, thread],
+      query: {
+        boardName: board,
+        threadNumber: thread
+      },
       order: 'createdAt',
       orderBy: 'ASC',
       limit: limit,
@@ -107,8 +114,10 @@ class PostModel extends SuperModel {
    */
   async readAll({board, thread, order = 'createdAt', orderBy = 'ASC', limit = null, offset = null}) {
     return await this.read({
-      whereKey: ['boardName', 'threadNumber'],
-      whereValue: [board, thread],
+      query: {
+        boardName: board,
+        threadNumber: thread
+      },
       order,
       orderBy,
       limit,

@@ -34,16 +34,19 @@ class ThreadModel extends SuperModel {
    */
   async readOne({board, thread} = {}) {
     return await this.read({
-      whereKey: ['boardName', 'number'],
-      whereValue: [board, +thread],
+      query: {
+        boardName: board,
+        number: thread
+      },
       limit: 1
     });
   }
 
   async countPage({board, limit} = {}) {
     let out = await this.count({
-      whereKey: 'boardName',
-      whereValue: board
+      query: {
+        boardName: board
+      }
     });
     return Math.ceil(out / limit);
   }
@@ -76,9 +79,13 @@ class ThreadModel extends SuperModel {
    * @return {Promise}
    */
   async readAll({board = null, order = 'createdAt', orderBy = 'ASC', limit = null, offset = null} = {}) {
+    let query = {};
+    if (board) {
+      query.boardName = board;
+    }
+
     return await this.read({
-      whereKey: board ? 'boardName' : null,
-      whereValue: board,
+      query,
       order: order,
       orderBy: orderBy,
       limit: limit,

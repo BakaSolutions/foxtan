@@ -32,8 +32,7 @@ class BoardModel extends SuperModel {
    */
   async readOne(board) {
     return await this.read({
-      whereKey: 'board',
-      whereValue: board,
+      query: { board },
       limit: 1
     });
   }
@@ -48,11 +47,13 @@ class BoardModel extends SuperModel {
    * @return {Promise}
    */
   async readAll({includeHidden = false, order = null, orderBy = 'ASC', limit = 0, offset = 0} = {}) {
+    let query = {};
+    if (includeHidden) {
+      query.hidden = 1;
+    }
+
     return await this.read({
-      whereKey: includeHidden
-        ? 'hidden'
-        : null,
-      whereValue: 1,
+      query,
       order: order,
       orderBy: orderBy,
       limit: limit,
@@ -70,8 +71,7 @@ class BoardModel extends SuperModel {
   async readPage({board = null, page = 0, limit = config('board.threadsPerPage')} = {}) {
     let offset = page * limit;
     return await this.readAll({
-      whereKey: 'board',
-      whereValue: board,
+      query: { board },
       order: 'createdAt',
       orderBy: 'DESC',
       limit: limit,

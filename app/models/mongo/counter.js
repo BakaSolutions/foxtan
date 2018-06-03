@@ -18,8 +18,9 @@ class CounterModel extends SuperModel {
 
   async readOne(board) {
     return await super.read({
-      whereKey: '_id',
-      whereValue: board,
+      query: {
+        _id: board
+      },
       limit: 1
     }).then(counter => counter ? counter.lastPostNumber : 0);
   }
