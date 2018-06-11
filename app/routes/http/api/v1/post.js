@@ -1,7 +1,10 @@
 const router = require('koa-router')({ prefix: '/api/v1/post.' });
 
+const config = require('../../../../helpers/config');
+
 const Controller = require('../../index');
 const PostLogic = require('../../../../logic/post');
+const UserLogic = require('../../../../logic/user');
 
 router.post('create', async ctx => {
   let query = ctx.request.body;
@@ -40,7 +43,9 @@ router.post('create', async ctx => {
 router.post('delete', async ctx => {
   let query = ctx.request.body;
 
-  await PostLogic.delete(query, ctx)
+  let grantedUser = UserLogic.hasPermission(ctx.request.token, config('permissions.posts.delete'));
+
+  await PostLogic.delete(query, !grantedUser)
     .then(async result => {
       if (isRedirect(query)) {
         return await redirect(ctx, ctx.request.body);

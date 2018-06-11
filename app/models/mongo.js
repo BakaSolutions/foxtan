@@ -161,7 +161,7 @@ class MongoDBClient {
   async waitForConnected() {
     if (!this._db) {
       console.log('Подключаемся к MongoDB…');
-      this._db = await MongoClient.connect(config('db.mongo.url')).catch(e => console.log);
+      this._db = await MongoClient.connect(config('db.mongo.url')).catch(e => console.log(e));
     }
   }
 }

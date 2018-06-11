@@ -165,25 +165,26 @@ Post.readOne = async fields => {
   });
 };
 
-Post.delete = async fields => {
+Post.delete = async (fields, checkPassword) => {
   if (!fields.post) {
     throw {
       status: 400,
       message: `No posts to delete!`
     };
   }
-  /*if (!fields.password) { TODO: Enable after tests
+
+  if (checkPassword && !fields.password) {
     throw {
       status: 400,
       message: `No password!`
     };
-  }*/
+  }
 
-  return await deletePosts(fields.post, fields.password);
+  return await deletePosts(fields.post, fields.password, checkPassword);
 };
 
 
-async function deletePosts(posts, password) {
+async function deletePosts(posts, password, checkPassword) {
   if (!Array.isArray(posts)) {
     posts = [ posts ];
   }
@@ -201,10 +202,9 @@ async function deletePosts(posts, password) {
         if (CommonLogic.hasEmpty(postInput)) {
           return resolve(0);
         }
+        await deleteFile(post.files, password, checkPassword);
 
-        resolve(await deletePost(postInput, password));
-
-        await deleteFile(post.files, password);
+        resolve(await deletePost(postInput, password, checkPassword));
       }).catch(() => 0)
     );
     return results;
@@ -215,7 +215,7 @@ async function deletePosts(posts, password) {
 }
 
 
-async function deletePost({boardName, postNumber, threadNumber} = {}, password) {
+async function deletePost({boardName, postNumber, threadNumber} = {}, password, checkPassword) {
   let post = await PostModel.readOne({
     board: boardName,
     post: postNumber,
@@ -224,17 +224,20 @@ async function deletePost({boardName, postNumber, threadNumber} = {}, password) 
   if (!post) {
     return 0;
   }
-  /*if (!Crypto.verify(password || '', post.password)) {
+  if (checkPassword && !Crypto.verify(password || '', post.password)) {
     return 0;
-  }*/
+  }
 
   let commonResult = 0;
 
-  if (post.number === post.threadNumber) { // Delete thread
-    let { result } = await ThreadModel.deleteOne({boardName, postNumber});
-    if (!result) {
+  // Delete thread
+  if (post.number === post.threadNumber) {
+    let deleteAThread = await ThreadModel.deleteOne({boardName, postNumber});
+    if (!deleteAThread.result) {
       return 0;
     }
+    let deletePostsInAThread = await deletePosts(post, password, checkPassword);
+    commonResult += deletePostsInAThread.deleted;
   }
 
   let out = [
@@ -244,7 +247,7 @@ async function deletePost({boardName, postNumber, threadNumber} = {}, password) 
   ];
   WS.broadcast('REM ' + JSON.stringify(out)); // TODO: Create WS events
 
-  let { result } = await PostModel.deleteMany({boardName, threadNumber});
+  let { result } = await PostModel.deleteOne({boardName, postNumber});
   if (result) {
     commonResult += result.n;
   }
@@ -252,7 +255,7 @@ async function deletePost({boardName, postNumber, threadNumber} = {}, password) 
 }
 
 
-async function deleteFiles(hashes, password) {
+/*async function deleteFiles(hashes, password, checkPassword) {
   if (!Array.isArray(hashes)) {
     hashes = [ hashes ];
   }
@@ -264,7 +267,7 @@ async function deleteFiles(hashes, password) {
           return resolve(0);
         }
 
-        resolve(await deleteFile(hash, password));
+        resolve(await deleteFile(hash, password, checkPassword));
       }).catch(() => 0)
     );
     return results;
@@ -272,10 +275,10 @@ async function deleteFiles(hashes, password) {
 
   let deletedFiles = Promise.all(promises).then(results => results.reduce((a, b) => a + b, 0));
   return {deleted: deletedFiles};
-}
+}*/
 
 
-async function deleteFile(hash, boardName, postNumber, password) {
+async function deleteFile(hash, boardName, postNumber, password, checkPassword) {
   let post = await PostModel.readOne({
     board: boardName,
     post: postNumber,
@@ -284,9 +287,9 @@ async function deleteFile(hash, boardName, postNumber, password) {
   if (!post) {
     return 0;
   }
-  /*if (!Crypto.verify(password || '', post.password)) {
+  if (checkPassword && !Crypto.verify(password || '', post.password)) {
     return 0;
-  }*/
+  }
   let attachment = new Attachment(null, hash);
   return await attachment.delete(boardName, postNumber);
 }

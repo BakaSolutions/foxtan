@@ -6,7 +6,8 @@
     },
     settings: {
       base: '/',
-      fetchAPI: typeof fetch === 'function' // we'd like to use fetch but it's too raw
+      fetchAPI: typeof fetch === 'function', // we'd like to use fetch but it's too raw
+      useHeader: true
     },
     tmp: {}
   };
@@ -24,7 +25,9 @@
           let xhr = new XMLHttpRequest();
           xhr.timeout = 4200;
           xhr.open(method, url);
-          xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+          if (so.baka.settings.useHeader) {
+            xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+          }
           xhr.onload = () => resolve(xhr);
           xhr.onerror = xhr.ontimeout = () => reject(xhr);
           xhr.send(data);
@@ -72,7 +75,7 @@
       if (text) el.innerText = text;
       return el;
     },
-    getById: function(id) {
+    id: function(id) {
       return document.getElementById(id);
     },
     block: function(cl) {
@@ -141,6 +144,12 @@ baka.tmp.onload = function () {
       return false;
     });
   });
+
+  let checkbox = baka.dom.id('x-requested-with');
+
+  checkbox.onchange = function() {
+    baka.settings.useHeader = checkbox.checked;
+  }
 };
 
 if (document.readyState === "complete")

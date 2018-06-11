@@ -29,3 +29,14 @@ body { background: #efefef }
 .popups__popup_error { background: #f99; color: #a00; border-color: #a00 }
 /* Animations */
 .popups__popup { transition: max-height .5s ease-in-out, opacity }
+
+.user-tools {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  background: #4ef;
+}
+.user-tools, input[name=accessToken] {
+  border-radius: 4px 0 0 0;
+  border: 0;
+}

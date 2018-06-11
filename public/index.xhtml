@@ -13,6 +13,7 @@
     <button>Submit</button>
   </div>
 </form>
+
 <h1>Create board</h1>
 <form action="/api/v1/board.create" method="post" class="create-form">
   <div>
@@ -37,42 +38,49 @@
     <button>Submit</button>
   </div>
 </form>
+
 <h1>Get boards</h1>
 <form action="/boards.json" class="create-form">
   <div>
     <button>Submit</button>
   </div>
 </form>
+
 <h1>Get /test/ board</h1>
 <form action="/test/board.json" class="create-form">
   <div>
     <button>Submit</button>
   </div>
 </form>
+
 <h1>Get /test/ page</h1>
 <form action="/test/0.json" class="create-form">
   <div>
     <button>Submit</button>
   </div>
 </form>
+
 <h1>Get /test/ page count</h1>
 <form action="/test/pageCount.json" class="create-form">
   <div>
     <button>Submit</button>
   </div>
 </form>
+
 <h1>Get /test/res/1.json</h1>
 <form action="/test/res/1.json" class="create-form">
   <div>
     <button>Submit</button>
   </div>
 </form>
+
 <h1>Get last post numbers</h1>
 <form action="/lastPostNumbers.json" class="create-form">
   <div>
     <button>Submit</button>
   </div>
 </form>
+
 <h1>Create post</h1>
 <form action="/api/v1/post.create" method="post" class="create-form" enctype="multipart/form-data">
   <div>
@@ -129,6 +137,7 @@
     <button>Submit</button>
   </div>
 </form>
+
 <h1>Get post</h1>
 <form action="/api/v1/post.read" method="post" class="create-form">
   <div>
@@ -145,6 +154,7 @@
     <button>Submit</button>
   </div>
 </form>
+
 <h1>Delete post with a password</h1>
 <form action="/api/v1/post.delete" method="post" class="create-form">
   <div>
@@ -165,6 +175,71 @@
     <button>Submit</button>
   </div>
 </form>
+
+<hr />
+
+<h1>Obtain tokens</h1>
+<form action="/api/v1/token.obtain" class="create-form">
+  <div>
+    <button>Submit</button>
+  </div>
+</form>
+
+<h1>Create user</h1>
+<form action="/api/v1/user.create" method="post" class="create-form">
+  <div>
+    <table>
+      <tr>
+        <td><b>Login:</b></td>
+        <td><input name="login" value="demo" /></td>
+      </tr>
+      <tr>
+        <td><b>Password:</b></td>
+        <td><input type="password" name="password" /></td>
+      </tr>
+    </table>
+    <button>Submit</button>
+  </div>
+</form>
+
+<h1>User login</h1>
+<form action="/api/v1/user.login" method="post" class="create-form">
+  <div>
+    <table>
+      <tr>
+        <td><b>Login:</b></td>
+        <td><input name="login" value="demo" /></td>
+      </tr>
+      <tr>
+        <td><b>Password:</b></td>
+        <td><input type="password" name="password" /></td>
+      </tr>
+    </table>
+    <button>Submit</button>
+  </div>
+</form>
+
+<h1>User logoff</h1>
+<form action="/api/v1/user.logout" class="create-form">
+  <div>
+    <button>Submit</button>
+  </div>
+</form>
+
+<h1>Read all user entries</h1>
+<form action="/api/v1/user.readAll" class="create-form">
+  <div>
+    <button>Submit</button>
+  </div>
+</form>
+
+<div class="user-tools">
+  <label for="x-requested-with">
+    Use X-Requested-With:
+    <input id="x-requested-with" type="checkbox" name="x-requested-with" checked="checked" />
+  </label>
+</div>
+
 <p>
   <a href="http://validator.w3.org/check?uri=referer"><img
     src="http://www.w3.org/Icons/valid-xhtml11" alt="Valid XHTML 1.1" height="31" width="88" /></a>

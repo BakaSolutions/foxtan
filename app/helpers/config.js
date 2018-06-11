@@ -3,6 +3,11 @@ const packageJSON = require('../../package.json');
 const path = require('path');
 const os = require('os');
 
+const ANONYMOUS = 0;
+const USER = 12;
+const MODER = 24;
+const ADMIN = 42;
+
 let config = {
   board: {
     boardLimit: 200, // threads
@@ -53,6 +58,43 @@ let config = {
     public: 'http://127.0.0.1:1337/',
     upload: 'http://127.0.0.1:1337/res/',
     thumb: 'http://127.0.0.1:1337/res/thumb/'
+  },
+  token: {
+    expires: { // d    h    m    s
+      access:              12 * 60,
+      refresh:  120 * 24 * 60 * 60
+    },
+    secret: '0n1y64k45d0n7ch4ng3p455w0rd5'
+  },
+  cookie: {
+    signed: false,
+    secret: 'p13453ch4ng3m364k4'
+  },
+  groups: {
+    ANONYMOUS,
+    USER,
+    MODER,
+    ADMIN
+  },
+  permissions: { // interactions without a password
+    boards: {
+      manage: ADMIN
+    },
+    threads: {
+  //  lock: ADMIN,
+  //  pin: ADMIN
+    },
+    posts: {
+      delete: MODER
+    },
+  //files: {
+  //  delete: MODER,
+  //},
+    users: {
+  //  ban: MODER,
+      delete: ADMIN,
+      manage: ADMIN
+    }
   }
 };
 
