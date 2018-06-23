@@ -19,6 +19,7 @@
   "dependencies": {
     "busboy": "^0.2.14",
     "crc": "^3.5.0",
+    "dot": "^1.1.2",
     "figurecon": "github:rngnrs/figurecon",
     "jwt-simple": "^0.5.1",
     "koa": "^2.3.0",

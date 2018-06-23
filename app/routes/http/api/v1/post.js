@@ -9,9 +9,17 @@ const UserLogic = require('../../../../logic/user');
 router.post('create', async ctx => {
   let query = ctx.request.body;
 
+  if (!ctx.request.token) {
+    let out = {
+      status: 400,
+      message: 'Non-JS users must obtain a token'
+    };
+    return Controller.fail(ctx, out, 'pages/token');
+  }
+
   await PostLogic.create(query, ctx).then(
     out => {
-      if (!Controller.isAJAXRequested(ctx) && isRedirect(query)) {
+      if (!Controller.isAJAXRequested(ctx) && Controller.isRedirect(query)) {
         let map = {
           ':board': out.boardName,
           ':thread': out.threadNumber,
@@ -47,7 +55,7 @@ router.post('delete', async ctx => {
 
   await PostLogic.delete(query, !grantedUser)
     .then(async result => {
-      if (isRedirect(query)) {
+      if (Controller.isRedirect(query)) {
         return await redirect(ctx, ctx.request.body);
       }
       return result;
@@ -57,12 +65,8 @@ router.post('delete', async ctx => {
     )
 });
 
-function isRedirect(query) {
-  return !(typeof query.redirect === 'undefined' || query.redirect === '');
-}
-
 function redirect(ctx, query, regexp, map) {
-  if (!isRedirect(query)) {
+  if (!Controller.isRedirect(query)) {
     return false;
   }
   return new Promise(resolve => {

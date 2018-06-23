@@ -11,29 +11,40 @@ let middleware = app => {
     app.keys = [Buffer.from(config('cookie.secret'))];
   }
 
+  /**
+   * GET
+   * +  JS:
+   * +    obtain token before request, error if there's no token
+   * +  Non-JS:
+   * +    obtain token in a request
+
+   * POST
+   *   error if there's no token
+   *
+   * +OPTIONS
+   * +  do nothing
+   */
+
   app.use(async (ctx, next) => {
 
-    if (isWhitelisted(ctx.url)) {
-      return await next();
+    if (isWhitelisted(ctx.url) || ctx.method === 'OPTIONS') {
+      return await next(); // do nothing
     }
 
     let token;
 
     if (ctx.headers['X-Access-Token']) {
       token = ctx.headers['X-Access-Token'];
-    }
-    /* else if (ctx.request.body && ctx.request.body.accessToken) {
-      token = ctx.request.body.accessToken;
-    } */
-    else {
+    } else {
       token = ctx.cookies.get('accessToken', {signed: config('cookie.signed')})
     }
 
-    if (!token) {
+    if (!token && ctx.method === 'GET') {
       if (Controller.isAJAXRequested(ctx)) {
-        return ctx.throw(403, {
-          message: 'Please, obtain accessToken'
-        });
+        throw {
+          status: 403,
+          message: `Please, obtain accessToken: ${URL_TOKEN_OBTAIN}`
+        };
       }
       return ctx.redirect(URL_TOKEN_OBTAIN + "?redirect=" + ctx.url);
     }
@@ -41,9 +52,12 @@ let middleware = app => {
     try {
       ctx.request.token = UserLogic.parseToken(token);
     } catch (e) {
-      return ctx.throw(403, {
-        message: 'Cannot parse token'
-      });
+      if (ctx.method !== 'POST') {
+        throw {
+          status: 400,
+          message: 'Cannot parse token'
+        };
+     }
     }
 
     await next();

@@ -32,10 +32,7 @@ FS.normalize = (filePath, rootType = 'root') => {
  * @param {String} filePath
  * @returns {boolean}
  */
-FS.check = filePath => {
-  let filterArray = Object.values(config('directories')).filter(dir => filePath.indexOf(dir) === 0);
-  return filterArray.length > 0;
-};
+FS.check = filePath => Object.values(config('directories')).some(dir => filePath.includes(dir, 0));
 
 /**
  * Read file synchronously with checking the filePath
@@ -122,11 +119,11 @@ FS.mkdirSync = (dir, rootType) => {
 
   if (!Array.isArray(dir)) {
     dir = [ dir ];
-  } else {
-    dir = FS.normalize(dir, rootType);
-    if (!FS.check(dir)) {
-      return false;
-    }
+  }
+
+  dir[0] = FS.normalize(dir[0], rootType);
+  if (!FS.check(dir[0])) {
+    return false;
   }
 
   if (FS.existsSync(dir[0]) || dir.length < 1) {
