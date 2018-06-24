@@ -9,14 +9,6 @@ const UserLogic = require('../../../../logic/user');
 router.post('create', async ctx => {
   let query = ctx.request.body;
 
-  if (!ctx.request.token) {
-    let out = {
-      status: 400,
-      message: 'Non-JS users must obtain a token'
-    };
-    return Controller.fail(ctx, out, 'pages/token');
-  }
-
   await PostLogic.create(query, ctx).then(
     out => {
       if (!Controller.isAJAXRequested(ctx) && Controller.isRedirect(query)) {

@@ -1,5 +1,4 @@
 const config = require('../../../helpers/config');
-const Render = require('../../../helpers/render');
 const Controller = require('../index');
 
 let middleware = app => {
@@ -11,7 +10,7 @@ let middleware = app => {
       }
       await next();
       const status = ctx.status || 404;
-      if (status === 404) {
+      if (status === 404 && !ctx.body) {
         ctx.throw(404)
       }
     } catch (err) {

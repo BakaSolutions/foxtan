@@ -1,5 +1,4 @@
 const config = require('../../../helpers/config');
-const Controller = require('../index');
 const UserLogic = require('../../../logic/user');
 
 const URL_TOKEN_OBTAIN = '/api/v1/token.obtain';
@@ -10,20 +9,6 @@ let middleware = app => {
   if (config('cookie.signed')) {
     app.keys = [Buffer.from(config('cookie.secret'))];
   }
-
-  /**
-   * GET
-   * +  JS:
-   * +    obtain token before request, error if there's no token
-   * +  Non-JS:
-   * +    obtain token in a request
-
-   * POST
-   *   error if there's no token
-   *
-   * +OPTIONS
-   * +  do nothing
-   */
 
   app.use(async (ctx, next) => {
 
@@ -39,30 +24,40 @@ let middleware = app => {
       token = ctx.cookies.get('accessToken', {signed: config('cookie.signed')})
     }
 
-    if (!token && ctx.method === 'GET') {
-      if (Controller.isAJAXRequested(ctx)) {
-        throw {
-          status: 403,
-          message: `Please, obtain accessToken: ${URL_TOKEN_OBTAIN}`
-        };
-      }
-      return ctx.redirect(URL_TOKEN_OBTAIN + "?redirect=" + ctx.url);
+    if (!token) {
+      token = await createTokens(ctx);
     }
 
     try {
       ctx.request.token = UserLogic.parseToken(token);
     } catch (e) {
-      if (ctx.method !== 'POST') {
+      let message;
+
+      switch (e.message) {
+        case 'Token expired':
+          token = await createTokens(ctx);
+          break;
+        default:
+          message = `Cannot parse token: ${e.message}`;
+      }
+
+      if (message) {
         throw {
           status: 400,
-          message: 'Cannot parse token'
+          message
         };
-     }
+      }
     }
 
     await next();
   });
 };
+
+async function createTokens(ctx) {
+  let tokens = await UserLogic.generateTokens();
+  await UserLogic.setCookies(ctx, tokens);
+  return tokens.accessToken;
+}
 
 module.exports = {
   middleware

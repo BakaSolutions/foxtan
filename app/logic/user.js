@@ -152,7 +152,7 @@ User.generateTokens = async ({_id, level, boards} = {}, refresh = true) => {
 User.refreshTokens = async token => {
   if (!token) {
     throw {
-      status: 403,
+      status: 400,
       message: `There is no refreshToken in header/cookies`
     };
   }
@@ -174,24 +174,22 @@ User.refreshTokens = async token => {
     };
   }
 
-  return await User.generateTokens(user, refreshInfo.exp < (+new Date/1000) + 5184000);
+  return await User.generateTokens(user, refreshInfo.exp < (+new Date/1000) + config('token.expires.refresh'));
 };
 
 User.setCookies = (ctx, {accessToken, refreshToken, expires}) => {
-  let cookieExpires = config('token.expires.access') * 1000;
   let options = {
-    maxAge: cookieExpires,
+    maxAge: expires,
     signed: config('cookie.signed'),
-    expires: cookieExpires,
+    expires,
     overwrite: true
   };
-  if (accessToken) {
-    ctx.cookies.set('accessToken', accessToken, options);
-  }
-  if (refreshToken) {
-    options.maxAge = options.expires = config('token.expires.refresh') * 1000;
-    ctx.cookies.set('refreshToken', refreshToken, options);
-  }
+
+  ctx.cookies.set('accessToken', accessToken, options);
+
+  options.maxAge = options.expires = config('token.expires.refresh') * 1000;
+  ctx.cookies.set('refreshToken', refreshToken, options);
+
   return {
     accessToken,
     refreshToken,
