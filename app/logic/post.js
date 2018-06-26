@@ -46,7 +46,7 @@ Post.create = async fields => {
   if (!isThread) {
     let thread = await ThreadModel.readOne({
       board: fields.boardName,
-      thread: fields.threadNumber
+      thread: +fields.threadNumber
     });
     if (!thread) {
       throw {

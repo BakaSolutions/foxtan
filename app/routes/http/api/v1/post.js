@@ -19,6 +19,7 @@ router.post('create', async ctx => {
         };
         return redirect(ctx, query, /:(?:board|thread|post)/g, map);
       }
+      out.message = 'Post was successfully created!';
       Controller.success(ctx, out);
     },
     out => Controller.fail(ctx, out)
