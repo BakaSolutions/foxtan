@@ -6,6 +6,7 @@ const ThreadModel = require('../models/mongo/thread');
 const PostModel = require('../models/mongo/post');
 const Attachment = require('./attachment');
 
+const config = require('../helpers/config');
 const Crypto = require('../helpers/crypto');
 const Markup = require('../helpers/markup');
 const Tools = require('../helpers/tools');
@@ -68,7 +69,12 @@ Post.create = async fields => {
       isThread
         ? threadInput.number
         : +fields.threadNumber,
-    subject: fields.subject,
+    subject:
+      CommonLogic.isEmpty(fields.subject)
+        ? !isThread
+          ? config(`board.${threadInput.boardName}.defaultUserName`, config('board.defaultUserName'))
+          : fields.subject
+        : fields.subject,
     text: await Markup.process(
       fields.text,
       threadInput.boardName,
