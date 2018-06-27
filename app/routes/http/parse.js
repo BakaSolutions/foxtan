@@ -5,15 +5,30 @@ const FS = require('../../helpers/fs');
 
 function correctFieldMatching(fields, field, value) {
   let matches = field.match(/(.+)\[(.*)]$/);
+
+  // `something`
   if (!matches) {
-    return fields[field] = value;
+    if (typeof fields[field] === 'undefined') {
+      return fields[field] = value;
+    }
+
+    // lots of `something`
+    if (!Array.isArray(fields[field])) {
+      fields[field] = [ fields[field] ];
+    }
+    fields[field].push(value);
+    return [ ...new Set(fields[field]) ];
   }
+
+  // `something[]`
   if (!fields[matches[1]]) {
     fields[matches[1]] = [];
   }
   if (!matches[2]) {
     return fields[matches[1]].push(value);
   }
+
+  // `something[smth]`
   if (!fields[matches[1]][matches[2]]) {
     return fields[matches[1]][matches[2]] = value;
   }
@@ -62,9 +77,7 @@ module.exports = ctx => {
       });
     });
 
-    busboy.on('field', (fieldname, val) => {
-      correctFieldMatching(fields, fieldname, val)
-    });
+    busboy.on('field', (fieldname, val) => correctFieldMatching(fields, fieldname, val));
 
     busboy.on('finish', () => {
       busboy = null;

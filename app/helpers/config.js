@@ -17,9 +17,12 @@ let config = {
     threadLimit: 1000, // posts
     threadsPerPage: 20
   },
-  debug: true,
-  debugOptions: {
-    logRequests: true
+  debug: {
+    enable: false,
+    log: {
+      requests: true,
+      tokens: true
+    }
   },
   db: {
     type: 'mongo', // only 'mongo' now, sorry!
@@ -47,8 +50,8 @@ let config = {
     version: packageJSON.version
   },
   directories: {
-    root: path.resolve(__dirname, '../..'),
-    temporary: path.resolve(os.tmpdir(), 'foxtan'),
+    root: path.resolve(__dirname, '../..') + path.sep,
+    temporary: path.resolve(os.tmpdir(), 'foxtan') + path.sep,
 
     public: path.resolve(__dirname, '../../public') + path.sep,
     upload: path.resolve(__dirname, '../../public/res') + path.sep,

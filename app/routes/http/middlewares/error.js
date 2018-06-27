@@ -28,10 +28,10 @@ function errorHandler(err, ctx) {
 
   if (status >= 500) {
     console.log('[ERR]', ctx.header.host, ctx.status, ctx.url, err.message);
-  }
 
-  if (config('debug.enable') && ctx.status >= 500) {
-    err.stack = err.stack.replace(new RegExp(config('directories.root'), 'g'), '') || err;
+    if (config('debug.enable')) {
+      err.stack = err.stack.replace(new RegExp(config('directories.root'), 'g'), '') || err;
+    }
   }
 
   return Controller.fail(ctx, err);

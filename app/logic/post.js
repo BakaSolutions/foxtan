@@ -196,13 +196,12 @@ async function deletePosts(posts, password, checkPassword) {
 
         let postInput = {
           boardName: post[0],
-          number: +post[1]
+          postNumber: +post[1]
         };
 
         if (CommonLogic.hasEmpty(postInput)) {
           return resolve(0);
         }
-        await deleteFile(post.files, password, checkPassword);
 
         resolve(await deletePost(postInput, password, checkPassword));
       }).catch(() => 0)
@@ -210,7 +209,7 @@ async function deletePosts(posts, password, checkPassword) {
     return results;
   }, []);
 
-  let deletedPosts = Promise.all(promises).then(results => results.reduce((a, b) => a + b, 0));
+  let deletedPosts = await Promise.all(promises).then(results => results.reduce((a, b) => a + b, 0));
   return {deleted: deletedPosts};
 }
 
@@ -218,26 +217,26 @@ async function deletePosts(posts, password, checkPassword) {
 async function deletePost({boardName, postNumber, threadNumber} = {}, password, checkPassword) {
   let post = await PostModel.readOne({
     board: boardName,
-    post: postNumber,
+    post: +postNumber || null,
+    threadNumber: +threadNumber || null,
     clear: false
   });
   if (!post) {
     return 0;
   }
-  if (checkPassword && !Crypto.verify(password || '', post.password)) {
+  if (checkPassword && !Crypto.verify(password, post.password)) {
     return 0;
   }
 
   let commonResult = 0;
 
   // Delete thread
-  if (post.number === post.threadNumber) {
-    let deleteAThread = await ThreadModel.deleteOne({boardName, postNumber});
+  if (post.number === post.threadNumber && !threadNumber) {
+    let deleteAThread = await ThreadModel.deleteOne({boardName, number: +postNumber});
     if (!deleteAThread.result) {
       return 0;
     }
-    let deletePostsInAThread = await deletePosts(post, password, checkPassword);
-    commonResult += deletePostsInAThread.deleted;
+    commonResult += await deletePost(post, password, false);
   }
 
   let out = [
@@ -247,7 +246,9 @@ async function deletePost({boardName, postNumber, threadNumber} = {}, password, 
   ];
   WS.broadcast('REM ' + JSON.stringify(out)); // TODO: Create WS events
 
-  let { result } = await PostModel.deleteOne({boardName, postNumber});
+  await deleteFile(post.files, password, checkPassword);
+
+  let { result } = await PostModel.deleteOne({boardName, number: +postNumber});
   if (result) {
     commonResult += result.n;
   }
@@ -287,9 +288,9 @@ async function deleteFile(hash, boardName, postNumber, password, checkPassword) 
   if (!post) {
     return 0;
   }
-  if (checkPassword && !Crypto.verify(password || '', post.password)) {
+  if (checkPassword && !Crypto.verify(password, post.password)) {
     return 0;
   }
   let attachment = new Attachment(null, hash);
-  return await attachment.delete(boardName, postNumber);
+  return await attachment.delete(boardName, postNumber) ? 1 : 0;
 }

@@ -32,12 +32,7 @@ router.post('login', async ctx => {
   let query = ctx.request.body;
 
   await UserLogic.login(query)
-    .then(async tokens => {
-      if (!Controller.isAJAXRequested(ctx)) {
-        return await UserLogic.setCookies(ctx, tokens)
-      }
-      return tokens;
-    })
+    .then(async tokens => await UserLogic.setCookies(ctx, tokens))
     .then(
       out => {
         if (query.redirect) {

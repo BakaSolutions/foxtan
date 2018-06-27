@@ -1,3 +1,4 @@
+const config = require('../../helpers/config');
 const Render = require('../../helpers/render');
 const http = require('http');
 
@@ -30,7 +31,20 @@ HTTP.fail = (ctx, out, templateName = 'pages/error') => {
   }
 
   delete out.status;
+
+  if (out instanceof Error) {
+    let { error, message, stack } = out;
+    out = {
+      error,
+      message,
+      stack: config('debug.enable')
+        ? stack
+        : undefined
+    }
+  }
+
   out.error = out.error || http.STATUS_CODES[ctx.status];
+
   ctx.body = out;
 };
 

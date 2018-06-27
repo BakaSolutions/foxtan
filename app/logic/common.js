@@ -17,6 +17,4 @@ Common.hasEmpty = input => {
     : false;
 };
 
-Common.isEmpty = input => {
-  return (typeof input === 'undefined') || (input === '');
-};
+Common.isEmpty = input => (typeof input === 'undefined') || (input === '');

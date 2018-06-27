@@ -16,25 +16,17 @@ class SuperModel {
     return await Model[!Array.isArray(fields) ? 'insertOne' : 'insertMany'](fields);
   }
 
-  async count({query, whereKey, whereValue} = {}) {
+  async count({query} = {}) {
     let Model = await mongo.collection(this.collection);
-
-    if (!query) {
-      query = SuperModel.prepareQuery(whereKey, whereValue);
-    }
 
     return await Model.count(query);
   }
 
-  async last({query, whereKey = null, whereValue = {}, limit = 1} = {}) {
+  async last({query, limit = 1} = {}) {
     let Model = await mongo.collection(this.collection);
 
-    if (!query) {
-      query = SuperModel.prepareQuery(whereKey, whereValue);
-    }
-
     let options = {
-      limit: limit,
+      limit,
       sort: {
         createdAt: -1
       }
@@ -45,12 +37,8 @@ class SuperModel {
       : out.number;
   }
 
-  async read({query, whereKey = null, whereValue, order = null, orderBy, limit = null, offset = null} = {}) {
+  async read({query, order = null, orderBy, limit = null, offset = null} = {}) {
     let Model = await mongo.collection(this.collection);
-
-    if (!query) {
-      query = SuperModel.prepareQuery(whereKey, whereValue);
-    }
 
     let sortObject = null;
 
@@ -62,7 +50,7 @@ class SuperModel {
     }
 
     let options = {
-      limit: limit,
+      limit,
       skip: offset,
       sort: sortObject
     };
@@ -80,12 +68,8 @@ class SuperModel {
     return out;
   }
 
-  async update({query, whereKey = null, whereValue, fields} = {}) {
+  async update({query, fields} = {}) {
     let Model = await mongo.collection(this.collection);
-
-    if (!query) {
-      query = SuperModel.prepareQuery(whereKey, whereValue);
-    }
 
     let type = ((query === null)
       ? fields.length
@@ -111,31 +95,6 @@ class SuperModel {
       delete entry._id;
     }
     return entry;
-  }
-
-  /**
-    @deprecated
-   */
-
-  static prepareQuery(whereKey, whereValue) {
-    if (typeof whereKey === 'undefined' || whereKey === null) {
-      return null;
-    }
-    if (!Array.isArray(whereKey)) {
-      whereKey = [ whereKey ];
-
-      if (!Array.isArray(whereValue)) {
-        whereValue = [ whereValue ];
-      }
-    }
-    let query = {};
-    for (let i = 0; i < whereKey.length; i++) {
-      if (typeof whereValue[i] === 'undefined') {
-        continue;
-      }
-      query[whereKey[i]] = whereValue[i];
-    }
-    return query;
   }
 
 };

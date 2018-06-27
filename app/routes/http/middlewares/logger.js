@@ -17,7 +17,7 @@ let middleware = app => {
 
     ctx.set('X-Response-Time', `${ms} ms`);
 
-    if (config('debug') && config('debugOptions.logRequests')) {
+    if (config('debug.enable') && config('debug.log.requests')) {
       console.log(`[${ctx.status}] [${ctx.method}] ${ctx.url} - ${ms} ms`);
     }
   });

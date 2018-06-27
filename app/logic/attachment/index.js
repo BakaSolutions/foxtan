@@ -75,8 +75,9 @@ class Attachment {
       exists.posts.push(label);
 
       await AttachmentModel.update({
-        whereKey: '_id',
-        whereValue: this.hash,
+        query: {
+          _id: this.hash
+        },
         fields: {
           posts: exists.posts,
           updatedAt: now
@@ -109,8 +110,9 @@ class Attachment {
 
     if (exists.posts.length > 1) {
       return await AttachmentModel.update({
-        whereKey: '_id',
-        whereValue: this.hash,
+        query: {
+          _id: this.hash
+        },
         fields: {
           posts: exists.posts.splice(index, 1),
           updatedAt: now
@@ -133,9 +135,7 @@ class Attachment {
 
 }
 
-let out = {
-  Attachment
-};
+let out = { Attachment };
 
 (async () => {
   let types = await Tools.requireAll('logic/attachment/', /^(?!index\.).*?js$/);

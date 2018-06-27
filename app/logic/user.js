@@ -1,5 +1,5 @@
 const jwt = require('jwt-simple');
-const ObjectID = require('mongodb').ObjectID;
+//const ObjectID = require('mongodb').ObjectID;
 
 const CommonLogic = require('./common');
 const UserModel = require('../models/mongo/user');
@@ -30,6 +30,13 @@ User.create = async ({ login, password } = {}) => {
 };
 
 User.readOne = async ({ login } = {}) => {
+  if (!login) {
+    throw {
+      status: 400,
+      message: `There's no login in form/cookies!`
+    };
+  }
+
   let user = await UserModel.readOne({ _id: login });
 
   if (!user) {
@@ -83,7 +90,24 @@ User.createToken = (info, expires = config('token.expires.access')) => {
   let obj = Object.assign({}, info);
   obj.exp = Math.floor(+new Date/1000 + expires);
 
+  if (config('debug.enable') && config('debug.log.tokens')) {
+    let type = (expires === config('token.expires.access'))
+      ? 'access'
+      : 'refresh';
+    console.log(`Created ${type} token: ${JSON.stringify(obj)}`);
+  }
+
   return jwt.encode(obj, config('token.secret'), JWT_ALGO, {});
+};
+
+User.parseToken = token => {
+  let obj = jwt.decode(token, config('token.secret'), false, JWT_ALGO);
+
+  if (config('debug.enable') && config('debug.log.tokens')) {
+    console.log(`Parsed token: ${JSON.stringify(obj)}`);
+  }
+
+  return obj;
 };
 
 User.checkPassword = (password, hash) => {
@@ -95,8 +119,6 @@ User.checkPassword = (password, hash) => {
   }
   return Crypto.sha256(password) === hash;
 };
-
-User.parseToken = token => jwt.decode(token, config('token.secret'), false, JWT_ALGO);
 
 User.hasPermission = (user, action, board) => {
   if (!user || !action) {
@@ -166,9 +188,9 @@ User.refreshTokens = async token => {
   }
 
   let user = await User.readOne({
-    _id: ObjectID(refreshInfo._id)
+    login: refreshInfo._id
   });
-  if (!user || (token !== user.refreshToken)) {
+  if (!user) {
     throw {
       status: 403
     };

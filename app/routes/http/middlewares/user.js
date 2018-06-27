@@ -1,9 +1,13 @@
 const config = require('../../../helpers/config');
 const UserLogic = require('../../../logic/user');
 
-const URL_TOKEN_OBTAIN = '/api/v1/token.obtain';
+const WHITELISTED_URLS = [
+  '/api/v1/token.obtain',
+  '/api/v1/user.login',
+  '/api/v1/user.logout'
+];
 
-let isWhitelisted = path => path.includes(URL_TOKEN_OBTAIN, 0);
+let isWhitelisted = path => WHITELISTED_URLS.includes(path);
 
 let middleware = app => {
   if (config('cookie.signed')) {
@@ -11,18 +15,13 @@ let middleware = app => {
   }
 
   app.use(async (ctx, next) => {
-
     if (isWhitelisted(ctx.url) || ctx.method === 'OPTIONS') {
       return await next(); // do nothing
     }
 
-    let token;
-
-    if (ctx.headers['X-Access-Token']) {
-      token = ctx.headers['X-Access-Token'];
-    } else {
-      token = ctx.cookies.get('accessToken', {signed: config('cookie.signed')})
-    }
+    let token = (ctx.headers['X-Access-Token'])
+      ? ctx.headers['X-Access-Token']
+      : ctx.cookies.get('accessToken', {signed: config('cookie.signed')});
 
     if (!token) {
       token = await createTokens(ctx);
@@ -35,7 +34,7 @@ let middleware = app => {
 
       switch (e.message) {
         case 'Token expired':
-          token = await createTokens(ctx);
+          token = await updateTokens(ctx);
           break;
         default:
           message = `Cannot parse token: ${e.message}`;
@@ -59,6 +58,13 @@ async function createTokens(ctx) {
   return tokens.accessToken;
 }
 
-module.exports = {
-  middleware
-};
+async function updateTokens(ctx) {
+  let refreshToken = (ctx.headers['X-Refresh-Token'])
+      ? ctx.headers['X-Refresh-Token']
+      : ctx.cookies.get('refreshToken', {signed: config('cookie.signed')});
+  let tokens = await UserLogic.refreshTokens(refreshToken);
+  await UserLogic.setCookies(ctx, tokens);
+  return tokens.accessToken;
+}
+
+module.exports = { middleware };

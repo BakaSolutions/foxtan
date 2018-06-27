@@ -14,7 +14,7 @@ Thread.countPage = async ({board, limit} = {}) => {
     }
   }
   return await ThreadModel.countPage({
-    board: board,
+    board,
     limit: limit || config('board.threadsPerPage')
   });
 };
@@ -33,10 +33,7 @@ Thread.readOne = async (board, thread, last = config('board.lastPostsNumber')) =
     };
   }
 
-  let out = await ThreadModel.readOne({
-    board: board,
-    thread: thread
-  });
+  let out = await ThreadModel.readOne({ board, thread });
   if (!out) {
     throw {
       status: 404
@@ -44,8 +41,10 @@ Thread.readOne = async (board, thread, last = config('board.lastPostsNumber')) =
   }
 
   let count = await PostModel.count({
-    whereKey: ['boardName', 'threadNumber'],
-    whereValue: [board, thread]
+    query: {
+      boardName: board,
+      threadNumber: thread
+    }
   });
 
   let offset = 1;
@@ -55,7 +54,7 @@ Thread.readOne = async (board, thread, last = config('board.lastPostsNumber')) =
   }
 
   let opPost = await PostModel.readOne({
-    board: board,
+    board,
     post: thread
   });
   out.posts = [ opPost ];
@@ -84,10 +83,7 @@ Thread.readPage = async (board, page, limit = config('board.threadsPerPage')) =>
       message: `Wrong \`page\` parameter.`
     };
   }
-  let threads = await ThreadModel.readPage({
-    board: board,
-    page: page
-  });
+  let threads = await ThreadModel.readPage({ board, page });
   if (!threads || !threads.length) {
     throw {
       status: 404
@@ -95,18 +91,18 @@ Thread.readPage = async (board, page, limit = config('board.threadsPerPage')) =>
   }
   for (let i = 0; i < threads.length; i++) {
     let opPost = await PostModel.readOne({
-      board: board,
+      board,
       post: threads[i].number
     });
     if (!opPost) {
       let message = `There's a thread, but no OP-post: ${board}/${threads[i].number}`;
       console.log(message);
-      throw new Error(message);
+      //throw new Error(message);
     }
     threads[i].posts = [ opPost ];
 
     let posts = await PostModel.readAll({
-      board: board,
+      board,
       thread: threads[i].number,
       order: 'createdAt',
       orderBy: 'DESC',
@@ -115,7 +111,7 @@ Thread.readPage = async (board, page, limit = config('board.threadsPerPage')) =>
     if (!posts || !posts.length) {
       let message = `There's a thread, but no posts: ${board}/${threads[i].number}`;
       console.log(message);
-      throw new Error(message);
+      //throw new Error(message);
     }
     if (posts[posts.length - 1].number === posts[posts.length - 1].threadNumber) {
       posts.pop();
@@ -124,8 +120,10 @@ Thread.readPage = async (board, page, limit = config('board.threadsPerPage')) =>
     threads[i].posts.push(...posts);
 
     let count = await PostModel.count({
-      whereKey: ['boardName', 'threadNumber'],
-      whereValue: [board, threads[i].number]
+      query: {
+        boardName: board,
+        threadNumber: threads[i].number
+      }
     });
     threads[i].omittedPosts = count - threads[i].posts.length;
   }
@@ -133,8 +131,8 @@ Thread.readPage = async (board, page, limit = config('board.threadsPerPage')) =>
     threads: threads,
     lastPostNumber: await CounterModel.readOne(board),
     pageCount: await ThreadModel.countPage({
-      board: board,
-      limit: limit
+      board,
+      limit
     })
   }
 };
@@ -171,8 +169,8 @@ Thread.readCatPage = async (board, page, order = 'createdAt') => {
   }
 
   let feed = await ThreadModel.readAll({
-    board: board,
-    order: order,
+    board,
+    order,
     orderBy: 'DESC',
     limit: config('board.threadsPerPage'),
     offset: page * config('board.threadsPerPage')
@@ -184,7 +182,7 @@ Thread.readCatPage = async (board, page, order = 'createdAt') => {
   }
   for (let i = 0; i < feed.length; i++) {
     feed[i].opPost = await PostModel.readOne({
-      board: board,
+      board,
       post: feed[i].number
     });
   }
@@ -206,8 +204,10 @@ Thread.syncData = async () => {
         out.threadCounts[threads[i].boardName] = {};
       }
       out.threadCounts[threads[i].boardName][+threads[i].number] = await PostModel.count({
-        whereKey: ['boardName', 'threadNumber'],
-        whereValue: [threads[i].boardName, +threads[i].number]
+        query: {
+          boardName: threads[i].boardName,
+          threadNumber: +threads[i].number
+        }
       });
     }
   });
