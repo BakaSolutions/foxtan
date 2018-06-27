@@ -24,7 +24,11 @@ let middleware = app => {
       : ctx.cookies.get('accessToken', {signed: config('cookie.signed')});
 
     if (!token) {
-      token = await createTokens(ctx);
+      token = await updateTokens(ctx);
+
+      if (!token) {
+        token = await createTokens(ctx);
+      }
     }
 
     try {
@@ -62,6 +66,11 @@ async function updateTokens(ctx) {
   let refreshToken = (ctx.headers['X-Refresh-Token'])
       ? ctx.headers['X-Refresh-Token']
       : ctx.cookies.get('refreshToken', {signed: config('cookie.signed')});
+
+  if (!refreshToken) {
+    return false;
+  }
+
   let tokens = await UserLogic.refreshTokens(refreshToken);
   await UserLogic.setCookies(ctx, tokens);
   return tokens.accessToken;
