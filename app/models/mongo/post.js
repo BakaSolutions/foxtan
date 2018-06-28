@@ -1,3 +1,5 @@
+const config = require('../../helpers/config')
+
 const SuperModel = require('./super');
 const ThreadModel = require('./thread');
 const CounterModel = require('./counter');
@@ -127,6 +129,10 @@ class PostModel extends SuperModel {
 
   clearEntry(entry) {
     super.clearEntry(entry);
+    if ( (entry.number !== entry.threadNumber)
+      && (typeof entry.subject === 'undefined' || entry.subject === '') ) {
+        entry.subject = config(`board.${entry.boardName}.defaultUserName`, config('board.defaultUserName'))
+    }
     delete entry.password;
     return entry;
   }

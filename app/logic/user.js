@@ -1,5 +1,4 @@
 const jwt = require('jwt-simple');
-//const ObjectID = require('mongodb').ObjectID;
 
 const CommonLogic = require('./common');
 const UserModel = require('../models/mongo/user');
@@ -12,7 +11,12 @@ const JWT_ALGO = 'HS512';
 let User = module.exports = {};
 
 User.create = async ({ login, password } = {}) => {
-  let user = await UserModel.readOne({ _id: login });
+  let user = await UserModel.readOne({
+    _id: {
+      $regex: `^${login}$`,
+      $options: 'i'
+    }
+  });
 
   if (user) {
     throw {
@@ -37,7 +41,12 @@ User.readOne = async ({ login } = {}) => {
     };
   }
 
-  let user = await UserModel.readOne({ _id: login });
+  let user = await UserModel.readOne({
+    _id: {
+      $regex: `^${login}$`,
+      $options: 'i'
+    }
+  });
 
   if (!user) {
     throw {
@@ -123,6 +132,7 @@ User.checkPassword = (password, hash) => {
 User.hasPermission = (user, action, board) => {
   if (!user || !action) {
     console.log('Something strange is happening here.');
+    console.log(user, action, board);
     return false;
   }
 
@@ -154,13 +164,6 @@ User.generateTokens = async ({_id, level, boards} = {}, refresh = true) => {
   let refreshToken = null;
   if (refresh) {
     refreshToken = User.createToken({ _id }, config('token.expires.refresh'));
-
-    if (_id) {
-      await UserModel.update({
-        query: { _id },
-        fields: { refreshToken }
-      });
-    }
   }
   let expires = Math.floor(+new Date/1000 + config('token.expires.access'));
 

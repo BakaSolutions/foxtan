@@ -69,12 +69,7 @@ Post.create = async fields => {
       isThread
         ? threadInput.number
         : +fields.threadNumber,
-    subject:
-      CommonLogic.isEmpty(fields.subject)
-        ? !isThread
-          ? config(`board.${threadInput.boardName}.defaultUserName`, config('board.defaultUserName'))
-          : fields.subject
-        : fields.subject,
+    subject: fields.subject,
     text: await Markup.process(
       fields.text,
       threadInput.boardName,
