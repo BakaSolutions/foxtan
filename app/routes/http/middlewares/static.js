@@ -2,7 +2,7 @@ const config = require('../../../helpers/config');
 const Tools = require('../../../helpers/tools');
 
 let middleware = app => {
-  if (config('server.enableStatic')) {
+  if (!config('server.static.external')) {
     if (Tools.moduleAvailable('koa-static')) {
       const Static = require('koa-static');
       app.use(Static(__dirname + '/../../../../public'));

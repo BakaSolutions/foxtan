@@ -46,8 +46,14 @@ let config = {
     output: 'port', // or 'socket'
     port: 1337,
     socket: '/tmp/sock',
-    enableStatic: true,
-    version: packageJSON.version
+    static: {
+      external: false
+    },
+    version: packageJSON.version,
+    allowedOverchans: [
+      '0.0.0.0',
+      'localhost'
+    ]
   },
   directories: {
     root: path.resolve(__dirname, '../..') + path.sep,

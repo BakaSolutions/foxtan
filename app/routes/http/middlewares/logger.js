@@ -5,11 +5,6 @@ let middleware = app => {
   app.use(async (ctx, next) => {
     const start = +new Date;
 
-    if (config('server.enableStatic')) {
-      ctx.set('Access-Control-Allow-Origin', '*');
-      ctx.set('Access-Control-Allow-Headers', 'X-Requested-With');
-    }
-
     await parseForm(ctx);
     await next();
 

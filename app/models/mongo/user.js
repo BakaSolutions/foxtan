@@ -9,7 +9,7 @@ class UserModel extends SuperModel {
 
   /**
    * Reads a user with defined login
-   * @param {String} [_id]
+   * @param {String|Object} [_id]
    * @param {String} [token]
    * @param {Boolean} [clear]
    * @return {Promise}
