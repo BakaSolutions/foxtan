@@ -66,7 +66,7 @@ class BoardModel extends SuperModel {
    * @param {Number} [offset]
    * @return {Promise}
    */
-  async readAll({includeHidden = false, order = null, orderBy = 'ASC', limit = 0, offset = 0} = {}) {
+  async readAll({includeHidden = false, order = 'board', orderBy = 'ASC', limit = 0, offset = 0} = {}) {
     let query = {};
     if (includeHidden) {
       query.hidden = 1;
