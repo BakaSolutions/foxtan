@@ -18,3 +18,12 @@ Common.hasEmpty = input => {
 };
 
 Common.isEmpty = input => (typeof input === 'undefined') || (input === '');
+
+Common.cleanEmpty = input => {
+  for (let key in input) {
+    if (input[key] === '' || (Array.isArray(input[key]) && !input[key].length)) {
+      delete input[key];
+    }
+  }
+  return input;
+};

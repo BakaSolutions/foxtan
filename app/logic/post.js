@@ -33,11 +33,13 @@ Post.create = async fields => {
   }
 
   let lastNumber = await CounterModel.readOne(fields.boardName);
+  ++lastNumber;
 
   let now = new Date;
   let threadInput = {
+    _id: `${fields.boardName}:${lastNumber}`,
     boardName: fields.boardName,
-    number: ++lastNumber,
+    number: lastNumber,
     createdAt: now,
     updatedAt: now
   };
@@ -63,8 +65,7 @@ Post.create = async fields => {
     }
   }
 
-  let postInput = {
-    __proto__: threadInput,
+  let postInput = Object.assign({
     threadNumber:
       isThread
         ? threadInput.number
@@ -79,11 +80,14 @@ Post.create = async fields => {
     rawText: fields.text,
     password:
       CommonLogic.isEmpty(fields.password)
-        ? null
+        ? ''
         : Crypto.sha256(fields.password),
-    sage: !!fields.sage,
+    sage:
+      fields.sage
+        ? true
+        : '',
     files: []
-  };
+  }, threadInput);
 
   let files = fields.file || [];
   let fileAmount = Math.min(files.length, board.fileLimit);
@@ -105,6 +109,8 @@ Post.create = async fields => {
       postInput.files.push(hash);
     }
   }
+
+  postInput = CommonLogic.cleanEmpty(postInput);
 
   return new Promise(async resolve => {
     let promise =

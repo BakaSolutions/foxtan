@@ -7,15 +7,9 @@ let Board = module.exports = {};
 Board.create = async fields => {
 
   let boardInput = {
+    _id: fields.board,
     board: fields.board,
-    title: fields.title,
-    subtitle: fields.subtitle || null,
-    hidden: !!fields.hidden || false,
-    closed: !!fields.closed || false,
-    bumpLimit: fields.bumpLimit || 500,
-    maxBoardSize: fields.maxBoardSize || -1,
-    fileLimit: fields.fileLimit || 0,
-    createdAt: new Date
+    title: fields.title
   };
 
   let keys = CommonLogic.hasEmpty(boardInput);
@@ -25,8 +19,20 @@ Board.create = async fields => {
       message: `Wrong parameter: \`${keys}\`.`
     };
   }
+
+  boardInput = Object.assign({
+    subtitle: fields.subtitle || '',
+    hidden: !!fields.hidden || '',
+    closed: !!fields.closed || '',
+    bumpLimit: +fields.bumpLimit || 500,
+    maxBoardSize: +fields.maxBoardSize || '',
+    fileLimit: +fields.fileLimit || '',
+    createdAt: new Date
+  }, boardInput);
+
+  boardInput = CommonLogic.cleanEmpty(boardInput);
   
-  let check = await BoardModel.readOne(fields.board);
+  let check = await BoardModel.readOne(boardInput._id);
   if (check !== null) {
     throw {
       status: 409,
@@ -38,9 +44,7 @@ Board.create = async fields => {
   return Board.readOne(boardInput.board);
 };
 
-Board.readOne = async board => {
-  return await BoardModel.readOne(board);
-};
+Board.readOne = async board => await BoardModel.readOne(board);
 
 Board.readAll = async () => {
   return await BoardModel.readAll().then(boards => {
@@ -54,10 +58,8 @@ Board.readAll = async () => {
   });
 };
 
-Board.delete = async fields => {
-  let boardInput = {
-    board: fields.board
-  };
+Board.delete = async ({board}) => {
+  let boardInput = { board };
 
   let keys = CommonLogic.hasEmpty(boardInput);
   if (keys) {
@@ -67,7 +69,7 @@ Board.delete = async fields => {
     };
   }
 
-  let check = await BoardModel.readOne(fields.board);
+  let check = await BoardModel.readOne(board);
   if (!check) {
     throw {
       status: 409,

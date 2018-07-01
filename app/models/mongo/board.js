@@ -17,7 +17,27 @@ class BoardModel extends SuperModel {
         out = [ out ];
       }
 
-      out = out.map(entry => this.clearEntry(entry));
+      out = out.map(entry => {
+        this.clearEntry(entry, true);
+
+        if (!entry.hidden) {
+          entry.hidden = false;
+        }
+        if (!entry.closed) {
+          entry.closed = false;
+        }
+        if (!entry.subtitle) {
+          entry.subtitle = '';
+        }
+        if (!entry.maxBoardSize) {
+          entry.maxBoardSize = -1;
+        }
+        if (!entry.fileLimit) {
+          entry.fileLimit = 0;
+        }
+
+        return entry;
+      });
 
       return limit !== 1
           ? out
@@ -54,10 +74,10 @@ class BoardModel extends SuperModel {
 
     return await this.read({
       query,
-      order: order,
-      orderBy: orderBy,
-      limit: limit,
-      offset: offset
+      order,
+      orderBy,
+      limit,
+      offset
     })
   }
 
@@ -74,8 +94,8 @@ class BoardModel extends SuperModel {
       query: { board },
       order: 'createdAt',
       orderBy: 'DESC',
-      limit: limit,
-      offset: offset
+      limit,
+      offset
     });
   }
 

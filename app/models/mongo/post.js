@@ -52,7 +52,13 @@ class PostModel extends SuperModel {
         if (clear) {
           entry = this.clearEntry(entry);
         }
-        if (!entry.files.length) {
+        if (!entry.text) {
+          entry.text = '';
+        }
+        if (!entry.sage) {
+          entry.sage = false;
+        }
+        if (!entry.files || !entry.files.length) {
           return entry;
         }
         return await this._appendAttachments(entry);
@@ -128,7 +134,7 @@ class PostModel extends SuperModel {
   }
 
   clearEntry(entry) {
-    super.clearEntry(entry);
+    super.clearEntry(entry, true);
     if ( (entry.number !== entry.threadNumber)
       && (typeof entry.subject === 'undefined' || entry.subject === '') ) {
         entry.subject = config(`board.${entry.boardName}.defaultUserName`, config('board.defaultUserName'))

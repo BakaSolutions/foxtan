@@ -27,7 +27,7 @@ router.post('create', async ctx => {
 router.post('delete', async ctx => {
   let query = ctx.request.body;
 
-  let grantedUser = UserLogic.hasPermission(ctx.request.token, config('permissions.boards.manage'));
+  let grantedUser = UserLogic.hasPermission(ctx.request.token, config('permissions.boards.manage'), query.boardName);
 
   if (!grantedUser) {
     return ctx.throw(403, {
