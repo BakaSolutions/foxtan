@@ -190,13 +190,17 @@ User.refreshTokens = async token => {
     };
   }
 
-  let user = await User.readOne({
-    login: refreshInfo._id
-  });
-  if (!user) {
-    throw {
-      status: 403
-    };
+  let user = {};
+
+  if (refreshInfo._id) {
+    let user = await User.readOne({
+      login: refreshInfo._id
+    });
+    if (!user) {
+      throw {
+        status: 403
+      };
+    }
   }
 
   return await User.generateTokens(user, refreshInfo.exp < (+new Date/1000) + config('token.expires.refresh'));
