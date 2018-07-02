@@ -6,7 +6,6 @@ const ThreadModel = require('../models/mongo/thread');
 const PostModel = require('../models/mongo/post');
 const Attachment = require('./attachment');
 
-const config = require('../helpers/config');
 const Crypto = require('../helpers/crypto');
 const Markup = require('../helpers/markup');
 const Tools = require('../helpers/tools');
@@ -96,13 +95,21 @@ Post.create = async fields => {
     file.boardName = postInput.boardName;
     file.postNumber = postInput.number;
     if (!file.mime) {
-      continue;
+      throw {
+        status: 400,
+        message: `This file has no MIME-type: ${file.name}`
+      }
     }
     let type = Tools.capitalize(file.mime.split('/')[0]);
     let attachment = (!Attachment[type])
       ? new Attachment(file)
       : new Attachment[type](file);
-    await attachment.checkFile();
+    if (!await attachment.checkFile()) {
+      throw {
+        status: 400,
+        message: `This type of file is not allowed: ${attachment.file.mime}`
+      }
+    }
     await attachment.store();
     let hash = attachment.hash;
     if (!postInput.files.includes(hash)) {
@@ -253,7 +260,7 @@ async function deletePost({boardName, postNumber, threadNumber} = {}, password, 
   ];
   WS.broadcast('REM ' + JSON.stringify(out)); // TODO: Create WS events
 
-  await deleteFile(post.files, password, checkPassword);
+  await deleteFiles(post.files, post.boardName, post.number, password, checkPassword);
 
   let { result } = await PostModel.deleteOne({boardName, number: +postNumber});
   if (result) {
@@ -263,7 +270,11 @@ async function deletePost({boardName, postNumber, threadNumber} = {}, password, 
 }
 
 
-/*async function deleteFiles(hashes, password, checkPassword) {
+async function deleteFiles(hashes, boardName, postNumber, password, checkPassword) {
+  if (!hashes || !hashes.length) {
+    return {deleted: 0};
+  }
+
   if (!Array.isArray(hashes)) {
     hashes = [ hashes ];
   }
@@ -275,7 +286,7 @@ async function deletePost({boardName, postNumber, threadNumber} = {}, password, 
           return resolve(0);
         }
 
-        resolve(await deleteFile(hash, password, checkPassword));
+        resolve(await deleteFile(hash, boardName, postNumber, password, checkPassword));
       }).catch(() => 0)
     );
     return results;
@@ -283,10 +294,19 @@ async function deletePost({boardName, postNumber, threadNumber} = {}, password, 
 
   let deletedFiles = Promise.all(promises).then(results => results.reduce((a, b) => a + b, 0));
   return {deleted: deletedFiles};
-}*/
+}
 
 
 async function deleteFile(hash, boardName, postNumber, password, checkPassword) {
+  if (Tools.isObject(hash)) {
+    if (!hash.path) {
+      throw {
+        status: 500
+      }
+    }
+    hash = hash.path.split('.').shift();
+  }
+
   let post = await PostModel.readOne({
     board: boardName,
     post: postNumber,
@@ -298,6 +318,6 @@ async function deleteFile(hash, boardName, postNumber, password, checkPassword) 
   if (checkPassword && !Crypto.verify(password, post.password)) {
     return 0;
   }
-  let attachment = new Attachment(null, hash);
+  let attachment = new Attachment.Attachment(null, hash);
   return await attachment.delete(boardName, postNumber) ? 1 : 0;
 }

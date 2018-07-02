@@ -24,16 +24,16 @@ class ImageAttachment extends Attachment {
   }
 
   async createThumb(filePath) {
-    if (this.metadata.width <= config('files.thumbnailWidth') || this.metadata.height <= config('files.thumbnailHeight')) {
-      return filePath;
+    if (this.metadata.width <= config('files.thumbnail.width') || this.metadata.height <= config('files.thumbnail.height')) {
+      return true;
     }
 
-    filePath = filePath.replace(/\.(.+)$/, '.' + config('files.thumbnailExtension'));
+    filePath = filePath.replace(/\.(.+)$/, '.' + config('files.thumbnail.extension'));
 
     let buffer = await this.image
         .resize(200, 200)
         .max()
-        .toFormat(config('files.thumbnailExtension'), config('files.thumbnailOptions'))
+        .toFormat(config('files.thumbnail.extension'), config('files.thumbnail.options'))
         .toBuffer();
 
     await FS.writeFile(config('directories.thumb') + filePath, buffer, 'thumb');

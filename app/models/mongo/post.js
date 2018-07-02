@@ -105,8 +105,8 @@ class PostModel extends SuperModel {
       },
       order: 'createdAt',
       orderBy: 'ASC',
-      limit: limit,
-      offset: offset
+      limit,
+      offset
     });
   }
 

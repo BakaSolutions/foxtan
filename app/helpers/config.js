@@ -21,7 +21,8 @@ let config = {
     enable: false,
     log: {
       requests: true,
-      tokens: true
+      tokens: true,
+      files: true
     }
   },
   db: {
@@ -33,13 +34,15 @@ let config = {
   files: {
     maxWidth: 10000,
     maxHeight: 10000,
-    thumbnailExtension: 'jpeg',
-    thumbnailOptions: {
-      quality: 42,
-      progressive: true
+    thumbnail: {
+      extension: 'jpg',
+      width: 200,
+      height: 200,
+      options: {
+        quality: 67,
+        progressive: true
+      }
     },
-    thumbnailWidth: 200,
-    thumbnailHeight: 200
   },
   server: {
     host: '0.0.0.0', // or 'localhost',

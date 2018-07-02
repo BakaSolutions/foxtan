@@ -1,12 +1,16 @@
+const config = require('../../helpers/config');
 const Crypto = require('../../helpers/crypto');
 const FS = require('../../helpers/fs');
 const Tools = require('../../helpers/tools');
 const AttachmentModel = require('../../models/mongo/attachment');
 
+const debug = config('debug.enable');
+
 class Attachment {
 
-  constructor(file) {
+  constructor(file, hash) {
     this.file = file;
+    this.hash = hash || null;
   }
 
   async createHash() {
@@ -32,17 +36,21 @@ class Attachment {
       await this.createHash();
     }
 
+    let now = new Date;
+
     let label = {
       boardName: this.file.boardName,
       postNumber: this.file.postNumber
     };
-    let now = new Date;
 
     let exists = await this.exists();
 
+    if (debug && config('debug.log.files')) {
+      console.log(`[File storing: ${this.hash}]: Does it exist in a storage? (${!!exists})`);
+    }
+
     if (!exists) {
-      let mimeSplit = this.file.mime.split('/');
-      let extension = mimeSplit[1] || this.file.mime;
+      let extension = this.file.name.split('.').pop() || this.file.mime.split('.').pop();
       let filePath = `${this.hash}.${extension}`;
 
       let out = {
@@ -54,8 +62,7 @@ class Attachment {
         size: this.file.size,
         name: this.file.name,
         path: filePath,
-        createdAt: now,
-        updatedAt: now
+        createdAt: now
       };
 
       let thumb = await this.createThumb(filePath);
@@ -99,38 +106,65 @@ class Attachment {
       return true;
     }
 
-    let neededToDeleteFile = await this._deleteHash(boardName, postNumber);
+    let neededToDeleteFile = await this._deleteHash(exists, boardName, postNumber);
     if (neededToDeleteFile) {
       await this._deleteFile(exists);
     }
   }
 
-  async _deleteHash(boardName, postNumber) {
-    let index = exists.posts.indexOf({boardName, postNumber}) === -1;
+  async _deleteHash(exists, boardName, postNumber) {
+    let index = exists.posts.findIndex(i => i.boardName === boardName && i.postNumber === postNumber);
 
-    if (exists.posts.length > 1) {
-      return await AttachmentModel.update({
+    if (debug && config('debug.log.files')) {
+      console.log(`[File deleting: ${boardName}:${postNumber}]: Post index is ${index}`);
+    }
+
+    exists.posts.splice(index, 1);
+
+    if (exists.posts.length) {
+      if (debug && config('debug.log.files')) {
+        console.log(`[File deleting: ${boardName}:${postNumber}]: Updating file entry coz it's used ${exists.posts.length} time(s)...`);
+      }
+      await AttachmentModel.update({
         query: {
           _id: this.hash
         },
         fields: {
-          posts: exists.posts.splice(index, 1),
-          updatedAt: now
+          posts: exists.posts,
+          updatedAt: new Date
         }
-      })
+      });
+      return null;
     }
 
-    return await AttachmentModel.deleteOne({
-      '_id': this.hash
+    if (debug && config('debug.log.files')) {
+      console.log(`[File deleting: ${boardName}:${postNumber}]: Deleting file entry... (there are no posts)`);
+    }
+
+    await AttachmentModel.deleteOne({
+      _id: this.hash
     });
+    return true;
   }
 
   _deleteFile(meta) {
-    if (!meta) {
-      return false;
+    if (debug && config('debug.log.files')) {
+      console.log(`[File deleting: ${this.hash}]: Deleting file... ${config('directories.upload') + meta.path}`);
     }
-    let extension = meta.mime.split('/')[1];
-    return FS.unlinkSync(`${config('directories.upload') + this.hash}.${extension}`);
+
+    FS.unlinkSync(`${config('directories.upload') + meta.path}`);
+
+    if (meta.thumb) {
+      if (debug && config('debug.log.files')) {
+        console.log(`[File deleting: ${this.hash}]: Deleting thumbnail... ${config('directories.thumb') + meta.path}`);
+      }
+
+      return FS.unlinkSync(`${config('directories.thumb') + meta.path}`);
+    }
+
+    if (debug && config('debug.log.files')) {
+      console.log(`[File deleting: ${this.hash}]: There is no thumbnail!`);
+    }
   }
 
 }
