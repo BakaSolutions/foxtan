@@ -36,8 +36,8 @@ let config = {
     maxHeight: 10000,
     thumbnail: {
       extension: 'jpg',
-      width: 200,
-      height: 200,
+      width: 256,
+      height: 256,
       options: {
         quality: 67,
         progressive: true
