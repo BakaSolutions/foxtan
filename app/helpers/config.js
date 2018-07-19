@@ -12,10 +12,29 @@ let config = {
   board: {
     boardLimit: 200, // threads
     bumpLimit: 500, // posts in a thread
+    threadLimit: 1000, // posts
+
     defaultUserName: "",
     lastPostsNumber: 3,
-    threadLimit: 1000, // posts
     threadsPerPage: 20
+  },
+  captcha: {
+    ttl: 300, // seconds
+
+    width: 192,
+    height: 64,
+    //size: 6,
+    latin: false,
+    cyrillic: false,
+    numbers: true,
+    smallLetters: false,
+    syllable: false,
+    complexity: 66,
+    fontPerks: false,
+    noise: true,
+    color: ['#f60', '#6a6', '#9de', '#6bc'],
+    //color: ['#ff6ec7', '#8a2be2', '#daa520', '#ffd700', 'red', '#f5fffa'],
+    background: '#233'
   },
   debug: {
     enable: false,
@@ -29,6 +48,18 @@ let config = {
     type: 'mongo', // only 'mongo' now, sorry!
     mongo: {
       url: 'mongodb://localhost:27017/foxtantest'
+    },
+    redis: {
+      url: 'redis://localhost:6379/0',
+      options: {},
+
+      nodes: null,
+      enableReadyCheck: false,
+      maxRedirections: 16,
+      scaleReads: 'master',
+      retryDelayOnFailover: 100,
+      retryDelayOnClusterDown: 100,
+      retryDelayOnTryAgain: 100
     }
   },
   files: {

@@ -18,9 +18,11 @@
   "homepage": "https://bitbucket.org/rngnrs/foxtan#readme",
   "dependencies": {
     "busboy": "^0.2.14",
+    "canvas": "^2.0.0-alpha.12",
     "crc": "^3.5.0",
     "dot": "^1.1.2",
     "figurecon": "github:rngnrs/figurecon",
+    "ioredis": "^3.2.2",
     "jwt-simple": "^0.5.1",
     "koa": "^2.3.0",
     "koa-router": "^7.2.1",

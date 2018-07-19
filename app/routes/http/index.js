@@ -12,7 +12,7 @@ let HTTP = {};
 HTTP.isAJAXRequested = ctx => ctx.headers["x-requested-with"] === "XMLHttpRequest";
 
 HTTP.success = (ctx, out, templateName) => {
-  if (!out) {
+  if (out === null || typeof out === 'undefined') {
     return ctx.throw(404);
   }
   if (!HTTP.isAJAXRequested(ctx) && templateName) {
@@ -26,12 +26,6 @@ HTTP.fail = (ctx, out, templateName = 'pages/error') => {
     ? out.status || 500
     : 500;
 
-  if (!HTTP.isAJAXRequested(ctx)) {
-    return ctx.body = Render.renderPage(templateName, out);
-  }
-
-  delete out.status;
-
   if (out instanceof Error) {
     let { error, message, stack } = out;
     out = {
@@ -42,6 +36,15 @@ HTTP.fail = (ctx, out, templateName = 'pages/error') => {
         : undefined
     }
   }
+
+  if (!HTTP.isAJAXRequested(ctx)) {
+    ctx.type = 'text/html';
+    out.debug = config('debug.enable');
+    return ctx.body = Render.renderPage(templateName, out);
+  }
+
+  delete out.status;
+
 
   out.error = out.error || http.STATUS_CODES[ctx.status];
 
