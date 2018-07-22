@@ -62,7 +62,7 @@ router.get('check', async ctx => {
   let out = {};
   let tokenInfo = ctx.request.token;
 
-  if (!tokenInfo.trustedPostCount) {
+  if ('undefined' === typeof tokenInfo.trustedPostCount || !tokenInfo.trustedPostCount) {
     tokenInfo.trustedPostCount = 0;
   }
 
