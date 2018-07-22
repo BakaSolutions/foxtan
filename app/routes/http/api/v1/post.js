@@ -7,10 +7,26 @@ const PostLogic = require('../../../../logic/post');
 const UserLogic = require('../../../../logic/user');
 
 router.post('create', async ctx => {
-  let query = ctx.request.body;
+  let { body: query, token } = ctx.request;
+
+  if (typeof token.trustedPostCount === 'undefined' || !token.trustedPostCount) {
+    if (Controller.isAJAXRequested(ctx)) {
+      let out = {
+        status: 400,
+        message: 'No more posts without captcha!',
+        url: '/captcha.html'
+      };
+      return Controller.fail(ctx, out);
+    }
+    return ctx.redirect('/', '/captcha.html', 303);
+  }
 
   await PostLogic.create(query, ctx).then(
-    out => {
+    async out => {
+      token.trustedPostCount--;
+      let tokens = await UserLogic.generateTokens(token, false);
+      await UserLogic.setCookies(ctx, tokens);
+
       if (!Controller.isAJAXRequested(ctx) && Controller.isRedirect(query)) {
         let map = {
           ':board': out.boardName,
@@ -20,6 +36,7 @@ router.post('create', async ctx => {
         return redirect(ctx, query, /:(?:board|thread|post)/g, map);
       }
       out.message = 'Post was successfully created!';
+      out.trustedPostCount = token.trustedPostCount;
       Controller.success(ctx, out);
     },
     out => Controller.fail(ctx, out)

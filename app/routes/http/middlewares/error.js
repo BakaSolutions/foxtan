@@ -17,7 +17,9 @@ let middleware = app => {
       await next();
       const status = ctx.status || 404;
       if (status === 404 && !ctx.body) {
-        ctx.throw(404)
+        throw {
+          status: 404
+        };
       }
     } catch (err) {
       return (err instanceof Error)

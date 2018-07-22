@@ -2,6 +2,7 @@ const router = require('koa-router')({ prefix: '/api/v1/captcha.' });
 
 const config = require('../../../../helpers/config');
 const CaptchaLogic = require('../../../../logic/captcha');
+const UserLogic = require('../../../../logic/user');
 
 const Controller = require('../../index');
 
@@ -29,16 +30,45 @@ router.get('frame', async ctx => {
       message: 'Use captcha.image instead'
     })
   }
-  return Controller.success(ctx, {ttl: config('captcha.ttl')}, 'pages/captcha');
+  return Controller.success(ctx, {ttl: config('captcha.ttl')}, 'pages/captchaFrame');
 });
 
 router.post('check', async ctx => {
   let { id, code } = ctx.request.body;
+
   if (!id) {
     id = ctx.cookies.get('captcha', {signed: config('cookie.signed')});
   }
   ctx.cookies.set('captcha');
-  return Controller.success(ctx, await CaptchaLogic.check({id, code}));
+
+  let passed = await CaptchaLogic.check({id, code});
+  let out = { passed };
+
+  if (passed) {
+    let tokenInfo = ctx.request.token;
+    if (!tokenInfo.trustedPostCount) {
+      tokenInfo.trustedPostCount = 0;
+    }
+    tokenInfo.trustedPostCount += config('captcha.postsPerCaptcha');
+    let tokens = await UserLogic.generateTokens(tokenInfo, false);
+    await UserLogic.setCookies(ctx, tokens);
+    out.trustedPostCount = tokenInfo.trustedPostCount;
+  }
+
+  return Controller.success(ctx, out);
+});
+
+router.get('check', async ctx => {
+  let out = {};
+  let tokenInfo = ctx.request.token;
+
+  if (!tokenInfo.trustedPostCount) {
+    tokenInfo.trustedPostCount = 0;
+  }
+
+  out.trustedPostCount = tokenInfo.trustedPostCount;
+
+  return Controller.success(ctx, out);
 });
 
 module.exports = router;

@@ -5,6 +5,7 @@ const UserModel = require('../models/mongo/user');
 
 const config = require('../helpers/config');
 const Crypto = require('../helpers/crypto');
+const Tools = require('../helpers/tools');
 
 const JWT_ALGO = 'HS512';
 
@@ -159,11 +160,16 @@ User.login = async ({ login, password } = {}) => {
   return await User.generateTokens(user);
 };
 
-User.generateTokens = async ({_id, level, boards} = {}, refresh = true) => {
-  let accessToken = User.createToken({ _id, level, boards });
+User.generateTokens = async (info, refresh = true) => {
+  let accessToken = User.createToken(info);
   let refreshToken = null;
   if (refresh) {
-    refreshToken = User.createToken({ _id }, config('token.expires.refresh'));
+    if (Tools.isObject(info)) {
+      delete info.trustedPostCount;
+      delete info.level;
+      delete info.boards;
+    }
+    refreshToken = User.createToken(info, config('token.expires.refresh'));
   }
   let expires = Math.floor(+new Date/1000 + config('token.expires.access'));
 
@@ -216,8 +222,10 @@ User.setCookies = (ctx, {accessToken, refreshToken, expires}) => {
 
   ctx.cookies.set('accessToken', accessToken, options);
 
-  options.maxAge = options.expires = config('token.expires.refresh') * 1000;
-  ctx.cookies.set('refreshToken', refreshToken, options);
+  if (refreshToken) {
+    options.maxAge = options.expires = config('token.expires.refresh') * 1000;
+    ctx.cookies.set('refreshToken', refreshToken, options);
+  }
 
   return {
     accessToken,

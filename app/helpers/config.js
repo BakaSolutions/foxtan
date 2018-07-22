@@ -20,6 +20,7 @@ let config = {
   },
   captcha: {
     ttl: 300, // seconds
+    postsPerCaptcha: 24,
 
     width: 192,
     height: 64,

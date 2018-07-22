@@ -25,6 +25,7 @@ Controllers.initHTTP = async app => {
       [
         'routes/http/api',
         'routes/http/api/v1',
+        'routes/http/pages',
         // TODO: Add custom routes
       ],
       /\.js$/

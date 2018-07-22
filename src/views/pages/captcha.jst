@@ -3,17 +3,14 @@
 	<head>
 		<meta charset='utf-8'>
 		<link rel="stylesheet" href="/css/captcha.css" />
-		<meta http-equiv="Refresh" content="{{!it.ttl}}">
 		<title>Captcha</title>
 	</head>
 	<body>
-    <a href="captcha.frame">
-      <div class="wrapper">
-        <div class="cell">
-          <img src="captcha.image" />
-        </div>
-        <div class="captcha-indicator" style="animation: captcha-indicator {{!it.ttl}}s linear"></div>
-      </div>
-    </a>
+    <form action="/api/v1/captcha.check" method="POST">
+      <iframe src="/api/v1/captcha.frame" width="{{!it.width}}" height="{{!it.height}}" frameborder="0"></iframe>
+      <br />
+      <input name="code" required />
+      <button>Submit</button>
+    </form>
 	</body>
 </html>
