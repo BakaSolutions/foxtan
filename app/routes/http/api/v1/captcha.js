@@ -43,27 +43,16 @@ router.post('check', async ctx => {
 
   let passed = await CaptchaLogic.check({id, code});
   let out = { passed };
+  let tokenInfo = ctx.request.token;
+
+  if (!tokenInfo.trustedPostCount) {
+    tokenInfo.trustedPostCount = 0;
+  }
 
   if (passed) {
-    let tokenInfo = ctx.request.token;
-    if (!tokenInfo.trustedPostCount) {
-      tokenInfo.trustedPostCount = 0;
-    }
     tokenInfo.trustedPostCount += config('captcha.postsPerCaptcha');
     let tokens = await UserLogic.generateTokens(tokenInfo, false);
     await UserLogic.setCookies(ctx, tokens);
-    out.trustedPostCount = tokenInfo.trustedPostCount;
-  }
-
-  return Controller.success(ctx, out);
-});
-
-router.get('check', async ctx => {
-  let out = {};
-  let tokenInfo = ctx.request.token;
-
-  if ('undefined' === typeof tokenInfo.trustedPostCount || !tokenInfo.trustedPostCount) {
-    tokenInfo.trustedPostCount = 0;
   }
 
   out.trustedPostCount = tokenInfo.trustedPostCount;
