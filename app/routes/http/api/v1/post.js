@@ -9,7 +9,7 @@ const UserLogic = require('../../../../logic/user');
 router.post('create', async ctx => {
   let { body: query, token } = ctx.request;
 
-  if ('undefined' === typeof token.trustedPostCount || !token.trustedPostCount) {
+  if (!token || typeof token.trustedPostCount === 'undefined' || !token.trustedPostCount) {
     if (Controller.isAJAXRequested(ctx)) {
       let out = {
         status: 400,

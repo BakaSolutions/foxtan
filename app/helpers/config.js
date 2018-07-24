@@ -34,8 +34,7 @@ let config = {
     fontPerks: false,
     noise: true,
     color: ['#f60', '#6a6', '#9de', '#6bc'],
-    //color: ['#ff6ec7', '#8a2be2', '#daa520', '#ffd700', 'red', '#f5fffa'],
-    background: '#233'
+    background: '#13161a'
   },
   debug: {
     enable: false,

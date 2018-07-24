@@ -214,16 +214,14 @@ User.refreshTokens = async token => {
 
 User.setCookies = (ctx, {accessToken, refreshToken, expires}) => {
   let options = {
-    maxAge: expires,
     signed: config('cookie.signed'),
-    expires,
     overwrite: true
   };
+  options.maxAge = options.expires = config('token.expires.refresh') * 1000;
 
   ctx.cookies.set('accessToken', accessToken, options);
 
   if (refreshToken) {
-    options.maxAge = options.expires = config('token.expires.refresh') * 1000;
     ctx.cookies.set('refreshToken', refreshToken, options);
   }
 
