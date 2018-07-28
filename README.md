@@ -1,28 +1,28 @@
-## sobaka
-#### The server-oriented BAKA
-
-##### What is "BAKA"?
-BAKA means "boardsphere's application that keep the API".
-
-##### Why is it "server-oriented"?
-Our team thinks that next-gen imageboard must provide just unified API,  so many clients (like imageboard aggregators, called "overchans") can combine all boards together.
+## Foxtan
+##### The most technologic and comfortable imageboard engine
 
 #### Install
 Dependencies:
 
 - Node with npm
-- MySQL (or MariaDB/PostgreSQL, soon)
-- sharp (for processing images, soon)
-- ffmpeg (for processing videos, soon)
+- MongoDB (for storing posts, other DBs soon)
+- Redis (for storing captchas)
+- ffmpeg (for processing videos)
+- [NPM] sharp (for processing images)
+- [NPM] canvas (for captcha images)
 
 Optional dependencies:
 
-- SQLite libraries (for geolocation and/or keeping main data)
+- [NPM] node-static (if nginx is not used)
 
 Commands:
 ```
-git clone https://rngnrs@bitbucket.org/rngnrs/sobaka.git
-cd sobaka
-npm run install
-npm start
+git clone https://bitbucket.org/rngnrs/foxtan
+cd foxtan
+git checkout develop
+
+npm install # using npm
+yarn install # using yarn
+
+node app
 ```
