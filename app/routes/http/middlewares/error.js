@@ -18,7 +18,7 @@ let middleware = app => {
       const status = ctx.status || 404;
       if (status === 404 && !ctx.body) {
         throw {
-          status: 404
+          status
         };
       }
     } catch (err) {
@@ -39,13 +39,13 @@ function errorHandler(err, ctx, isError = true) {
   const status = err.status || 500;
 
   if (status >= 500) {
-    console.log('[ERR]', ctx.header.host, ctx.status, ctx.url, err.message);
+    console.log('[ERR]', ctx.header.host, status + '/' + ctx.status, ctx.url, err.message);
+  }
 
-    if (isError && config('debug.enable')) {
-      err.stack = err.stack.replace(new RegExp(config('directories.root'), 'g'), '') || err;
-    } else {
-      delete err.stack;
-    }
+  if (isError && config('debug.enable')) {
+    err.stack = err.stack.replace(new RegExp(config('directories.root'), 'g'), '') || err;
+  } else {
+    delete err.stack;
   }
 
   return Controller.fail(ctx, err);

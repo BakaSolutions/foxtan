@@ -20,7 +20,15 @@ class VideoAttachment extends Attachment {
         '-print_format json ' +
         this.file.path
     );
-    let metadata = await Process.listen(ffprobe);
+    let metadata = await Process.listen(ffprobe).then( // TODO: Catch ffmpeg errors
+        m => m,
+        err => {
+          throw {
+            status: 500,
+            message: err
+          }
+        }
+    );
     try {
       metadata = JSON.parse(metadata);
       if (metadata.error) {
@@ -58,7 +66,7 @@ class VideoAttachment extends Attachment {
         `-vf scale=${config('files.thumbnail.width')}:-1 ` +
         config('directories.thumb') + out
     );
-    return Process.listen(ffmpeg).then(
+    return Process.listen(ffmpeg).then( // TODO: Catch ffmpeg errors
       () => out,
       err => {
         throw {

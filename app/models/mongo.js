@@ -161,7 +161,9 @@ class MongoDBClient {
   async waitForConnected() {
     if (!this._db) {
       console.log('Подключаемся к MongoDB…');
-      this._db = await MongoClient.connect(config('db.mongo.url')).catch(e => console.log(e));
+      this._db = await MongoClient.connect(config('db.mongo.url')).catch(() => {
+        console.log('MongoDB is offline. Is it installed and started? Is there a right URL in the config?')
+      });
     }
   }
 }

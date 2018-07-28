@@ -25,7 +25,7 @@ class ImageAttachment extends Attachment {
 
   async createThumb(filePath) {
     if (this.metadata.width <= config('files.thumbnail.width') || this.metadata.height <= config('files.thumbnail.height')) {
-      return true;
+      return false;
     }
 
     filePath = filePath.replace(/\.(.+)$/, '.' + config('files.thumbnail.extension'));

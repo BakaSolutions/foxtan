@@ -39,6 +39,7 @@ let middleware = app => {
       switch (e.message) {
         case 'Token expired':
           token = await updateTokens(ctx);
+          ctx.request.token = UserLogic.parseToken(token);
           break;
         default:
           message = `Cannot parse token: ${e.message}`;
