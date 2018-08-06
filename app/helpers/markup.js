@@ -17,7 +17,7 @@ Markup.patterns = [
       }
       thread = query.threadNumber;
     }
-    return `<a href="/${board}/res/${thread}.html#${postFromMatch}">${capture}</a>`;
+    return `<a class="postLink" data-board="${board}" data-number="${postFromMatch}" href="/${board}/res/${thread}.html#${postFromMatch}">${capture}</a>`;
   }],
   [/^(&gt;[^&gt;].+)$/mg, '<span class="quotation">$1</span>'],
   [/((https?|s?ftp):\/\/[a-zA-Z0-9\-.]+)\/?[a-zA-Z0-9?&=.:;#\/\-_~%+]*/ig, processURL],
