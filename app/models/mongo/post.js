@@ -135,10 +135,6 @@ class PostModel extends SuperModel {
 
   clearEntry(entry) {
     super.clearEntry(entry, true);
-    if ( (entry.number !== entry.threadNumber)
-      && (typeof entry.subject === 'undefined' || entry.subject === '') ) {
-        entry.subject = config(`board.${entry.boardName}.defaultUserName`, config('board.defaultUserName'))
-    }
     delete entry.password;
     return entry;
   }

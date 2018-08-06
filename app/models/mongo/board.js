@@ -29,11 +29,11 @@ class BoardModel extends SuperModel {
         if (!entry.subtitle) {
           entry.subtitle = '';
         }
-        if (!entry.maxBoardSize) {
-          entry.maxBoardSize = -1;
-        }
         if (!entry.fileLimit) {
           entry.fileLimit = 0;
+        }
+        if (!entry.defaultUsername) {
+          entry.defaultUsername = '';
         }
 
         return entry;

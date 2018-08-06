@@ -20,15 +20,15 @@ Board.create = async fields => {
     };
   }
 
-  boardInput = Object.assign({
+  boardInput = Object.assign(boardInput, {
     subtitle: fields.subtitle || '',
+    defaultUsername: fields.defaultUsername || '',
     hidden: !!fields.hidden || '',
     closed: !!fields.closed || '',
     bumpLimit: +fields.bumpLimit || 500,
-    maxBoardSize: +fields.maxBoardSize || '',
     fileLimit: +fields.fileLimit || '',
     createdAt: new Date
-  }, boardInput);
+  });
 
   boardInput = CommonLogic.cleanEmpty(boardInput);
   
