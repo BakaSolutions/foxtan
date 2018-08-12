@@ -1,5 +1,3 @@
-const config = require('../../helpers/config')
-
 const SuperModel = require('./super');
 const ThreadModel = require('./thread');
 const CounterModel = require('./counter');

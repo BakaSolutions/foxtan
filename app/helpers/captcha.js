@@ -49,7 +49,7 @@ class Captcha {
     this.noise = !!o.noise || false;
     this.mime = o.mime || 'image/png';
 
-    this.id = this._generate();
+    this.id = this._generate(24);
   }
 
   createCanvas() {
@@ -148,7 +148,7 @@ class Captcha {
     return Math.floor(min + Math.random() * (max + 1 - min));
   }
 
-  _generate() {
+  _generate(length = this.size) {
     let out = '';
     let alphabet = '';
 
@@ -173,7 +173,7 @@ class Captcha {
       alphabet = this.latin
         ? ALPHABET_LATIN_CV
         : ALPHABET_CYRILLIC_CV;
-      while (out.length < this.size) {
+      while (out.length < length) {
         let chance = Math.random();
         if (chance < 0.8) { // me
           out += alphabet[0][this._random(0, alphabet[0].length - 1)] + alphabet[1][this._random(0, alphabet[1].length - 1)];
@@ -191,11 +191,11 @@ class Captcha {
           out += alphabet[1][this._random(0, alphabet[1].length - 1)];
         }
       }
-      if (out.length > this.size) {
-        out = out.slice(0, this.size);
+      if (out.length > length) {
+        out = out.slice(0, length);
       }
     } else {
-      for (let i = 0; i < this.size; i++) {
+      for (let i = 0; i < length; i++) {
         out += alphabet[this._random(0, alphabet.length - 1)];
       }
     }

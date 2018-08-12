@@ -11,7 +11,7 @@ router.get('image', async ctx => {
   ctx.type = captcha.mime;
   ctx.cookies.set('captcha', captcha.id, {
     signed: config('cookie.signed'),
-    maxAge: +new Date + config('captcha.ttl') * 1000,
+    maxAge: config('captcha.ttl') * 1000,
     overwrite: true
   });
   if (Controller.isAJAXRequested(ctx)) {

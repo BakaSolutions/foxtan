@@ -18,10 +18,10 @@ router.post('create', async ctx => {
       };
       return Controller.fail(ctx, out);
     }
-    return ctx.redirect('/', '/captcha.html', 303);
+    return ctx.redirect('/captcha.html', 303);
   }
 
-  await PostLogic.create(query, ctx).then(
+  await PostLogic.create(query).then(
     async out => {
       token.trustedPostCount--;
       let tokens = await UserLogic.generateTokens(token, false);
