@@ -18,7 +18,7 @@ class ThreadModel extends SuperModel {
         out = [ out ];
       }
 
-      out = out.map(entry => this.clearEntry(entry));
+      out = out.map(entry => this.clearEntry(entry, true));
 
       return limit > 1 || !limit
           ? out

@@ -27,14 +27,7 @@ HTTP.fail = (ctx, out, templateName = 'pages/error') => {
     : 500;
 
   if (out instanceof Error) {
-    let { error, message, stack } = out;
-    out = {
-      error,
-      message,
-      stack: config('debug.enable')
-        ? stack
-        : undefined
-    }
+    return ctx.throw(out);
   }
 
   if (!HTTP.isAJAXRequested(ctx)) {
@@ -44,7 +37,6 @@ HTTP.fail = (ctx, out, templateName = 'pages/error') => {
   }
 
   delete out.status;
-
 
   out.error = out.error || http.STATUS_CODES[ctx.status];
 

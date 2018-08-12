@@ -13,32 +13,45 @@ class ImageAttachment extends Attachment {
   }
 
   async checkFile() {
-    this.metadata = await this.image.metadata();
-    if (this.metadata.width >= config('files.maxWidth') || this.metadata.height >= config('files.maxHeight')) {
+    let {width, height} = await this.image.metadata();
+    if (width >= config('files.maxWidth') || height >= config('files.maxHeight')) {
       throw {
         status: 400,
         message: 'Potentially dangerous image'
       };
     }
+
+    let dimensions = {width, height};
+
+    this.file = Object.assign(this.file, dimensions);
     return true;
   }
 
   async createThumb(filePath) {
-    if (this.metadata.width <= config('files.thumbnail.width') || this.metadata.height <= config('files.thumbnail.height')) {
+    let {width: w, height: h} = this.file;
+    if (w <= config('files.thumbnail.width') || h <= config('files.thumbnail.height')) {
       return false;
     }
 
     filePath = filePath.replace(/\.(.+)$/, '.' + config('files.thumbnail.extension'));
 
     let buffer = await this.image
-        .resize(200, 200)
+        .resize(config('files.thumbnail.width'), config('files.thumbnail.height'))
         .max()
         .toFormat(config('files.thumbnail.extension'), config('files.thumbnail.options'))
         .toBuffer();
 
-    await FS.writeFile(config('directories.thumb') + filePath, buffer, 'thumb');
+    let thumbFullPath = config('directories.thumb') + filePath;
 
-    return filePath;
+    await FS.writeFile(thumbFullPath, buffer, 'thumb');
+
+    let {width, height} = await sharp(thumbFullPath).metadata();
+
+    return this.file.thumb = {
+      path: filePath,
+      width,
+      height
+    };
   }
 
 }

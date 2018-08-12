@@ -3,6 +3,7 @@ const Tools = require('../helpers/tools');
 
 const CounterModel = require('../models/mongo/counter');
 const PostModel = require('../models/mongo/post');
+const PostLogic = require('./post');
 const ThreadModel = require('../models/mongo/thread');
 
 let Thread = module.exports = {};
@@ -53,20 +54,18 @@ Thread.readOne = async (board, thread, last = config('board.lastPostsNumber')) =
     offset = count - last;
   }
 
-  let opPost = await PostModel.readOne({
+  let opPost = await PostLogic.readOne({
     board,
     post: thread
   });
   out.posts = [ opPost ];
 
-  let posts = await PostModel.readAll({
+  let posts = await PostLogic.readAll({
     board,
     thread,
     order: 'createdAt',
     orderBy: 'ASC',
-    limit: last !== null
-      ? last
-      : null,
+    limit: last,
     offset
   });
 
@@ -90,18 +89,17 @@ Thread.readPage = async (board, page, limit = config('board.threadsPerPage')) =>
     };
   }
   for (let i = 0; i < threads.length; i++) {
-    let opPost = await PostModel.readOne({
+    let opPost = await PostLogic.readOne({
       board,
       post: threads[i].number
     });
     if (!opPost) {
       let message = `There's a thread, but no OP-post: ${board}/${threads[i].number}`;
-      console.log(message);
-      //throw new Error(message);
+      throw new Error(message);
     }
     threads[i].posts = [ opPost ];
 
-    let posts = await PostModel.readAll({
+    let posts = await PostLogic.readAll({
       board,
       thread: threads[i].number,
       order: 'createdAt',
@@ -110,8 +108,7 @@ Thread.readPage = async (board, page, limit = config('board.threadsPerPage')) =>
     });
     if (!posts || !posts.length) {
       let message = `There's a thread, but no posts: ${board}/${threads[i].number}`;
-      console.log(message);
-      //throw new Error(message);
+      throw new Error(message);
     }
     if (posts[posts.length - 1].number === posts[posts.length - 1].threadNumber) {
       posts.pop();
@@ -181,7 +178,7 @@ Thread.readCatPage = async (board, page, order = 'createdAt') => {
     };
   }
   for (let i = 0; i < feed.length; i++) {
-    feed[i].opPost = await PostModel.readOne({
+    feed[i].opPost = await PostLogic.readOne({
       board,
       post: feed[i].number
     });

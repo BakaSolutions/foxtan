@@ -48,7 +48,7 @@ class PostModel extends SuperModel {
 
       out = await Promise.all(out.map(async entry => {
         if (clear) {
-          entry = this.clearEntry(entry);
+          entry = this.clearEntry(entry, true);
         }
         if (!entry.text) {
           entry.text = '';
@@ -56,10 +56,7 @@ class PostModel extends SuperModel {
         if (!entry.sage) {
           entry.sage = false;
         }
-        if (!entry.files || !entry.files.length) {
-          return entry;
-        }
-        return await this._appendAttachments(entry);
+        return entry;
       }));
 
       return limit !== 1
@@ -136,17 +133,6 @@ class PostModel extends SuperModel {
     delete entry.password;
     return entry;
   }
-
-  async _appendAttachments(post) {
-    for (let i = 0; i < post.files.length; i++) {
-      let hash = post.files[i];
-      post.files[i] = await AttachmentModel.readOne({
-        _id: hash
-      });
-    }
-    return post;
-  }
-
 
 }
 

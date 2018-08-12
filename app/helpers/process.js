@@ -16,9 +16,10 @@ async function listen(process) {
     process.stderr.on('data', data => out += data);
     process.on('close', code => {
       if (code) {
-        return reject(out, code);
+        return reject(new Error(out));
       }
-      resolve(out.toString());
+      resolve(out);
     });
+    process.on('error', reject);
   })
 }

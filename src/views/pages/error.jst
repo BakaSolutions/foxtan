@@ -10,7 +10,7 @@
 			<header>
 				<div>{{!it.error}}</div>
 				<div>{{!it.message}}</div>
-				{{?it.debug}}
+				{{?it.debug && it.stack}}
 					<pre>{{=it.stack}}</pre>
 				{{?}}
 			</header>

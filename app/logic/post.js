@@ -110,11 +110,11 @@ Post.create = async fields => {
     if (!await attachment.checkFile()) {
       throw {
         status: 400,
-        message: `This type of file is not allowed: ${attachment.file.mime}`
+        message: `This type of file is not allowed: ${file.mime}`
       }
     }
     await attachment.store();
-    let hash = attachment.hash;
+    let hash = attachment.file._id;
     if (!postInput.files.includes(hash)) {
       postInput.files.push(hash);
     }
@@ -122,29 +122,23 @@ Post.create = async fields => {
 
   postInput = CommonLogic.cleanEmpty(postInput);
 
-  return new Promise(async resolve => {
-    let promise =
-      isThread
-        ? ThreadModel.create(threadInput)
-        : Promise.resolve();
+  if (isThread) {
+    await ThreadModel.create(threadInput)
+  }
 
-    promise.then(async () => await PostModel.create(postInput))
-      .then(async () => {
-        let out = [
-          postInput.boardName,
-          postInput.threadNumber,
-          postInput.number
-        ];
+  await PostModel.create(postInput);
 
-        WS.broadcast('RNDR ' + JSON.stringify(out));
+  let out = [
+    postInput.boardName,
+    postInput.threadNumber,
+    postInput.number
+  ];
 
-        let post = await Post.readOne({
-          board: out[0],
-          post: out[2]
-        });
+  WS.broadcast('RNDR ' + JSON.stringify(out));
 
-        resolve(post);
-      });
+  return await Post.readOne({
+    board: out[0],
+    post: out[2]
   });
 };
 
@@ -165,21 +159,35 @@ Post.readOne = async fields => {
     };
   }
 
-  return await PostModel.readOne({
-    board: board,
-    post: post
-  }).then(async out => {
-    if (!out) {
-      let counter = await CounterModel.readOne(board);
-      let wasPosted = (post <= counter);
-      let status = wasPosted ? 410 : 404;
-      throw {
-        status: status,
-        message: wasPosted ? `Post was deleted.` : `Post doesn't exist yet!`
-      };
-    }
-    return out;
+  let out = await PostModel.readOne({
+    board,
+    post,
+    clear: true
   });
+
+  if (!out) {
+    let counter = await CounterModel.readOne(board);
+    let wasPosted = (post <= counter);
+    let status = wasPosted ? 410 : 404;
+    throw {
+      status,
+      message:
+        wasPosted
+          ? `Post was deleted.`
+          : `Post doesn't exist yet!`
+    };
+  }
+
+  if (!out.files || !out.files.length) {
+    return out;
+  }
+
+  return await _appendAttachments(out);
+};
+
+Post.readAll = async args => {
+  let posts = await PostModel.readAll(args);
+  return Promise.all(posts.map(async post => await _appendAttachments(post)));
 };
 
 Post.delete = async (fields, checkPassword) => {
@@ -323,4 +331,15 @@ async function deleteFile(hash, boardName, postNumber, password, checkPassword) 
   }
   let attachment = new Attachment.Attachment(null, hash);
   return await attachment.delete(boardName, postNumber) ? 1 : 0;
+}
+
+async function _appendAttachments(post) {
+  for (let i = 0; i < post.files.length; i++) {
+    let hash = post.files[i];
+    let attachment = new Attachment.Attachment(null, hash);
+    if (await attachment.exists()) {
+      post.files[i] = attachment.clearEntry();
+    }
+  }
+  return post;
 }

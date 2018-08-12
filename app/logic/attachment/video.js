@@ -1,5 +1,6 @@
 const config = require('../../helpers/config');
 const Process = require('../../helpers/process');
+const sharp = require('sharp');
 
 const { Attachment } = require('./index');
 
@@ -10,76 +11,56 @@ class VideoAttachment extends Attachment {
   }
 
   async checkFile() {
-    let ffprobe = Process.create(
-      'ffprobe',
-      '-hide_banner ' +
-        '-loglevel fatal ' +
-        '-show_error ' +
-        '-show_format ' +
-        '-show_streams ' +
-        '-print_format json ' +
-        this.file.path
-    );
-    let metadata = await Process.listen(ffprobe).then( // TODO: Catch ffmpeg errors
-        m => m,
-        err => {
-          throw {
-            status: 500,
-            message: err
-          }
-        }
-    );
-    try {
-      metadata = JSON.parse(metadata);
-      if (metadata.error) {
-        throw new Error(metadata.error.string);
-      }
-    } catch ({ message }) {
-      throw {
-        status: 500,
-        message
-      }
-    }
+    let metadata = await this._check();
 
     let { duration } = metadata.format;
+    let { width, height } = this._getDimensions(metadata.streams);
 
     this.metadata = {
-      dimensions: this._getDimensions(metadata.streams),
+      width,
+      height,
       duration: Math.floor(+duration)
     };
-    console.log(this.metadata);
+
+    this.file = Object.assign(this.file, this.metadata);
     return true;
   }
 
   async createThumb() {
-    let extension = '.' + config('files.thumbnail.extension');
-    let out = this.hash + extension;
+    let out = this.file._id + '.' + config('files.thumbnail.extension');
 
-    let ffmpeg = Process.create(
-      'ffmpeg',
-      '-hide_banner ' +
-        '-loglevel fatal ' +
-        '-y ' +
-        `-i ${this.file.path} ` +
-        '-an ' +
-        '-vframes 1 ' +
-        `-vf scale=${config('files.thumbnail.width')}:-1 ` +
-        config('directories.thumb') + out
-    );
-    return Process.listen(ffmpeg).then( // TODO: Catch ffmpeg errors
-      () => out,
-      err => {
-        throw {
-          status: 500,
-          message: err
-        }
-      }
-    );
-  }
+    let {width: w, height: h} = config('files.thumbnail');
 
-  clearEntry() {
-    this.metadata.duration = this._durationToString(this.metadata.duration);
-    return this;
+    let thumbFullPath = config('directories.thumb') + out;
+
+    let args = [
+      '-hide_banner',
+      '-loglevel', 'fatal',
+      '-y',
+      '-i', this.file.path,
+      '-an',
+      '-vframes', '1',
+      '-vf', `scale=min(${w}\\,a*${h}):min(${h}\\,${w}/a)`,
+      thumbFullPath
+    ];
+
+    let ffmpeg = Process.create('ffmpeg', args);
+    await Process.listen(ffmpeg).catch(err => {
+      err.details = {
+        args,
+        in: this.file.path,
+        out: thumbFullPath
+      };
+      throw err;
+    });
+
+    let { width, height } = await sharp(thumbFullPath).metadata();
+
+    return this.file.thumb = {
+      path: out,
+      width,
+      height
+    };
   }
 
   _getDimensions(streams) {
@@ -95,18 +76,26 @@ class VideoAttachment extends Attachment {
     return { width, height };
   }
 
-  _durationToString(duration) {
-    duration = Math.floor(+duration);
-    let hours = (Math.floor(duration / 3600) + '').padStart(2, '0');
-    duration %= 3600;
-    let minutes = (Math.floor(duration / 60) + '').padStart(2, '0');
-    let seconds = (duration % 60 + '').padStart(2, '0');
+  async _check(path = this.file.path) {
+    let ffprobe = Process.create(
+        'ffprobe',
+        '-hide_banner ' +
+        '-loglevel fatal ' +
+        '-show_error ' +
+        '-show_format ' +
+        '-show_streams ' +
+        '-print_format json ' +
+        path
+    );
+    let metadata = JSON.parse(await Process.listen(ffprobe));
 
-    return +hours
-      ? `${hours}:${minutes}:${seconds}`
-      : `${minutes}:${seconds}`;
+    if (metadata.error) {
+      throw new Error(metadata.error.string || metadata.error);
+    }
+
+    return metadata;
   }
-  
+
 }
 
 module.exports = VideoAttachment;

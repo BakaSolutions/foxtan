@@ -83,11 +83,7 @@ let config = {
     static: {
       external: false
     },
-    version: packageJSON.version,
-    allowedOverchans: [
-      '0.0.0.0',
-      'localhost'
-    ]
+    version: packageJSON.version
   },
   directories: {
     root: path.resolve(__dirname, '../..') + path.sep,
