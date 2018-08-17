@@ -95,14 +95,14 @@ Post.create = async fields => {
     if (!file || file === '') {
       continue;
     }
-    file.boardName = postInput.boardName;
-    file.postNumber = postInput.number;
     if (!file.mime) {
       throw {
         status: 400,
         message: `This file has no MIME-type: ${file.name}`
       }
     }
+    file.boardName = postInput.boardName;
+    file.postNumber = postInput.number;
     let type = Tools.capitalize(file.mime.split('/')[0]);
     let attachment = (!Attachment[type])
       ? new Attachment(file)
@@ -187,7 +187,7 @@ Post.readOne = async fields => {
 
 Post.readAll = async args => {
   let posts = await PostModel.readAll(args);
-  return Promise.all(posts.map(async post => await _appendAttachments(post)));
+  return Promise.all(posts.map(_appendAttachments));
 };
 
 Post.delete = async (fields, checkPassword) => {
@@ -291,24 +291,19 @@ async function deleteFiles(hashes, boardName, postNumber, password, checkPasswor
   }
 
   let promises = hashes.reduce((results, hash) => {
-    results.push(
-      new Promise(async resolve => {
-        if (CommonLogic.isEmpty(hash)) {
-          return resolve(0);
-        }
-
-        resolve(await deleteFile(hash, boardName, postNumber, password, checkPassword));
-      }).catch(() => 0)
-    );
+    results.push(deleteFile(hash, boardName, postNumber, password, checkPassword));
     return results;
   }, []);
 
-  let deletedFiles = Promise.all(promises).then(results => results.reduce((a, b) => a + b, 0));
+  let deletedFiles = Promise.all(promises).catch(() => 0).then(results => results.reduce((a, b) => a + b, 0));
   return {deleted: deletedFiles};
 }
 
 
 async function deleteFile(hash, boardName, postNumber, password, checkPassword) {
+  if (CommonLogic.isEmpty(hash)) {
+    return 0;
+  }
   if (Tools.isObject(hash)) {
     if (!hash.path) {
       throw {
@@ -334,6 +329,9 @@ async function deleteFile(hash, boardName, postNumber, password, checkPassword) 
 }
 
 async function _appendAttachments(post) {
+  if (!Array.isArray(post.files)) {
+    return post;
+  }
   for (let i = 0; i < post.files.length; i++) {
     let hash = post.files[i];
     let attachment = new Attachment.Attachment(null, hash);
