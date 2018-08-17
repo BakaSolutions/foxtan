@@ -6,13 +6,9 @@ class AudioAttachment extends Attachment {
     super(file);
   }
 
-  /*async checkFile() {
-    //
-  }*/
-
-  /*async createThumb() {
-    //
-  }*/
+  async checkFile() {
+    return true;
+  }
 
 }
 
