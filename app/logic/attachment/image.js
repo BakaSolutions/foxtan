@@ -14,6 +14,7 @@ class ImageAttachment extends Attachment {
 
   async checkFile() {
     let {width, height} = await this.image.metadata();
+
     if (width >= config('files.maxWidth') || height >= config('files.maxHeight')) {
       throw {
         status: 400,
@@ -21,34 +22,50 @@ class ImageAttachment extends Attachment {
       };
     }
 
-    let dimensions = {width, height};
+    this.file = Object.assign(this.file, { width, height });
 
-    this.file = Object.assign(this.file, dimensions);
     return true;
   }
 
-  async createThumb(filePath) {
+  async createThumb(path) {
     let {width: w, height: h} = this.file;
-    if (w <= config('files.thumbnail.width') || h <= config('files.thumbnail.height')) {
-      return false;
+    let {width: cw, height: ch, extension, options} = config('files.thumbnail');
+    if (w <= cw && h <= ch) {
+      return false; // TODO: Do smth with small images
     }
 
-    filePath = filePath.replace(/\.(.+)$/, '.' + config('files.thumbnail.extension'));
+    path = path.replace(/\.(.+)$/, '.' + extension);
 
-    let buffer = await this.image
-        .resize(config('files.thumbnail.width'), config('files.thumbnail.height'))
-        .max()
-        .toFormat(config('files.thumbnail.extension'), config('files.thumbnail.options'))
-        .toBuffer();
 
-    let thumbFullPath = config('directories.thumb') + filePath;
+    let proportion = w / h;
+    let buffer;
+
+    if (proportion > 1.25) { // wide image
+      buffer = this.image
+        .resize(cw, cw * 0.75)
+        .crop(sharp.strategy.attention);
+    } else if (proportion < 0.75) { // tall image
+      buffer = this.image
+        .resize(ch * 0.75, ch)
+        .crop(sharp.strategy.attention);
+    } else {
+      buffer = this.image
+        .resize(cw, ch)
+        .max();
+    }
+
+    buffer = await buffer
+      .toFormat(extension, options)
+      .toBuffer();
+
+    let thumbFullPath = config('directories.thumb') + path;
 
     await FS.writeFile(thumbFullPath, buffer, 'thumb');
 
     let {width, height} = await sharp(thumbFullPath).metadata();
 
     return this.file.thumb = {
-      path: filePath,
+      path,
       width,
       height
     };

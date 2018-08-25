@@ -295,7 +295,7 @@ async function deleteFiles(hashes, boardName, postNumber, password, checkPasswor
     return results;
   }, []);
 
-  let deletedFiles = Promise.all(promises).catch(() => 0).then(results => results.reduce((a, b) => a + b, 0));
+  let deletedFiles = Promise.all(promises).then(results => results.reduce((a, b) => a + b, 0)).catch(() => 0);
   return {deleted: deletedFiles};
 }
 

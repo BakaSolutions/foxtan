@@ -11,15 +11,14 @@ class VideoAttachment extends Attachment {
   }
 
   async checkFile() {
-    let metadata = await this._check();
+    let {format, streams} = await this._getMetadata();
 
-    let { duration } = metadata.format;
-    let { width, height } = this._getDimensions(metadata.streams);
+    let { width, height } = this._getDimensions(streams);
 
     this.metadata = {
       width,
       height,
-      duration: Math.floor(+duration)
+      duration: Math.floor(+format.duration)
     };
 
     this.file = Object.assign(this.file, this.metadata);
@@ -27,11 +26,11 @@ class VideoAttachment extends Attachment {
   }
 
   async createThumb() {
-    let out = this.file._id + '.' + config('files.thumbnail.extension');
+    let path = this.file._id + '.' + config('files.thumbnail.extension');
 
     let {width: w, height: h} = config('files.thumbnail');
 
-    let thumbFullPath = config('directories.thumb') + out;
+    let thumbFullPath = config('directories.thumb') + path;
 
     let args = [
       '-hide_banner',
@@ -57,7 +56,7 @@ class VideoAttachment extends Attachment {
     let { width, height } = await sharp(thumbFullPath).metadata();
 
     return this.file.thumb = {
-      path: out,
+      path,
       width,
       height
     };
@@ -76,7 +75,7 @@ class VideoAttachment extends Attachment {
     return { width, height };
   }
 
-  async _check(path = this.file.path) {
+  async _getMetadata(path = this.file.path) {
     let ffprobe = Process.create(
         'ffprobe',
         '-hide_banner ' +
