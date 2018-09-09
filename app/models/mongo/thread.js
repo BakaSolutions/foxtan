@@ -61,11 +61,11 @@ class ThreadModel extends SuperModel {
   async readPage({board = null, page = 0, limit = config('board.threadsPerPage')} = {}) {
     let offset = page * limit;
     return await this.readAll({
-      board: board,
-      order: 'updatedAt',
-      orderBy: 'DESC',
-      limit: limit,
-      offset: offset
+      board,
+      order: ['pinned', 'updatedAt'],
+      orderBy: ['DESC'],
+      limit,
+      offset
     });
   }
 
@@ -78,7 +78,7 @@ class ThreadModel extends SuperModel {
    * @param {Number} [offset]
    * @return {Promise}
    */
-  async readAll({board = null, order = 'createdAt', orderBy = 'ASC', limit = null, offset = null} = {}) {
+  async readAll({board = null, order = 'createdAt', orderBy = 'DESC', limit = null, offset = null} = {}) {
     let query = {};
     if (board) {
       query.boardName = board;
@@ -86,10 +86,10 @@ class ThreadModel extends SuperModel {
 
     return await this.read({
       query,
-      order: order,
-      orderBy: orderBy,
-      limit: limit,
-      offset: offset
+      order,
+      orderBy,
+      limit,
+      offset
     })
   }
 
@@ -103,10 +103,7 @@ class ThreadModel extends SuperModel {
     const PostModel = require('./post');
 
     if (typeof boards === 'undefined') {
-      boards = await BoardModel.readAll();
-      boards = boards.map(function(board) {
-        return board.uri;
-      });
+      boards = (await BoardModel.readAll()).map(board => board.uri);
     } else if (!Array.isArray(boards)) {
       boards = [ boards ];
     }
@@ -123,8 +120,8 @@ class ThreadModel extends SuperModel {
         out[board] = {};
       }
       let postEntry = await PostModel.readAll({
-        board: board,
-        thread: number,
+        board,
+        thread,
         order: 'createdAt',
         orderBy: 'DESC',
         limit: 1

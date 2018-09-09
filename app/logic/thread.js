@@ -210,3 +210,27 @@ Thread.syncData = async () => {
   });
   return out;
 };
+
+Thread.pin = async (board, thread, pin) => {
+  let item = await ThreadModel.readOne({ board, thread });
+  if (!item) {
+    throw {
+      status: 404,
+      message: `Thread ${board}:${thread} doesn't exists.`
+    };
+  }
+  let realPinned = (typeof pin === 'undefined')
+    ? !item.pinned
+    : pin;
+  let pinned;  // if unpin then delete key from DB
+  if (realPinned) {
+    pinned = true;
+  }
+  await ThreadModel.update({
+    query: {
+      _id: board + ':' + thread
+    },
+    fields: { pinned }
+  });
+  return { pinned: realPinned };
+};

@@ -37,16 +37,25 @@ class SuperModel {
       : out.number;
   }
 
-  async read({query, order = null, orderBy, limit = null, offset = null} = {}) {
+  async read({query, order = null, orderBy = 'ASC', limit = null, offset = null} = {}) {
     let Model = await mongo.collection(this.collection);
 
     let sortObject = null;
 
     if (order) {
       sortObject = {};
-      sortObject[order] = (orderBy.toUpperCase() === 'ASC')
+      if (!Array.isArray(order)) {
+        order = [ order ];
+      }
+      if (!Array.isArray(orderBy)) {
+        orderBy = [ orderBy ];
+      }
+      for (let i = 0; i < order.length; i++) {
+        let param = orderBy[i] || orderBy[0];
+        sortObject[order[i]] = (param.toUpperCase() === 'ASC')
           ? 1
           : -1;
+      }
     }
 
     let options = {

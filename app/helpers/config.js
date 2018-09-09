@@ -121,7 +121,7 @@ let config = {
     },
     threads: {
   //  lock: ADMIN,
-  //  pin: ADMIN
+      pin: ADMIN
     },
     posts: {
       delete: MODER
