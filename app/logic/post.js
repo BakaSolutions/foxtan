@@ -7,7 +7,6 @@ const PostModel = require('../models/mongo/post');
 const Attachment = require('./attachment');
 
 const Crypto = require('../helpers/crypto');
-const Markup = require('../helpers/markup');
 const Tools = require('../helpers/tools');
 
 const Websocket = require('../routes/websocket');
@@ -70,12 +69,6 @@ Post.create = async fields => {
         ? threadInput.number
         : +fields.threadNumber,
     subject: fields.subject,
-    text: await Markup.process(
-      fields.text,
-      threadInput.boardName,
-      threadInput.threadNumber,
-      threadInput.number
-    ),
     rawText: fields.text,
     password:
       CommonLogic.isEmpty(fields.password)
