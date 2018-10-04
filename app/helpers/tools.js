@@ -175,3 +175,19 @@ tools.flattenArray = a => {
 };
 
 tools.capitalize = string => string.toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase());
+
+tools.random = (type = 10, n) => {
+  let max = 12; // 12 is the min safe number Math.random() can generate without it starting to pad the end with zeros.
+
+  if (n > max) {
+    return tools.random(type, max) + tools.random(type, n - max);
+  }
+
+  max        = Math.pow(type, n + 1);
+  let min    = max/type; // Math.pow(10, n) basically
+  let number = Math.floor(Math.random() * (max - min + 1)) + min;
+  return ("" + number.toString(type)).substring(1);
+};
+
+tools.randomInt = length => tools.random(10, length);
+tools.randomHex = length => tools.random(16, length);

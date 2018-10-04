@@ -98,6 +98,7 @@ User.createHash = password => {
 
 User.createToken = (info, expires = config('token.expires.access')) => {
   let obj = Object.assign({}, info);
+  obj.tid = Tools.randomHex(24);
   obj.exp = Math.floor(+new Date/1000 + expires);
 
   if (config('debug.enable') && config('debug.log.tokens')) {

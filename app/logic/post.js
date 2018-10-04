@@ -14,7 +14,7 @@ let WS = Websocket();
 
 let Post = module.exports = {};
 
-Post.create = async fields => {
+Post.create = async (fields, token) => {
   let board = await BoardModel.readOne(fields.boardName);
 
   if (!board) {
@@ -74,6 +74,7 @@ Post.create = async fields => {
       CommonLogic.isEmpty(fields.password)
         ? ''
         : Crypto.sha256(fields.password),
+    id: token._id || token.tid,
     sage:
       fields.sage
         ? true

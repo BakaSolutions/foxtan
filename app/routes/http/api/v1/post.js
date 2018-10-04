@@ -21,7 +21,7 @@ router.post('create', async ctx => {
     return ctx.redirect('/captcha.html', 303);
   }
 
-  await PostLogic.create(query).then(
+  await PostLogic.create(query, token).then(
     async out => {
       token.trustedPostCount--;
       let tokens = await UserLogic.generateTokens(token, false);
