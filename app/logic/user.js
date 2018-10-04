@@ -130,7 +130,7 @@ User.checkPassword = (password, hash) => {
   return Crypto.sha256(password) === hash;
 };
 
-User.hasPermission = (user, action, board) => {
+User.hasPermission = (user, action, board) => { // TODO: Rewrite vichan's ported version
   if (!user || !action) {
     console.log('Something strange is happening here.');
     console.log(user, action, board);

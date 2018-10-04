@@ -81,7 +81,8 @@ Post.create = async fields => {
     files: []
   }, threadInput);
 
-  let files = fields.file || [];
+  // pre-hook
+  let files = fields.file || []; // TODO: Process only unique files
   let fileAmount = Math.min(files.length, board.fileLimit);
   for (let i = 0; i < fileAmount; i++) {
     let file = files[i];
@@ -116,10 +117,10 @@ Post.create = async fields => {
   postInput = CommonLogic.cleanEmpty(postInput);
 
   if (isThread) {
-    await ThreadModel.create(threadInput)
+    await ThreadModel.create(threadInput) // Thread hook
   }
 
-  await PostModel.create(postInput);
+  await PostModel.create(postInput); // Post hook
 
   let out = [
     postInput.boardName,
@@ -127,7 +128,7 @@ Post.create = async fields => {
     postInput.number
   ];
 
-  WS.broadcast('RNDR ' + JSON.stringify(out));
+  WS.broadcast('RNDR ' + JSON.stringify(out)); // post-hook
 
   return await Post.readOne({
     board: out[0],
