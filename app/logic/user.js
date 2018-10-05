@@ -108,8 +108,8 @@ User.createJWT = (info, expires = config('token.expires.access')) => {
   return jwt.encode(obj, config('token.secret'), JWT_ALGO, {});
 };
 
-User.parseJWT = token => {
-  let obj = jwt.decode(token, config('token.secret'), false, JWT_ALGO);
+User.parseJWT = (token, unsafe = false) => {
+  let obj = jwt.decode(token, config('token.secret'), unsafe, JWT_ALGO);
 
   if (config('debug.enable') && config('debug.log.tokens')) {
     console.log(`Parsed access token: ${JSON.stringify(obj)}`);
@@ -165,12 +165,12 @@ User.createToken = info => {
   }
 };
 
-User.refreshToken = async token => {
+User.refreshToken = async (token, unsafe) => {
   if (!token) {
     return false;
   }
 
-  let refreshInfo = User.parseJWT(token);
+  let refreshInfo = User.parseJWT(token, unsafe);
   if (!refreshInfo) {
     throw {
       status: 403,

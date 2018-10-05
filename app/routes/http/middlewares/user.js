@@ -36,7 +36,7 @@ let middleware = app => {
 
       switch (e.message) {
         case 'Token expired':
-          token = await updateToken(ctx);
+          token = await updateToken(ctx, token, true);
           ctx.request.token = UserLogic.parseJWT(token);
           break;
         default:
@@ -65,8 +65,8 @@ async function createToken(ctx) {
   return setToken(ctx, token);
 }
 
-async function updateToken(ctx, token) {
-  token = await UserLogic.refreshToken(token || getToken(ctx));
+async function updateToken(ctx, token, unsafe) {
+  token = await UserLogic.refreshToken(token || getToken(ctx), unsafe);
   return setToken(ctx, token);
 }
 
