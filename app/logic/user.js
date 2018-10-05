@@ -179,8 +179,8 @@ User.refreshToken = async (token, unsafe) => {
   }
 
   let user = {
-    tid: token.tid,
-    trustedPostCount: token.trustedPostCount || 0
+    tid: refreshInfo.tid,
+    trustedPostCount: refreshInfo.trustedPostCount || 0
   };
 
   if (refreshInfo._id) {

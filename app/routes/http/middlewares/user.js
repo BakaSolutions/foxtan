@@ -15,21 +15,20 @@ let middleware = app => {
   }
 
   app.use(async (ctx, next) => {
-    if (isWhitelisted(ctx.url)) {
+    if (isWhitelisted(ctx.url) || ctx.method === "OPTIONS") {
       return await next(); // do nothing
     }
-
     let token = getToken(ctx);
 
-    if (!token) {
-      token = await updateToken(ctx);
-
-      if (!token) {
-        token = await createToken(ctx);
-      }
-    }
-
     try {
+      if (!token) {
+        token = await updateToken(ctx);
+
+        if (!token) {
+          token = await createToken(ctx);
+        }
+      }
+
       ctx.request.token = UserLogic.parseJWT(token);
     } catch (e) {
       let message;
