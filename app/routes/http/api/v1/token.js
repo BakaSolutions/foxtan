@@ -6,8 +6,8 @@ const Controller = require('../../index');
 const UserLogic = require('../../../../logic/user');
 
 router.get('obtain', async ctx => {
-  await UserLogic.generateToken()
-    .then(token => UserLogic.setCookies(ctx, token))
+  await UserLogic.createToken()
+    .then(token => UserLogic.setToken(ctx, token))
     .then(
       out => {
         if (ctx.request.query.redirect) {
@@ -26,7 +26,7 @@ router.get('renew', async ctx => {
     : ctx.cookies.get('accessToken', {signed: config('cookie.signed')});
 
   await UserLogic.refreshToken(token)
-    .then(token => UserLogic.setCookies(ctx, token))
+    .then(token => UserLogic.setToken(ctx, token))
     .then(
       out => Controller.success(ctx, out),
       out => Controller.fail(ctx, out)

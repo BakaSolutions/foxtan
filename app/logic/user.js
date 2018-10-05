@@ -7,7 +7,7 @@ const config = require('../helpers/config');
 const Crypto = require('../helpers/crypto');
 const Tools = require('../helpers/tools');
 
-const JWT_ALGO = 'HS512';
+const JWT_ALGO = config('token.algo');
 
 let User = module.exports = {};
 
@@ -96,7 +96,7 @@ User.createHash = password => {
   return Crypto.sha256(password);
 };
 
-User.createToken = (info, expires = config('token.expires.access')) => {
+User.createJWT = (info, expires = config('token.expires.access')) => {
   let obj = Object.assign({}, info);
   obj.tid = Tools.randomHex(24);
   obj.exp = Math.floor(+new Date/1000 + expires);
@@ -108,7 +108,7 @@ User.createToken = (info, expires = config('token.expires.access')) => {
   return jwt.encode(obj, config('token.secret'), JWT_ALGO, {});
 };
 
-User.parseToken = token => {
+User.parseJWT = token => {
   let obj = jwt.decode(token, config('token.secret'), false, JWT_ALGO);
 
   if (config('debug.enable') && config('debug.log.tokens')) {
@@ -155,12 +155,12 @@ User.login = async ({ login, password } = {}) => {
       message: `Wrong password!`
     };
   }
-  return await User.generateToken(user);
+  return User.createToken(user);
 };
 
-User.generateToken = async info => {
+User.createToken = info => {
   return {
-    accessToken: User.createToken(info),
+    accessToken: User.createJWT(info),
     expires: Math.floor(+new Date/1000 + config('token.expires.access'))
   }
 };
@@ -173,7 +173,7 @@ User.refreshToken = async token => {
     };
   }
 
-  let refreshInfo = User.parseToken(token);
+  let refreshInfo = User.parseJWT(token);
   if (!refreshInfo) {
     throw {
       status: 403,
@@ -181,7 +181,9 @@ User.refreshToken = async token => {
     };
   }
 
-  let user = {};
+  let user = {
+    trustedPostCount: token.trustedPostCount || 0
+  };
 
   if (refreshInfo._id) {
     let user = await User.readOne({
@@ -194,10 +196,10 @@ User.refreshToken = async token => {
     }
   }
 
-  return await User.generateToken(user, refreshInfo.exp < (+new Date/1000) + config('token.expires.refresh'));
+  return User.createToken(user);
 };
 
-User.setCookies = (ctx, {accessToken, expires}) => {
+User.setToken = (ctx, {accessToken, expires}) => {
   let options = {
     signed: config('cookie.signed'),
     overwrite: true

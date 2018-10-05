@@ -15,13 +15,11 @@ let middleware = app => {
   }
 
   app.use(async (ctx, next) => {
-    if (isWhitelisted(ctx.url) || ctx.method === 'OPTIONS') {
+    if (isWhitelisted(ctx.url)) {
       return await next(); // do nothing
     }
 
-    let token = (ctx.headers['X-Access-Token'])
-      ? ctx.headers['X-Access-Token']
-      : ctx.cookies.get('accessToken', {signed: config('cookie.signed')});
+    let token = getToken(ctx);
 
     if (!token) {
       token = await updateToken(ctx);
@@ -32,14 +30,14 @@ let middleware = app => {
     }
 
     try {
-      ctx.request.token = UserLogic.parseToken(token);
+      ctx.request.token = UserLogic.parseJWT(token);
     } catch (e) {
       let message;
 
       switch (e.message) {
         case 'Token expired':
           token = await updateToken(ctx);
-          ctx.request.token = UserLogic.parseToken(token);
+          ctx.request.token = UserLogic.parseJWT(token);
           break;
         default:
           message = `Cannot parse token: ${e.message}`;
@@ -57,23 +55,23 @@ let middleware = app => {
   });
 };
 
-async function createToken(ctx) {
-  let token = await UserLogic.generateToken();
-  UserLogic.setCookies(ctx, token);
-  return token.accessToken;
+function getToken(ctx) {
+  return ctx.headers['X-Access-Token']
+    || ctx.cookies.get('accessToken', {signed: config('cookie.signed')});
 }
 
-async function updateToken(ctx) {
-  let token = (ctx.headers['X-Access-Token'])
-      ? ctx.headers['X-Access-Token']
-      : ctx.cookies.get('accessToken', {signed: config('cookie.signed')});
+async function createToken(ctx) {
+  let token = UserLogic.createToken();
+  return setToken(ctx, token);
+}
 
-  if (!token) {
-    return false;
-  }
+async function updateToken(ctx, token) {
+  token = await UserLogic.refreshToken(token || getToken(ctx));
+  return setToken(ctx, token);
+}
 
-  token = await UserLogic.refreshToken(token);
-  UserLogic.setCookies(ctx, token);
+function setToken(ctx, token) {
+  UserLogic.setToken(ctx, token);
   return token.accessToken;
 }
 

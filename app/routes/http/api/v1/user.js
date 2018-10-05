@@ -32,7 +32,7 @@ router.post('login', async ctx => {
   let query = ctx.request.body;
 
   await UserLogic.login(query)
-    .then(token => UserLogic.setCookies(ctx, token))
+    .then(token => UserLogic.setToken(ctx, token))
     .then(
       out => {
         if (query.redirect) {

@@ -100,9 +100,9 @@ let config = {
   },
   token: {
     expires: { // d    h    m    s
-      access:              12 * 60,
-      refresh:  120 * 24 * 60 * 60
+      access:              12 * 60
     },
+    algo: "HS512",
     secret: '0n1y64k45d0n7ch4ng3p455w0rd5'
   },
   cookie: {

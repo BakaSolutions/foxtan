@@ -51,8 +51,8 @@ router.post('check', async ctx => {
 
   if (passed) {
     tokenInfo.trustedPostCount += config('captcha.postsPerCaptcha');
-    let token = await UserLogic.generateToken(tokenInfo, false);
-    UserLogic.setCookies(ctx, token);
+    let token = UserLogic.createToken(tokenInfo);
+    UserLogic.setToken(ctx, token);
   }
 
   out.trustedPostCount = tokenInfo.trustedPostCount;
