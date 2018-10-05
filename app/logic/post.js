@@ -37,9 +37,7 @@ Post.create = async (fields, token) => {
   let threadInput = {
     _id: `${fields.boardName}:${lastNumber}`,
     boardName: fields.boardName,
-    number: lastNumber,
-    createdAt: now,
-    updatedAt: now
+    number: lastNumber
   };
 
   let isThread = CommonLogic.isEmpty(fields.threadNumber);
@@ -75,12 +73,30 @@ Post.create = async (fields, token) => {
         ? ''
         : Crypto.sha256(fields.password),
     id: token._id || token.tid,
+    files: [],
     sage:
       fields.sage
         ? true
         : '',
-    files: []
   }, threadInput);
+
+  if (!isThread) { // OP-post check
+    let opPost = await PostModel.readOne({
+      board: fields.boardName,
+      post: +fields.threadNumber,
+      clear: false
+    });
+    if (fields.op && (opPost.id === postInput.id)) {
+      postInput.op = true;
+    }
+  } else { // OP-thread check
+    postInput.op = fields.op
+      ? true
+      : '';
+  }
+
+  postInput.createdAt = threadInput.createdAt
+    /*= postInput.updatedAt*/ = threadInput.updatedAt = now;
 
   // pre-hook
   let files = fields.file || []; // TODO: Process only unique files

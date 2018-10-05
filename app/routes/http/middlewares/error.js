@@ -32,6 +32,8 @@ function errorHandler(err, ctx, isError = true) {
     return;
   }
 
+  delete err.expose;
+
   const status = err.status || 500;
 
   if (status >= 500) {

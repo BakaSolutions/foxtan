@@ -98,7 +98,7 @@ User.createHash = password => {
 
 User.createJWT = (info, expires = config('token.expires.access')) => {
   let obj = Object.assign({}, info);
-  obj.tid = Tools.randomHex(24);
+  obj.tid = obj.tid || Tools.randomHex(24);
   obj.exp = Math.floor(+new Date/1000 + expires);
 
   if (config('debug.enable') && config('debug.log.tokens')) {
@@ -167,10 +167,7 @@ User.createToken = info => {
 
 User.refreshToken = async token => {
   if (!token) {
-    throw {
-      status: 400,
-      message: `There is no token in header/cookies`
-    };
+    return false;
   }
 
   let refreshInfo = User.parseJWT(token);
@@ -182,6 +179,7 @@ User.refreshToken = async token => {
   }
 
   let user = {
+    tid: token.tid,
     trustedPostCount: token.trustedPostCount || 0
   };
 

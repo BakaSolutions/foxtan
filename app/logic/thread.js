@@ -27,7 +27,7 @@ Thread.readOne = async (board, thread, last = config('board.lastPostsNumber')) =
       message: 'Wrong `thread` parameter.'
     };
   }
-  if (last !== config('board.lastPostsNumber') && last < 3) {
+  if (last && last !== config('board.lastPostsNumber') && last < 3) {
     throw {
       status: 400,
       message: 'Wrong `last` parameter.'
@@ -70,7 +70,10 @@ Thread.readOne = async (board, thread, last = config('board.lastPostsNumber')) =
   });
 
   out.posts.push(...posts);
-  out.omittedPosts = count - out.posts.length;
+
+  if (last) {
+    out.omittedPosts = count - out.posts.length;
+  }
 
   return out;
 };

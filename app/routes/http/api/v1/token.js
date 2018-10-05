@@ -6,7 +6,8 @@ const Controller = require('../../index');
 const UserLogic = require('../../../../logic/user');
 
 router.get('obtain', async ctx => {
-  await UserLogic.createToken()
+  Promise.resolve()
+    .then(UserLogic.createToken)
     .then(token => UserLogic.setToken(ctx, token))
     .then(
       out => {
