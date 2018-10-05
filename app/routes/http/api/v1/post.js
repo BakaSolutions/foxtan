@@ -24,8 +24,8 @@ router.post('create', async ctx => {
   await PostLogic.create(query, token).then(
     async out => {
       token.trustedPostCount--;
-      let tokens = await UserLogic.generateTokens(token, false);
-      await UserLogic.setCookies(ctx, tokens);
+      token = await UserLogic.generateToken(token, false);
+      UserLogic.setCookies(ctx, token);
 
       if (!Controller.isAJAXRequested(ctx) && Controller.isRedirect(query)) {
         let map = {

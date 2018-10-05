@@ -102,10 +102,7 @@ User.createToken = (info, expires = config('token.expires.access')) => {
   obj.exp = Math.floor(+new Date/1000 + expires);
 
   if (config('debug.enable') && config('debug.log.tokens')) {
-    let type = (expires === config('token.expires.access'))
-      ? 'access'
-      : 'refresh';
-    console.log(`Created ${type} token: ${JSON.stringify(obj)}`);
+    console.log(`Created access token: ${JSON.stringify(obj)}`);
   }
 
   return jwt.encode(obj, config('token.secret'), JWT_ALGO, {});
@@ -115,7 +112,7 @@ User.parseToken = token => {
   let obj = jwt.decode(token, config('token.secret'), false, JWT_ALGO);
 
   if (config('debug.enable') && config('debug.log.tokens')) {
-    console.log(`Parsed token: ${JSON.stringify(obj)}`);
+    console.log(`Parsed access token: ${JSON.stringify(obj)}`);
   }
 
   return obj;
@@ -158,34 +155,21 @@ User.login = async ({ login, password } = {}) => {
       message: `Wrong password!`
     };
   }
-  return await User.generateTokens(user);
+  return await User.generateToken(user);
 };
 
-User.generateTokens = async (info, refresh = true) => {
-  let accessToken = User.createToken(info);
-  let refreshToken = null;
-  if (refresh) {
-    if (Tools.isObject(info)) {
-      delete info.trustedPostCount;
-      delete info.level;
-      delete info.boards;
-    }
-    refreshToken = User.createToken(info, config('token.expires.refresh'));
-  }
-  let expires = Math.floor(+new Date/1000 + config('token.expires.access'));
-
+User.generateToken = async info => {
   return {
-    accessToken,
-    refreshToken,
-    expires
+    accessToken: User.createToken(info),
+    expires: Math.floor(+new Date/1000 + config('token.expires.access'))
   }
 };
 
-User.refreshTokens = async token => {
+User.refreshToken = async token => {
   if (!token) {
     throw {
       status: 400,
-      message: `There is no refreshToken in header/cookies`
+      message: `There is no token in header/cookies`
     };
   }
 
@@ -193,7 +177,7 @@ User.refreshTokens = async token => {
   if (!refreshInfo) {
     throw {
       status: 403,
-      message: `Invalid refreshToken`
+      message: `Invalid token`
     };
   }
 
@@ -210,10 +194,10 @@ User.refreshTokens = async token => {
     }
   }
 
-  return await User.generateTokens(user, refreshInfo.exp < (+new Date/1000) + config('token.expires.refresh'));
+  return await User.generateToken(user, refreshInfo.exp < (+new Date/1000) + config('token.expires.refresh'));
 };
 
-User.setCookies = (ctx, {accessToken, refreshToken, expires}) => {
+User.setCookies = (ctx, {accessToken, expires}) => {
   let options = {
     signed: config('cookie.signed'),
     overwrite: true
@@ -222,13 +206,8 @@ User.setCookies = (ctx, {accessToken, refreshToken, expires}) => {
 
   ctx.cookies.set('accessToken', accessToken, options);
 
-  if (refreshToken) {
-    ctx.cookies.set('refreshToken', refreshToken, options);
-  }
-
   return {
     accessToken,
-    refreshToken,
     expires
   }
 };

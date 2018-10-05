@@ -32,7 +32,7 @@ router.post('login', async ctx => {
   let query = ctx.request.body;
 
   await UserLogic.login(query)
-    .then(async tokens => await UserLogic.setCookies(ctx, tokens))
+    .then(token => UserLogic.setCookies(ctx, token))
     .then(
       out => {
         if (query.redirect) {
@@ -46,11 +46,7 @@ router.post('login', async ctx => {
 
 router.get('logout', async ctx => {
   ctx.cookies.set('accessToken');
-  ctx.cookies.set('refreshToken');
-
-  let out = 'OK';
-
-  Controller.success(ctx, out);
+  Controller.success(ctx, 'OK');
 });
 
 router.post('delete', async ctx => {

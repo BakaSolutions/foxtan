@@ -24,10 +24,10 @@ let middleware = app => {
       : ctx.cookies.get('accessToken', {signed: config('cookie.signed')});
 
     if (!token) {
-      token = await updateTokens(ctx);
+      token = await updateToken(ctx);
 
       if (!token) {
-        token = await createTokens(ctx);
+        token = await createToken(ctx);
       }
     }
 
@@ -38,7 +38,7 @@ let middleware = app => {
 
       switch (e.message) {
         case 'Token expired':
-          token = await updateTokens(ctx);
+          token = await updateToken(ctx);
           ctx.request.token = UserLogic.parseToken(token);
           break;
         default:
@@ -57,24 +57,24 @@ let middleware = app => {
   });
 };
 
-async function createTokens(ctx) {
-  let tokens = await UserLogic.generateTokens();
-  await UserLogic.setCookies(ctx, tokens);
-  return tokens.accessToken;
+async function createToken(ctx) {
+  let token = await UserLogic.generateToken();
+  UserLogic.setCookies(ctx, token);
+  return token.accessToken;
 }
 
-async function updateTokens(ctx) {
-  let refreshToken = (ctx.headers['X-Refresh-Token'])
-      ? ctx.headers['X-Refresh-Token']
-      : ctx.cookies.get('refreshToken', {signed: config('cookie.signed')});
+async function updateToken(ctx) {
+  let token = (ctx.headers['X-Access-Token'])
+      ? ctx.headers['X-Access-Token']
+      : ctx.cookies.get('accessToken', {signed: config('cookie.signed')});
 
-  if (!refreshToken) {
+  if (!token) {
     return false;
   }
 
-  let tokens = await UserLogic.refreshTokens(refreshToken);
-  await UserLogic.setCookies(ctx, tokens);
-  return tokens.accessToken;
+  token = await UserLogic.refreshToken(token);
+  UserLogic.setCookies(ctx, token);
+  return token.accessToken;
 }
 
 module.exports = { middleware };

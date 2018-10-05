@@ -5,9 +5,10 @@ let defaultClient = null;
 let clients = new Map();
 
 function createClient() {
+  let redis;
   let redisNodes = config('db.redis.nodes');
   if (Array.isArray(redisNodes) && redisNodes.length) {
-    return new Redis.Cluster(redisNodes, {
+    redis = new Redis.Cluster(redisNodes, {
       clusterRetryStrategy: config('db.redis.clusterRetryStrategy', times => Math.min(100 + times * 2, 2000)),
       enableReadyCheck: config('db.redis.enableReadyCheck'),
       scaleReads: config('db.redis.scaleReads'),
@@ -17,9 +18,21 @@ function createClient() {
       retryDelayOnTryAgain: config('db.redis.retryDelayOnTryAgain'),
       redisOptions: config('db.redis.options')
     });
+  } else {
+    redis = new Redis(config('db.redis.url'), config('db.redis.options'));
   }
 
-  return new Redis(config('db.redis.url'), config('db.redis.options'));
+  redis.on("error", e => {
+    switch (e.code) {
+      case "ECONNREFUSED":
+        console.log("Start `redis-server` on " + e.address + ":" + e.port + "!");
+        break;
+      default:
+        console.log("Redis connection error", e);
+    }
+  });
+
+  return redis;
 }
 
 module.exports = id => {
