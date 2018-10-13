@@ -43,18 +43,17 @@ async function getLastPostNumbers(command, message, id, ws, next) {
 }
 
 async function board(command, message, id, ws) {
-  let [board, limit] = message.split(' ');
+  let [board, page, limit, lastReplies, lastRepliesForFixed] = message.split(' ');
 
-  switch (limit) {
+  switch (page) {
     case "COUNT":
-      limit = +limit;
+      limit = parseInt(limit);
       return await ThreadLogic.countPage({board, limit}).then(
         out => Controller.success(ws, out, id),
         out => Controller.fail(ws, out, id)
       );
     default:
-      let page = +limit;
-      return await ThreadLogic.readPage(board, page).then(
+      return await ThreadLogic.readPage(board, +page, +limit, +lastReplies, +lastRepliesForFixed).then(
         out => Controller.success(ws, out, id),
         out => Controller.fail(ws, out, id)
       );

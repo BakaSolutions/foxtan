@@ -14,9 +14,12 @@ Thread.countPage = async ({board, limit} = {}) => {
       status: 400
     }
   }
+  if (!limit) {
+    limit = config('board.threadsPerPage');
+  }
   return await ThreadModel.countPage({
     board,
-    limit: limit || config('board.threadsPerPage')
+    limit
   });
 };
 
@@ -73,19 +76,30 @@ Thread.readOne = async (board, thread, last = config('board.lastPostsNumber')) =
 
   if (last) {
     out.omittedPosts = count - out.posts.length;
+    out.postCount = count;
   }
 
   return out;
 };
 
-Thread.readPage = async (board, page, limit = config('board.threadsPerPage')) => {
+Thread.readPage = async (board, page, limit, lastReplies, lastRepliesForFixed) => {
   if (!Tools.isNumber(page)) {
     throw {
       status: 400,
       message: `Wrong \`page\` parameter.`
     };
   }
-  let threads = await ThreadModel.readPage({ board, page });
+  if (!Tools.isNumber(limit)) {
+    lastReplies = config('board.threadsPerPage');
+  }
+  if (!Tools.isNumber(lastReplies)) {
+    lastReplies = config('board.lastPostsNumber');
+  }
+  if (!Tools.isNumber(lastRepliesForFixed)) {
+    lastRepliesForFixed = lastReplies;
+  }
+
+  let threads = await ThreadModel.readPage({ board, page, limit });
   if (!threads || !threads.length) {
     throw {
       status: 404
@@ -102,22 +116,28 @@ Thread.readPage = async (board, page, limit = config('board.threadsPerPage')) =>
     }
     threads[i].posts = [ opPost ];
 
-    let posts = await PostLogic.readAll({
-      board,
-      thread: threads[i].number,
-      order: 'createdAt',
-      orderBy: 'DESC',
-      limit: config('board.lastPostsNumber')
-    });
-    if (!posts || !posts.length) {
-      let message = `There's a thread, but no posts: ${board}/${threads[i].number}`;
-      throw new Error(message);
+    let lr = (threads[i].pinned)
+      ? lastRepliesForFixed
+      : lastReplies;
+
+    if (lr) {
+      let posts = await PostLogic.readAll({
+        board,
+        thread: threads[i].number,
+        order: 'createdAt',
+        orderBy: 'DESC',
+        limit: lr
+      });
+      if (!posts || !posts.length) {
+        let message = `There's a thread, but no posts: ${board}/${threads[i].number}`;
+        throw new Error(message);
+      }
+      if (posts[posts.length - 1].number === posts[posts.length - 1].threadNumber) {
+        posts.pop();
+      }
+      posts.reverse();
+      threads[i].posts.push(...posts);
     }
-    if (posts[posts.length - 1].number === posts[posts.length - 1].threadNumber) {
-      posts.pop();
-    }
-    posts.reverse();
-    threads[i].posts.push(...posts);
 
     let count = await PostModel.count({
       query: {
@@ -126,9 +146,10 @@ Thread.readPage = async (board, page, limit = config('board.threadsPerPage')) =>
       }
     });
     threads[i].omittedPosts = count - threads[i].posts.length;
+    threads[i].postCount = count;
   }
   return {
-    threads: threads,
+    threads,
     lastPostNumber: await CounterModel.readOne(board),
     pageCount: await ThreadModel.countPage({
       board,
@@ -137,7 +158,7 @@ Thread.readPage = async (board, page, limit = config('board.threadsPerPage')) =>
   }
 };
 
-Thread.readFeedPage = async (board, page) => {
+Thread.readFeedPage = async (board, page, order = 'createdAt', limit = config('board.threadsPerPage')) => {
   if (!Tools.isNumber(page)) {
     throw {
       status: 400,
@@ -145,12 +166,12 @@ Thread.readFeedPage = async (board, page) => {
     };
   }
 
-  let feed = await ThreadModel.readAll({
-    board: board,
-    order: 'createdAt',
+  let feed = await PostModel.readAll({
+    board,
+    order,
     orderBy: 'DESC',
-    limit: config('board.threadsPerPage'),
-    offset: page * config('board.threadsPerPage')
+    limit,
+    offset: page * limit
   });
   if (!feed || !feed.length) {
     throw {
@@ -160,7 +181,7 @@ Thread.readFeedPage = async (board, page) => {
   return feed;
 };
 
-Thread.readCatPage = async (board, page, order = 'createdAt') => {
+Thread.readCatPage = async (board, page, order = 'createdAt', limit = config('board.threadsPerPage')) => {
   if (!Tools.isNumber(page)) {
     throw {
       status: 400,
@@ -172,8 +193,8 @@ Thread.readCatPage = async (board, page, order = 'createdAt') => {
     board,
     order,
     orderBy: 'DESC',
-    limit: config('board.threadsPerPage'),
-    offset: page * config('board.threadsPerPage')
+    limit,
+    offset: page * limit
   });
   if (!feed || !feed.length) {
     throw {
