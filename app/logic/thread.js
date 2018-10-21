@@ -158,7 +158,7 @@ Thread.readPage = async (board, page, limit, lastReplies, lastRepliesForFixed) =
   }
 };
 
-Thread.readFeedPage = async (board, page, order = 'createdAt', limit = config('board.threadsPerPage')) => {
+Thread.readFeedPage = async (board, page, limit = config('board.threadsPerPage'), order = 'createdAt') => {
   if (!Tools.isNumber(page)) {
     throw {
       status: 400,
@@ -166,7 +166,7 @@ Thread.readFeedPage = async (board, page, order = 'createdAt', limit = config('b
     };
   }
 
-  let feed = await PostModel.readAll({
+  let feed = await PostLogic.readAll({
     board,
     order,
     orderBy: 'DESC',
@@ -178,10 +178,17 @@ Thread.readFeedPage = async (board, page, order = 'createdAt', limit = config('b
       status: 404
     };
   }
-  return feed;
+  return {
+    feed,
+    lastPostNumber: await CounterModel.readOne(board),
+    pageCount: await PostModel.countPage({
+      board,
+      limit
+    })
+  };
 };
 
-Thread.readCatPage = async (board, page, order = 'createdAt', limit = config('board.threadsPerPage')) => {
+Thread.readCatPage = async (board, page, limit = config('board.threadsPerPage'), order = 'createdAt') => {
   if (!Tools.isNumber(page)) {
     throw {
       status: 400,

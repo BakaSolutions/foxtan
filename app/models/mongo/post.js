@@ -1,7 +1,6 @@
 const SuperModel = require('./super');
 const ThreadModel = require('./thread');
 const CounterModel = require('./counter');
-const AttachmentModel = require('./attachment');
 
 class PostModel extends SuperModel {
 
@@ -84,6 +83,25 @@ class PostModel extends SuperModel {
   }
 
   /**
+   * Counts how many posts are exist with defined board
+   * @param {String} board
+   * @param {Number} [thread]
+   * @param {Number} limit
+   * @return {Promise}
+   */
+  async countPage({board, thread, limit} = {}) {
+    let query = {};
+    if (board) {
+      query.boardName = board;
+    }
+    if (thread) {
+      query.threadNumber = thread;
+    }
+    let out = await this.count({ query });
+    return Math.ceil(out / limit);
+  }
+
+  /**
    * Reads post pages
    * @param {String} board
    * @param {Number} [thread]
@@ -116,11 +134,15 @@ class PostModel extends SuperModel {
    * @return {Promise}
    */
   async readAll({board, thread, order = 'createdAt', orderBy = 'ASC', limit = null, offset = null}) {
+    let query = {};
+    if (board) {
+      query.boardName = board;
+    }
+    if (thread) {
+      query.threadNumber = thread;
+    }
     return await this.read({
-      query: {
-        boardName: board,
-        threadNumber: thread
-      },
+      query,
       order,
       orderBy,
       limit,
