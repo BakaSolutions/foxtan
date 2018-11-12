@@ -196,6 +196,21 @@ Post.readOne = async fields => {
   return await _appendAttachments(out);
 };
 
+Post.countPage = async ({board, limit} = {}) => {
+  if (!board) {
+    throw {
+      status: 400
+    }
+  }
+  if (!limit) {
+    limit = config('board.threadsPerPage');
+  }
+  return await PostModel.countPage({
+    board,
+    limit
+  });
+};
+
 Post.readAll = async args => {
   let posts = await PostModel.readAll(args);
   return Promise.all(posts.map(_appendAttachments));
