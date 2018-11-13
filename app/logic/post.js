@@ -74,10 +74,7 @@ Post.create = async (fields, token) => {
         : Crypto.sha256(fields.password),
     id: token._id || token.tid,
     files: [],
-    sage:
-      fields.sage
-        ? true
-        : '',
+    sage: fields.sage ? true : null,
   }, threadInput);
 
   if (!isThread) { // OP-post check
@@ -90,9 +87,7 @@ Post.create = async (fields, token) => {
       postInput.op = true;
     }
   } else { // OP-thread check
-    postInput.op = fields.op
-      ? true
-      : '';
+    postInput.op = fields.op ? true : null;
   }
 
   postInput.createdAt = threadInput.createdAt
@@ -114,6 +109,7 @@ Post.create = async (fields, token) => {
     }
     file.boardName = postInput.boardName;
     file.postNumber = postInput.number;
+    file.nsfw = fields.nsfwFile ? fields.nsfwFile[i] ? true : null : null;
     let type = Tools.capitalize(file.mime.split('/')[0]);
     let attachment = (!Attachment[type])
       ? new Attachment(file)

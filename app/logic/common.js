@@ -17,7 +17,7 @@ Common.hasEmpty = input => {
     : false;
 };
 
-Common.isEmpty = input => (typeof input === 'undefined') || (input === '');
+Common.isEmpty = input => (typeof input === 'undefined') || (input === '') || (input === null);
 
 Common.cleanEmpty = input => {
   for (let key in input) {

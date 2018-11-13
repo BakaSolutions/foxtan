@@ -9,7 +9,7 @@ const debug = config('debug.enable');
 class Attachment {
 
   constructor(file, hash) {
-    let { boardName, postNumber, mime, size, name, path } = file || {};
+    let { boardName, postNumber, mime, size, name, path, nsfw } = file || {};
 
     if (file) {
       this.label = {
@@ -27,6 +27,7 @@ class Attachment {
       size,
       name,
       path,
+      nsfw,
       createdAt: new Date
     };
   }
