@@ -49,7 +49,7 @@ class Captcha {
     this.noise = !!o.noise || false;
     this.mime = o.mime || 'image/png';
 
-    this.id = this._generate(24);
+    this.id = this._random(0, Math.pow(2, 48));
   }
 
   createCanvas() {
@@ -127,10 +127,14 @@ class Captcha {
     for (let i = 0; i < this.size; i++) {
       let perks = 'bold ';
       if (this.fontPerks) {
-        if (Math.random() < 0.5) perks = '';
         if (Math.random() < 0.5) perks += 'italic ';
       }
-      ctx.font = perks + this._random(75*vh/this.size*5, 85*vh/this.size*5) + 'px sans';
+      perks += this._random(75*vh/this.size*5, 85*vh/this.size*5) + 'px ';
+      if (this.fontPerks && Math.random() < 0.5) {
+        ctx.font = perks + 'sans-serif';
+      } else {
+        ctx.font = perks + 'sans';
+      }
       ctx.lineWidth = this._random(2, this.lineWidth);
 
       ctx.save();

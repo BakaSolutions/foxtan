@@ -139,8 +139,7 @@ tools.isMap = obj => toString.call(obj) === '[object Map]';
  * @param n
  * @returns {boolean}
  */
-tools.isNumber = n => +n === n;
-  //!isNaN(parseFloat(n)) && isFinite(n);
+tools.isNumber = n => !isNaN(parseFloat(n)) && isFinite(n);
 
 tools.sortObject = (object, order = 'asc') => {
   let arr = [];
