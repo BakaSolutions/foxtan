@@ -17,11 +17,14 @@ Common.hasEmpty = input => {
     : false;
 };
 
-Common.isEmpty = input => (typeof input === 'undefined') || (input === '') || (input === null);
+Common.isEmpty = input => (typeof input === 'undefined')
+  || (input === '')
+  || (input === null)
+  || (Array.isArray(input) && !input.length);
 
 Common.cleanEmpty = input => {
   for (let key in input) {
-    if (input[key] === '' || (Array.isArray(input[key]) && !input[key].length)) {
+    if (Common.isEmpty(input[key])) {
       delete input[key];
     }
   }

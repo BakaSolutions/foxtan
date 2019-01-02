@@ -8,6 +8,7 @@ const Attachment = require('./attachment');
 
 const Crypto = require('../helpers/crypto');
 const Tools = require('../helpers/tools');
+const Validator = require('../helpers/validator');
 
 const Websocket = require('../routes/websocket');
 let WS = Websocket();
@@ -15,121 +16,177 @@ let WS = Websocket();
 let Post = module.exports = {};
 
 Post.create = async (fields, token) => {
-  let board = await BoardModel.readOne(fields.boardName);
-
-  if (!board) {
-    throw {
-      status: 404,
-      message: `Board doesn't exist!`
-    };
-  }
-  if (board.closed) {
-    throw {
-      status: 403,
-      message: `Board is closed!`
-    };
-  }
-
-  let lastNumber = await CounterModel.readOne(fields.boardName);
-  ++lastNumber;
-
   let now = new Date;
+  let lastNumber = await CounterModel.readOne(fields.boardName);
+
+  let board;
+  let thread;
+
   let threadInput = {
-    _id: `${fields.boardName}:${lastNumber}`,
-    boardName: fields.boardName,
-    number: lastNumber
+    _id: {
+      value: `${fields.boardName}:${lastNumber}`
+    },
+    boardName: {
+      value: fields.boardName,
+      required: true,
+      func: async (v, done) => {
+        board = await BoardModel.readOne(v);
+
+        if (!board) {
+          return done(`Board doesn't exist!`);
+        }
+        if (board.closed) {
+          return done(`Board is closed!`);
+        }
+      }
+    },
+    threadNumber: {
+      value: fields.threadNumber,
+      type: 'number',
+      func: async (v, done, input) => {
+        let isThread = CommonLogic.isEmpty(v);
+        if (!isThread) {
+          thread = await ThreadModel.readOne({
+            board: input.boardName,
+            thread: v
+          });
+          if (!thread) {
+            return done(`Thread doesn't exist!`);
+          }
+          if (thread.closed) {
+            return done(`Thread is closed!`);
+          }
+        }
+      }
+    },
+    number: {
+      value: ++lastNumber,
+    },
+    createdAt: {
+      value: now
+    },
+    updatedAt: {
+      value: now
+    }
   };
 
-  let isThread = CommonLogic.isEmpty(fields.threadNumber);
-
-  if (!isThread) {
-    let thread = await ThreadModel.readOne({
-      board: fields.boardName,
-      thread: +fields.threadNumber
-    });
-    if (!thread) {
-      throw {
-        status: 404,
-        message: `Thread doesn't exist!`
-      };
-    }
-    if (thread.closed) {
-      throw {
-        status: 403,
-        message: `Thread is closed!`
-      };
-    }
+  let validation = Validator(threadInput);
+  if (!validation.passed) {
+    throw {
+      status: 400,
+      message: validation.errors.toString()
+    };
   }
+  threadInput = validation.fields;
 
-  let postInput = Object.assign({
-    threadNumber:
-      isThread
+  let postInput = {
+    threadNumber: {
+      value: thread
         ? threadInput.number
-        : +fields.threadNumber,
-    subject: fields.subject,
-    rawText: fields.text,
-    password:
-      CommonLogic.isEmpty(fields.password)
-        ? ''
-        : Crypto.sha256(fields.password),
-    id: token._id || token.tid,
-    files: [],
-    sage: fields.sage ? true : null,
-  }, threadInput);
+        : threadInput.threadNumber,
+      required: true
+    },
+    subject: {
+      value: fields.subject
+    },
+    rawText: {
+      value: fields.text
+    },
+    password: {
+      value: CommonLogic.isEmpty(fields.password)
+        ? null
+        : Crypto.sha256(fields.password)
+    },
+    id: {
+      value: token._id || token.tid,
+      required: true
+    },
+    files: {
+      value: fields.file || [],
+      func: async (files, done, input) => {
+        let out = [];
+        let fileAmount = Math.min(files.length, board.fileLimit); // TODO: Process only unique files
 
-  if (!isThread) { // OP-post check
-    let opPost = await PostModel.readOne({
-      board: fields.boardName,
-      post: +fields.threadNumber,
-      clear: false
-    });
-    if (fields.op && (opPost.id === postInput.id)) {
-      postInput.op = true;
-    }
-  } else { // OP-thread check
-    postInput.op = fields.op ? true : null;
-  }
+        if (!files.length && !input.rawText) {
+          return done('Nor post nor file is present');
+        }
 
-  postInput.createdAt = threadInput.createdAt
-    /*= postInput.updatedAt*/ = threadInput.updatedAt = now;
+        for (let i = 0; i < fileAmount; i++) {
+          let file = files[i];
+          if (CommonLogic.isEmpty(file)) {
+            continue;
+          }
+          if (!file.mime) {
+            return done(`This file has no MIME-type: ${file.name}`);
+          }
+          file.boardName = threadInput.boardName;
+          file.postNumber = threadInput.number;
+          file.nsfw = fields.nsfwFile
+            ? fields.nsfwFile[i]
+              ? true
+              : null
+            : null;
 
-  // pre-hook
-  let files = fields.file || []; // TODO: Process only unique files
-  let fileAmount = Math.min(files.length, board.fileLimit);
-  for (let i = 0; i < fileAmount; i++) {
-    let file = files[i];
-    if (!file || file === '') {
-      continue;
-    }
-    if (!file.mime) {
-      throw {
-        status: 400,
-        message: `This file has no MIME-type: ${file.name}`
+          let type = Tools.capitalize(file.mime.split('/')[0]);
+          let attachment = (!Attachment[type])
+            ? new Attachment(file)
+            : new Attachment[type](file);
+
+          if (!await attachment.checkFile()) {
+            return done(`This type of file is not allowed: ${file.mime}`);
+          }
+          await attachment.store();
+
+          let hash = attachment.file._id;
+          if (!postInput.files.includes(hash)) {
+            out.push(hash);
+          }
+        }
+        done(null, out)
       }
-    }
-    file.boardName = postInput.boardName;
-    file.postNumber = postInput.number;
-    file.nsfw = fields.nsfwFile ? fields.nsfwFile[i] ? true : null : null;
-    let type = Tools.capitalize(file.mime.split('/')[0]);
-    let attachment = (!Attachment[type])
-      ? new Attachment(file)
-      : new Attachment[type](file);
-    if (!await attachment.checkFile()) {
-      throw {
-        status: 400,
-        message: `This type of file is not allowed: ${file.mime}`
+    },
+    sage: {
+      value: fields.sage,
+      type: 'boolean'
+    },
+    op: {
+      value: fields.op,
+      func: async (v, done) => {
+        if (!thread) { // OP-post check
+          let opPost = await PostModel.readOne({
+            board: threadInput.boardName,
+            post: threadInput.threadNumber,
+            clear: false
+          });
+          if (v && (opPost.id === postInput.id)) {
+            return done(null, true);
+          }
+        } else if (v) {
+          done(null, true);
+        }
+        return done();
       }
+    },
+    createdAt: {
+      value: now
+    },
+    updatedAt: {
+      value: null
     }
-    await attachment.store();
-    let hash = attachment.file._id;
-    if (!postInput.files.includes(hash)) {
-      postInput.files.push(hash);
-    }
-  }
+  };
 
+  validation = Validator(postInput);
+  if (!validation.passed) {
+    throw {
+      status: 400,
+      message: validation.errors.toString()
+    };
+  }
+  postInput = Object.assign(validation.fields, threadInput);
   postInput = CommonLogic.cleanEmpty(postInput);
+  delete threadInput.threadNumber;
 
-  if (isThread) {
+  if (thread) {
     await ThreadModel.create(threadInput) // Thread hook
   }
 
