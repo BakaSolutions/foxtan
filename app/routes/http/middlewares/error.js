@@ -1,6 +1,8 @@
 const config = require('../../../helpers/config');
 const Controller = require('../index');
 
+const ROOT = new RegExp(config('directories.root').replace(/\\/g, '\\\\'), 'g');
+
 let middleware = app => {
   app.use(async (ctx, next) => {
     try {
@@ -45,7 +47,7 @@ function errorHandler(err, ctx, isError = true) {
     let {message, stack, status} = err;
     err = {message, stack, status};
     if (config('debug.enable')) {
-      err.stack = err.stack.replace(new RegExp(config('directories.root'), 'g'), '') || err;
+      err.stack = err.stack.replace(ROOT, '') || err;
     } else {
       delete err.stack;
     }
