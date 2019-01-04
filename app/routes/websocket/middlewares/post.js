@@ -12,7 +12,7 @@ module.exports = [
 async function post(command, message, id, ws) {
   let [ board, post ] = message.split(':');
   let input = {
-    board: board,
+    board,
     post: +post
   };
   await PostLogic.readOne(input).then(

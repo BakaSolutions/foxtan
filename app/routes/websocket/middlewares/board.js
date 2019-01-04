@@ -57,6 +57,8 @@ async function board(command, message, id, ws) {
         break;
       default:
         page = parseInt(action);
+        lastReplies = parseInt(lastReplies);
+        lastRepliesForFixed = parseInt(lastRepliesForFixed);
         out = await ThreadLogic.readPage(board, page, limit, lastReplies, lastRepliesForFixed);
         break;
     }
