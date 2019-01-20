@@ -24,8 +24,8 @@ router.post('create', async ctx => {
   await PostLogic.create(query, token).then(
     async out => {
       token.trustedPostCount--;
-      token = UserLogic.createToken(token);
-      UserLogic.setToken(ctx, token);
+      let newToken = UserLogic.createToken(token);
+      UserLogic.setToken(ctx, newToken);
 
       if (!Controller.isAJAXRequested(ctx) && Controller.isRedirect(query)) {
         let map = {
@@ -35,9 +35,12 @@ router.post('create', async ctx => {
         };
         return redirect(ctx, query, /:(?:board|thread|post)/g, map);
       }
-      out.message = 'Post was successfully created!';
-      out.trustedPostCount = token.trustedPostCount;
-      Controller.success(ctx, out);
+
+      Controller.success(ctx, {
+        post: out,
+        message: 'Post was successfully created!',
+        trustedPostCount: token.trustedPostCount
+      });
     },
     out => Controller.fail(ctx, out)
   )

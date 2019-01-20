@@ -6,9 +6,9 @@ const ThreadModel = require('../models/mongo/thread');
 const PostModel = require('../models/mongo/post');
 const Attachment = require('./attachment');
 
+const config = require('../helpers/config');
 const Crypto = require('../helpers/crypto');
 const Tools = require('../helpers/tools');
-const Validator = require('../helpers/validator');
 
 const Websocket = require('../routes/websocket');
 let WS = Websocket();
@@ -18,176 +18,23 @@ let Post = module.exports = {};
 Post.create = async (fields, token) => {
   let now = new Date;
   let lastNumber = await CounterModel.readOne(fields.boardName);
+  ++lastNumber;
 
-  let board;
-  let thread;
-
-  let threadInput = {
-    _id: {
-      value: `${fields.boardName}:${lastNumber}`
-    },
-    boardName: {
-      value: fields.boardName,
-      required: true,
-      func: async (v, done) => {
-        board = await BoardModel.readOne(v);
-
-        if (!board) {
-          return done(`Board doesn't exist!`);
-        }
-        if (board.closed) {
-          return done(`Board is closed!`);
-        }
-      }
-    },
-    threadNumber: {
-      value: fields.threadNumber,
-      type: 'number',
-      func: async (v, done, input) => {
-        let isThread = CommonLogic.isEmpty(v);
-        if (!isThread) {
-          thread = await ThreadModel.readOne({
-            board: input.boardName,
-            thread: v
-          });
-          if (!thread) {
-            return done(`Thread doesn't exist!`);
-          }
-          if (thread.closed) {
-            return done(`Thread is closed!`);
-          }
-        }
-      }
-    },
-    number: {
-      value: ++lastNumber,
-    },
-    createdAt: {
-      value: now
-    },
-    updatedAt: {
-      value: now
-    }
+  let params = {
+    board: await BoardModel.readOne(fields.boardName),
+    isThread: CommonLogic.isEmpty(fields.threadNumber),
+    token,
+    lastNumber,
+    now
   };
 
-  let validation = Validator(threadInput);
-  if (!validation.passed) {
-    throw {
-      status: 400,
-      message: validation.errors.toString()
-    };
-  }
-  threadInput = validation.fields;
+  let validation = require('../validators/post')(fields, params);
+  let postInput = CommonLogic.cleanEmpty(validation);
 
-  let postInput = {
-    threadNumber: {
-      value: thread
-        ? threadInput.number
-        : threadInput.threadNumber,
-      required: true
-    },
-    subject: {
-      value: fields.subject
-    },
-    rawText: {
-      value: fields.text
-    },
-    password: {
-      value: CommonLogic.isEmpty(fields.password)
-        ? null
-        : Crypto.sha256(fields.password)
-    },
-    id: {
-      value: token._id || token.tid,
-      required: true
-    },
-    files: {
-      value: fields.file || [],
-      func: async (files, done, input) => {
-        let out = [];
-        let fileAmount = Math.min(files.length, board.fileLimit); // TODO: Process only unique files
-
-        if (!files.length && !input.rawText) {
-          return done('Nor post nor file is present');
-        }
-
-        for (let i = 0; i < fileAmount; i++) {
-          let file = files[i];
-          if (CommonLogic.isEmpty(file)) {
-            continue;
-          }
-          if (!file.mime) {
-            return done(`This file has no MIME-type: ${file.name}`);
-          }
-          file.boardName = threadInput.boardName;
-          file.postNumber = threadInput.number;
-          file.nsfw = fields.nsfwFile
-            ? fields.nsfwFile[i]
-              ? true
-              : null
-            : null;
-
-          let type = Tools.capitalize(file.mime.split('/')[0]);
-          let attachment = (!Attachment[type])
-            ? new Attachment(file)
-            : new Attachment[type](file);
-
-          if (!await attachment.checkFile()) {
-            return done(`This type of file is not allowed: ${file.mime}`);
-          }
-          await attachment.store();
-
-          let hash = attachment.file._id;
-          if (!postInput.files.includes(hash)) {
-            out.push(hash);
-          }
-        }
-        done(null, out)
-      }
-    },
-    sage: {
-      value: fields.sage,
-      type: 'boolean'
-    },
-    op: {
-      value: fields.op,
-      func: async (v, done) => {
-        if (!thread) { // OP-post check
-          let opPost = await PostModel.readOne({
-            board: threadInput.boardName,
-            post: threadInput.threadNumber,
-            clear: false
-          });
-          if (v && (opPost.id === postInput.id)) {
-            return done(null, true);
-          }
-        } else if (v) {
-          done(null, true);
-        }
-        return done();
-      }
-    },
-    createdAt: {
-      value: now
-    },
-    updatedAt: {
-      value: null
-    }
-  };
-
-  validation = Validator(postInput);
-  if (!validation.passed) {
-    throw {
-      status: 400,
-      message: validation.errors.toString()
-    };
-  }
-  postInput = Object.assign(validation.fields, threadInput);
-  postInput = CommonLogic.cleanEmpty(postInput);
-  delete threadInput.threadNumber;
-
-  if (thread) {
-    await ThreadModel.create(threadInput) // Thread hook
+  if (params.isThread) {
+    let validation = require('../validators/thread')(fields, params);
+    let threadInput = CommonLogic.cleanEmpty(validation, params);
+    await ThreadModel.create(threadInput); // Thread hook
   }
 
   await PostModel.create(postInput); // Post hook
@@ -253,7 +100,7 @@ Post.countPage = async ({board, limit} = {}) => {
   if (!board) {
     throw {
       status: 400
-    }
+    };
   }
   if (!limit) {
     limit = config('board.threadsPerPage');
@@ -387,7 +234,7 @@ async function deleteFile(hash, boardName, postNumber, password, checkPassword) 
     if (!hash.path) {
       throw {
         status: 500
-      }
+      };
     }
     hash = hash.path.split('.').shift();
   }

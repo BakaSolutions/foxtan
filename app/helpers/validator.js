@@ -4,8 +4,13 @@ let defaultOptions = {
   defaultValue: null
 };
 
-function Validator(fields = {}, options = defaultOptions) {
-  let keys = Object.keys(fields);
+/**
+ * @param {{value, type, required, min, max}} input -- object with smth that we should check
+ * @param {{defaultValue}} options -- global params
+ * @return {{passed, errors, fields}}
+ */
+module.exports = function Validator(input = {}, options = defaultOptions) {
+  let keys = Object.keys(input);
   let out = {
     passed: false,
     errors: {},
@@ -14,7 +19,7 @@ function Validator(fields = {}, options = defaultOptions) {
 
   for (let i = 0; i < keys.length; i++) {
     let key = keys[i];
-    let { value, type, required, min, max, func } = fields[key];
+    let { value, type, required, min, max, func } = input[key];
 
     if (typeof value === 'undefined') {
       if (required) {
@@ -69,6 +74,10 @@ function Validator(fields = {}, options = defaultOptions) {
       }, out.fields);
     }
 
+    if (required && out.errors[key]) {
+      break;
+    }
+
     out.fields[key] = value;
   }
 
@@ -77,6 +86,4 @@ function Validator(fields = {}, options = defaultOptions) {
   }
 
   return out;
-}
-
-module.exports = Validator;
+};

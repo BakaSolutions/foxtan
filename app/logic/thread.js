@@ -12,7 +12,7 @@ Thread.countPage = async ({board, limit} = {}) => {
   if (!board) {
     throw {
       status: 400
-    }
+    };
   }
   if (!limit) {
     limit = config('board.threadsPerPage');
@@ -155,7 +155,7 @@ Thread.readPage = async (board, page, limit, lastReplies, lastRepliesForFixed) =
       board,
       limit
     })
-  }
+  };
 };
 
 Thread.readFeedPage = async (board, page, limit = config('board.threadsPerPage'), order = 'createdAt') => {

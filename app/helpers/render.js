@@ -27,7 +27,7 @@ Render.loadTemplates = async () => {
       if (!templatePath.match(/\.js$/i)) {
         return false;
       }
-      let templateName = templatePath.replace(DESTI_FOLDER, '').split('.').shift();
+      let templateName = templatePath.replace(DESTI_FOLDER, '').replace('\\', '/').split('.').shift();
       templatePath = path.resolve(DESTI_FOLDER, templatePath);
       if (require.cache[templatePath]) {
         delete require.cache[templatePath];
@@ -81,7 +81,7 @@ Render.renderPage = (templateName, model) => {
   try {
     let template = templates[templateName];
     if (!template) {
-      return new Error('This template doesn\'t exist: ' + templateName);
+      throw new Error('This template doesn\'t exist: ' + templateName);
     }
     let baseModel = {}; //TODO: Is this really needed?
     model = Object.assign({}, baseModel, model); //model = Tools.merge(model, baseModel) || baseModel;

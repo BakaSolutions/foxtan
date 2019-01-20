@@ -1,6 +1,6 @@
 {
   "name": "foxtan",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Slyest imageboard engine that was ever made.",
   "main": "app/index.js",
   "scripts": {
