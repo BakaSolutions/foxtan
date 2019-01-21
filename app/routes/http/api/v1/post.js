@@ -37,7 +37,9 @@ router.post('create', async ctx => {
       }
 
       Controller.success(ctx, {
-        post: out,
+        boardName: out.boardName,
+        threadNumber: out.threadNumber,
+        number: out.number,
         message: 'Post was successfully created!',
         trustedPostCount: token.trustedPostCount
       });

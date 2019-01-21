@@ -1,10 +1,9 @@
-const Crypto = require('crypto');
-
 const PostModel = require('../models/mongo/post');
 
 const CommonLogic = require('../logic/common');
 const Attachment = require('../logic/attachment');
 
+const Crypto = require('../helpers/crypto');
 const Tools = require('../helpers/tools');
 const Validator = require('../helpers/validator');
 
