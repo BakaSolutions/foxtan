@@ -133,9 +133,9 @@ FS.mkdirSync = (dir, rootType) => {
   try {
     fs.mkdirSync(dir[dir.length - 1]);
   } catch (e) {
-    let parent = dir[dir.length - 1].replace(/\/$/, '').split('/');
+    let parent = dir[dir.length - 1].replace(new RegExp(path.sep + '$'), '').split('/');
     parent.pop();
-    parent = parent.join('/');
+    parent = parent.join(path.sep);
     dir[dir.length] = parent;
     return FS.mkdirSync(dir);
   }
@@ -240,6 +240,7 @@ FS.writeFile = async (filePath, content, rootType) => {
     }
 
     let dir = path.parse(filePath).dir + path.sep;
+    console.log('dir', dir);
     if (!FS.existsSync(dir)) {
       FS.mkdirSync(dir);
     }
@@ -258,6 +259,7 @@ FS.renameFile = async (old, mew, rootType) => {
     }
 
     mew = FS.normalize(mew, rootType);
+    console.log(mew, rootType);
     if (!FS.check(mew)) {
       return reject('Forbidden');
     }
