@@ -6,7 +6,7 @@ const ROOT = new RegExp(config('directories.root').replace(/\\/g, '\\\\'), 'g');
 let middleware = app => {
   app.use(async (ctx, next) => {
     try {
-      if (!config('server.static.external') && ['OPTIONS', 'POST'].includes(ctx.method)) {
+      if (!config('server.static.external')) {
         ctx.set('Access-Control-Allow-Origin', ctx.headers.origin || '*');
         ctx.set('Access-Control-Allow-Headers', 'X-Requested-With');
         ctx.set('Access-Control-Allow-Credentials', 'true');
