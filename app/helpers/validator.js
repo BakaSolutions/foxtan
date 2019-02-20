@@ -9,7 +9,7 @@ let defaultOptions = {
  * @param {{defaultValue}} options -- global params
  * @return {{passed, errors, fields}}
  */
-module.exports = function Validator(input = {}, options = defaultOptions) {
+module.exports = async function Validator(input = {}, options = defaultOptions) {
   let keys = Object.keys(input);
   let out = {
     passed: false,
@@ -64,7 +64,7 @@ module.exports = function Validator(input = {}, options = defaultOptions) {
     }
 
     if (typeof func === 'function') {
-      func(value, (err, val) => {
+      await func(value, (err, val) => {
         if (err) {
           return out.errors[key] = err;
         }

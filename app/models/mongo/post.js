@@ -49,9 +49,6 @@ class PostModel extends SuperModel {
         if (clear) {
           entry = this.clearEntry(entry, true);
         }
-        if (!entry.text) {
-          entry.text = '';
-        }
         if (!entry.sage) {
           entry.sage = false;
         }

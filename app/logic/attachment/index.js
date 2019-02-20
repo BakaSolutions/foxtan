@@ -27,9 +27,10 @@ class Attachment {
       size,
       name,
       path,
-      nsfw,
       createdAt: new Date
     };
+
+    if (nsfw) this.file.nsfw = true;
   }
 
   async createHash() {

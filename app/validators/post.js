@@ -7,7 +7,7 @@ const Crypto = require('../helpers/crypto');
 const Tools = require('../helpers/tools');
 const Validator = require('../helpers/validator');
 
-module.exports = (fields, params) => {
+module.exports = async (fields, params) => {
   let {board, isThread, token, lastNumber, now} = params;
 
   let input = {
@@ -71,13 +71,11 @@ module.exports = (fields, params) => {
           if (!file.mime) {
             return done(`This file has no MIME-type: ${file.name}`);
           }
-          file.boardName = fields.boardName;
-          file.postNumber = fields.number;
-          file.nsfw = fields.nsfwFile
-            ? fields.nsfwFile[i]
-              ? true
-              : null
-            : null;
+          file.boardName = approved.boardName;
+          file.postNumber = approved.number;
+          if (fields.nsfwFile && fields.nsfwFile[i]) {
+            file.nsfw = true;
+          }
 
           let type = Tools.capitalize(file.mime.split('/')[0]);
           let attachment = (!Attachment[type])
@@ -114,9 +112,9 @@ module.exports = (fields, params) => {
             return done(null, true);
           }
         } else if (v) {
-          done(null, true);
+          return done(null, true);
         }
-        return done();
+        done();
       }
     },
     createdAt: {
@@ -127,11 +125,11 @@ module.exports = (fields, params) => {
     }
   };
 
-  let validation = Validator(input);
+  let validation = await Validator(input);
   if (!validation.passed) {
     throw {
       status: 400,
-      message: validation.errors.toString()
+      message: validation.errors
     };
   }
   return validation.fields;

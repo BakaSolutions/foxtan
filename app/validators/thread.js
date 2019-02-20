@@ -2,7 +2,7 @@ const ThreadModel = require('../models/mongo/thread');
 
 const Validator = require('../helpers/validator');
 
-module.exports = (fields, params) => {
+module.exports = async (fields, params) => {
   let {board, isThread, lastNumber, now} = params;
 
   let input = {
@@ -53,11 +53,11 @@ module.exports = (fields, params) => {
     }
   };
 
-  let validation = Validator(input);
+  let validation = await Validator(input);
   if (!validation.passed) {
     throw {
       status: 400,
-      message: validation.errors.toString()
+      message: validation.errors
     };
   }
   return validation.fields;

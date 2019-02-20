@@ -240,7 +240,6 @@ FS.writeFile = async (filePath, content, rootType) => {
     }
 
     let dir = path.parse(filePath).dir + path.sep;
-    console.log('dir', dir);
     if (!FS.existsSync(dir)) {
       FS.mkdirSync(dir);
     }
@@ -259,7 +258,6 @@ FS.renameFile = async (old, mew, rootType) => {
     }
 
     mew = FS.normalize(mew, rootType);
-    console.log(mew, rootType);
     if (!FS.check(mew)) {
       return reject('Forbidden');
     }

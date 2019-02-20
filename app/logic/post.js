@@ -28,11 +28,11 @@ Post.create = async (fields, token) => {
     now
   };
 
-  let validation = require('../validators/post')(fields, params);
+  let validation = await require('../validators/post')(fields, params);
   let postInput = CommonLogic.cleanEmpty(validation);
 
   if (params.isThread) {
-    let validation = require('../validators/thread')(fields, params);
+    let validation = await require('../validators/thread')(fields, params);
     let threadInput = CommonLogic.cleanEmpty(validation, params);
     await ThreadModel.create(threadInput); // Thread hook
   }
