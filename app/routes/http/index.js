@@ -3,7 +3,9 @@ const Render = require('../../helpers/render');
 const http = require('http');
 
 (async () => {
-  await Render.compileTemplates();
+  if (config('server.compileTemplatesOnStartup')) {
+    await Render.compileTemplates();
+  }
   await Render.loadTemplates();
 })();
 

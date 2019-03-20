@@ -147,6 +147,8 @@ User.hasPermission = (user, action, board) => { // TODO: Rewrite vichan's ported
   return true;
 };
 
+User.isLogged = token => !CommonLogic.isEmpty(token._id);
+
 User.login = async ({ login, password } = {}) => {
   let user = await User.readOne({ login });
   if (!User.checkPassword(password, user.password)) {

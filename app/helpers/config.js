@@ -83,7 +83,8 @@ let config = {
     static: {
       external: false
     },
-    version: packageJSON.version
+    version: packageJSON.version,
+    compileTemplatesOnStartup: true
   },
   directories: {
     root: path.resolve(__dirname, '../..') + path.sep,
