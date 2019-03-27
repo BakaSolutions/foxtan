@@ -72,6 +72,7 @@ class SuperModel {
       // but forEach is better than toArray
       // because we can process documents as they come in
       // until we reach the end.
+      // TODO: make ability to return Cursor
     }
 
     return out;

@@ -96,7 +96,7 @@ Post.readOne = async fields => {
   return await _appendAttachments(out);
 };
 
-Post.countPage = async ({board, limit} = {}) => {
+Post.countPage = async ({board, thread, limit} = {}) => {
   if (!board) {
     throw {
       status: 400
@@ -107,6 +107,7 @@ Post.countPage = async ({board, limit} = {}) => {
   }
   return await PostModel.countPage({
     board,
+    thread,
     limit
   });
 };

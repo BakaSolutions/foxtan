@@ -104,9 +104,10 @@ class PostModel extends SuperModel {
    * @param {Number} [thread]
    * @param {Number} [page]
    * @param {Number} [limit]
+   * @param {String} [id]
    * @return {Promise}
    */
-  async readPage({board, thread, page = 0, limit = 0}) {
+  async readPage({board, thread, page = 0, limit = 0, id}) {
     let offset = page * limit;
     return await this.readAll({
       query: {
@@ -115,6 +116,7 @@ class PostModel extends SuperModel {
       },
       order: 'createdAt',
       orderBy: 'ASC',
+      id,
       limit,
       offset
     });
@@ -126,11 +128,12 @@ class PostModel extends SuperModel {
    * @param {Number} [thread]
    * @param {String} [order]
    * @param {String} [orderBy]
+   * @param {String} [id]
    * @param {Number} [limit]
    * @param {Number} [offset]
    * @return {Promise}
    */
-  async readAll({board, thread, order = 'createdAt', orderBy = 'ASC', limit = null, offset = null}) {
+  async readAll({board, thread, order = 'createdAt', orderBy = 'ASC', id, limit = null, offset = null}) {
     let query = {};
     if (board) {
       query.boardName = board;
@@ -142,6 +145,7 @@ class PostModel extends SuperModel {
       query,
       order,
       orderBy,
+      id,
       limit,
       offset
     })
