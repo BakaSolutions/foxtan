@@ -1,3 +1,4 @@
+
 const doT = require('dot');
 const path = require('path');
 const FS = require('../helpers/fs');
@@ -15,9 +16,8 @@ const settings = {
 const ILLEGAL_CHARACTERS_REGEXP = /[^a-zA-Z$_]/gi;
 
 const TEMPL = 'src/views';
-const DESTI = '.tmp/views';
 const TEMPL_FOLDER = path.join(__dirname, '../../', TEMPL, path.sep);
-const DESTI_FOLDER = path.join(__dirname, '../../', DESTI, path.sep);
+const DESTI_FOLDER = path.join(config('directories.temporary'), 'views', path.sep);
 
 
 Render.loadTemplates = async () => {
@@ -105,7 +105,7 @@ Render.rerender = async what => {
       if (!Array.isArray(what)) {
         what = [ what ];
       }
-      paths = what.filter(el => ~paths.indexOf(el));
+      paths = what.filter(el => paths.includes(el));
     }
     for (let i = 0; i < paths.length; i++) {
       let path = paths[i];
