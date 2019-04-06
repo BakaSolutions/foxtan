@@ -125,6 +125,7 @@ let config = {
       pin: ADMIN
     },
     posts: {
+      advancedSearch: MODER,
       delete: MODER
     },
   //files: {

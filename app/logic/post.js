@@ -96,6 +96,22 @@ Post.readOne = async fields => {
   return await _appendAttachments(out);
 };
 
+Post.readLast = async (fields, last) => {
+  fields.order = 'createdAt';
+  fields.orderBy = 'ASC';
+  fields.limit = last;
+  let posts = await PostModel.read(fields);
+  if (!posts) {
+    return [];
+  }
+  return Promise.all(posts.map(_appendAttachments));
+};
+
+Post.readAll = async args => {
+  let posts = await PostModel.readAll(args);
+  return Promise.all(posts.map(_appendAttachments));
+};
+
 Post.countPage = async ({board, thread, limit} = {}) => {
   if (!board) {
     throw {
@@ -110,11 +126,6 @@ Post.countPage = async ({board, thread, limit} = {}) => {
     thread,
     limit
   });
-};
-
-Post.readAll = async args => {
-  let posts = await PostModel.readAll(args);
-  return Promise.all(posts.map(_appendAttachments));
 };
 
 Post.delete = async (fields, checkPassword) => {

@@ -47,7 +47,7 @@ class PostModel extends SuperModel {
 
       out = await Promise.all(out.map(async entry => {
         if (clear) {
-          entry = this.clearEntry(entry, true);
+          entry = this.clearEntry(entry);
         }
         if (!entry.sage) {
           entry.sage = false;
