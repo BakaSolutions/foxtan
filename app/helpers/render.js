@@ -4,6 +4,7 @@ const path = require('path');
 const FS = require('../helpers/fs');
 const Logger = console; // TODO: Import Logger from Kuri
 const Tools = require('../helpers/tools');
+const config = require('../helpers/config');
 
 let Render = module.exports = {};
 let includes = {};

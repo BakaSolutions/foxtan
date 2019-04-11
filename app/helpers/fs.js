@@ -116,34 +116,40 @@ FS.existsSync = filePath => {
  * @returns {boolean}
  */
 FS.mkdirSync = (dir, rootType) => {
+  dir = FS.normalize(dir, rootType);
 
-  if (!Array.isArray(dir)) {
-    dir = [ dir ];
-  }
-
-  dir[0] = FS.normalize(dir[0], rootType);
-  if (!FS.check(dir[0])) {
+  if (!FS.check(dir)) {
     return false;
   }
 
-  if (FS.existsSync(dir[0]) || dir.length < 1) {
+  if (FS.existsSync(dir)) {
     return true;
   }
 
-  try {
-    fs.mkdirSync(dir[dir.length - 1]);
-  } catch (e) {
-    let parent = dir[dir.length - 1].replace(new RegExp(path.sep + '$'), '').split('/');
-    parent.pop();
-    parent = parent.join(path.sep);
-    dir[dir.length] = parent;
-    return FS.mkdirSync(dir);
-  }
-  dir.pop();
-  if (dir.length < 1) {
-    return true;
-  }
-  return FS.mkdirSync(dir);
+  dir.split(path.sep).reduce((parentDir, childDir) => {
+    const curDir = path.resolve(parentDir, childDir);
+    try {
+      fs.mkdirSync(curDir, {recursive: true});
+    } catch (err) {
+      if (err.code === 'EEXIST') { // curDir already exists!
+        return curDir;
+      }
+
+      // To avoid `EISDIR` error on Mac and `EACCES`-->`ENOENT` and `EPERM` on Windows.
+      if (err.code === 'ENOENT') { // Throw the original parentDir error on curDir `ENOENT` failure.
+        throw new Error(`EACCES: permission denied, mkdir '${parentDir}'`);
+      }
+
+      const caughtErr = ['EACCES', 'EPERM', 'EISDIR'].includes(err.code);
+      if (!caughtErr || (caughtErr && curDir === path.resolve(dir))) {
+        throw err; // Throw if it's just the last created dir.
+      }
+    }
+
+    return curDir;
+  }, path.sep);
+
+  return true;
 };
 
 FS.readdirSync = (dir, recursive = true) => {
