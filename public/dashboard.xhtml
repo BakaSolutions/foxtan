@@ -4,37 +4,104 @@
   <meta  http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
   <title>Dashboard &mdash; foxtan</title>
   <link rel="stylesheet" href="/css/dashboard.css" />
-  <script src="/js/dashboard.js" type="text/javascript"></script>
+  <script type="text/javascript" src="/js/doT.min.js"></script>
+  <script type="text/javascript" src="/js/dashboard.js"></script>
+  <script type="text/template" id="template-hello">
+    <h1>Панель управления</h1>
+    {{!it.text || ''}}
+  </script>
+  <script type="text/template" id="template-users">
+    <h1>Пользователи</h1>
+    {{!it.text || ''}}
+  </script>
+  <script type="text/template" id="template-boards">
+    <h1>Разделы</h1>
+    {{ for(var url in it.boards) { }}
+    <table>
+      <tr>
+        <td>URL</td>
+        <td>Заголовок</td>
+        <td>Подзаголовок</td>
+        <td>Лимит постов</td>
+        <td>Лимит файлов</td>
+        <td>Скрытая</td>
+        <td>Закрытая</td>
+        <td>Дата создания</td>
+      </tr>
+      <tr>
+        <td>{{!url}}</td>
+        <td>{{!it.boards[url].title}}</td>
+        <td>
+          {{? it.boards[url].subtitle}}
+            {{!it.boards[url].subtitle}}
+          {{??}}
+            <i>[пусто]</i>
+          {{?}}
+        </td>
+        <td>{{!it.boards[url].bumpLimit}}</td>
+        <td>{{!it.boards[url].fileLimit}}</td>
+        <td>
+          {{? it.boards[url].hidden }}
+            <input type="checkbox" checked="checked" />
+          {{??}}
+            <input type="checkbox" />
+          {{?}}
+        </td>
+        <td>
+          {{? it.boards[url].closed }}
+            <input type="checkbox" checked="checked" />
+          {{??}}
+            <input type="checkbox" />
+          {{?}}
+        </td>
+        <td>{{!new Date(it.boards[url].createdAt).toDateString()}}</td>
+      </tr>
+    </table>
+    {{ } }}
+  </script>
+  <script type="text/template" id="template-bans">
+    <h1>Баны</h1>
+    {{!it.text || ''}}
+  </script>
+  <script type="text/template" id="template-error">
+    <h1>Ошибка!</h1>
+    <pre>{{!stack || ''}}</pre>
+  </script>
 </head>
 <body>
-  <div class="aside">
-    <div class="menu">
-      <a href="/dashboard.xhtml">
-        Панель управления
-      </a>
-      <a href="/dashboard.xhtml#users">
-        Пользователи
-      </a>
-      <a href="/dashboard.xhtml#bans">
-        Баны и запреты
-      </a>
-      <a href="/dashboard.xhtml#selfcheck">
-        Самопроверка (!)
-      </a>
+  <div class="content dash">
+    <div class="header">
+      <a class="button text bright" href="/api/v1/user.logout?redirect=/login.xhtml">admin</a>
     </div>
-  </div>
-  <div class="content">
-    <h1>Панель управления</h1>
-    <h2>Главное</h2>
-    <div class="card-row">
-      <div class="card">
-        <a href="/dashboard.xhtml#posts">1337 постов</a>
-      </div>
-      <div class="card">
-        <a href="/dashboard.xhtml#boards">10 разделов</a>
-      </div>
-      <div class="card">
-        <a href="/dashboard.xhtml#files">107 файлов</a>
+    <div class="floating">
+      <div class="limiter">
+        <div class="aside">
+          <div class="menu vertical">
+            <input type="search" placeholder="Поиск тредов и постов..."/>
+            <a href="/dashboard.xhtml#home" class="selected bold">
+              Панель управления
+            </a>
+            <a href="/dashboard.xhtml#boards">
+              Разделы
+            </a>
+            <a href="/dashboard.xhtml#users">
+              Пользователи
+            </a>
+            <a href="/dashboard.xhtml#bans">
+              Баны и запреты
+            </a>
+            <a href="/dashboard.xhtml#reports">
+              Жалобы
+            </a>
+            <a href="/dashboard.xhtml#settings">
+              Настройки
+            </a>
+          </div>
+        </div>
+        <div class="page-limiter">
+          <div class="page card">
+          </div>
+        </div>
       </div>
     </div>
   </div>

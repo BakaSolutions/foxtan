@@ -1,31 +1,217 @@
-* { position: relative; box-sizing: border-box }
-pre { margin: 0 }
-body { background: #efefef }
-.popups {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 100%;
-  max-width: 480px;
+* {
+  margin: 0;
+  box-sizing: border-box;
+  font-family: "Noto Sans", "Noto Sans Med", sans-serif;
 }
-.popups__popup {
-  display: block;
-  max-width: 100%;
-  max-height: 0;
-  margin: 10px 10px 0 0;
-  float: right;
-  overflow-y: hidden;
-  clear: both;
-  border-radius: 4px;
+html {
+  height: 100%;
+}
+body {
+  min-height: 100%;
+  color: #000;
+  background: #efefef;
+}
+a {
+  text-decoration: none;
+}
+pre {
+  margin: 0;
+  font-family: monospace
+}
+.disabled {
+  opacity: .54;
+}
+.selected.color {
   background: #fff;
-  border: 1px solid #000;
 }
-.popups__bold { font-weight: bold }
-.popups__text { padding: .5em }
-.popups__popup_visible { max-height: 100vh }
-.popups__popup_ok { background: #efe; color: #0a0; border-color: #0f0 }
-.popups__popup_info { background: #4ef; color: #44c; border-color: #44c }
-.popups__popup_warn { background: #fb9; color: #940; border-color: #940 }
-.popups__popup_error { background: #f99; color: #a00; border-color: #a00 }
-/* Animations */
-.popups__popup { transition: max-height .5s ease-in-out, opacity }
+.selected.shadow {
+  background: linear-gradient(
+    90deg,
+    transparent 90%,
+    rgba(0,0,0,.24)
+  );
+}
+.selected.bold {
+  font-weight: bold;
+}
+.bright {
+  color: rgba(255,255,255,.87);
+}
+p {
+  margin-bottom: 8px;
+}
+.login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.content {
+  position: absolute;
+  min-height: 100%;
+  width: 100%;
+
+  /*background: linear-gradient(
+    135deg,
+    #a36831 25%,
+    #be5028 0,
+    #be5028 50%,
+    #ab2d20 0,
+    #ab2d20 75%,
+    #3d283d 0
+  );*/
+  background: linear-gradient(
+    135deg,
+    #be5028 0%,
+    #ab2d20 50%,
+    #3d283d 100%
+  );
+  /*background: linear-gradient(
+    135deg,
+    #62becb 0%,
+    #99d9ea 100%
+  );*/
+}
+.content.dash {
+  background-size: auto 200px;
+}
+
+/* Login page */
+.login form {
+  position: relative;
+  display: block;
+  max-width: 250px;
+  max-height: 350px;
+}
+
+.card-row {
+  display: inline-flex;
+}
+.card {
+  background: #fff;
+  box-shadow: #000 2px 2px 4px;
+  padding: 16px;
+}
+input, button {
+  width: 100%;
+  border: none;
+  padding: 10px 5px;
+  font: 15px "Noto Sans";
+}
+input {
+  border-bottom: 1px grey solid;
+  background: #fff;
+  color: #000;
+}
+input:focus {
+  outline: none;
+  border-bottom: 1px #4caf50 solid;
+}
+form input {
+  margin-top: 8px;
+}
+form input:first-of-type {
+  margin-top: 0;
+}
+form input:last-of-type {
+  margin-bottom: 8px;
+}
+button {
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  font-weight: bold;
+  background: #4caf50;
+  padding: 10px 5px;
+  min-width: 64px;
+}
+button:before, .button:before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  background: #000;
+  transition: .2s opacity;
+  opacity: 0;
+}
+button:hover:before, .button:hover:before {
+  opacity: .2;
+}
+button:focus:before, .button:focus:before {
+  opacity: .4;
+}
+
+/* Dash page */
+.header {
+  background: rgba(0,0,0,.12);
+  width: 100%;
+  margin: 0 auto;
+  max-width: 1024px;
+  border-radius: 0 0 4px 4px;
+}
+.button {
+  position: relative;
+  min-width: 64px;
+  padding: 10px 5px;
+  display: inline-block;
+  text-align: center;
+  cursor: pointer;
+}
+
+.aside {
+  position: relative;
+  top: -40px;
+  width: 210px;
+}
+.aside input {
+  background: transparent;
+  color: #fff;
+  border: none;
+  padding-left: 12px;
+}
+.aside input::placeholder {
+  color: rgba(255,255,255,.87);
+}
+.menu.vertical a {
+  display: block;
+  padding: 12px;
+  text-decoration: none;
+  color: rgba(0,0,0,.87);
+}
+.menu a {
+  transition: background .4s;
+}
+.menu a:hover {
+  transition: background .2s;
+  background: rgba(0,0,0,.12);
+}
+.page {
+  width: 100%;
+  height: 100%;
+}
+.floating {
+  background: #ddd;
+  position: absolute;
+  top: 200px;
+  max-height: calc(100% - 200px);
+  padding-bottom: 16px;
+}
+.floating, .limiter {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+.limiter {
+  max-width: 1024px;
+  margin: 0 16px;
+}
+.page-limiter {
+  position: relative;
+  top: -100px;
+  width: 100%;
+  min-height: 100%;
+  height: calc(100% + 100px);
+  max-width: calc(100% - 210px);
+}

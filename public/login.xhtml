@@ -3,7 +3,7 @@
 <head>
   <meta  http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
   <title>Login &mdash; foxtan</title>
-  <link rel="stylesheet" href="/css/login.css" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
 </head>
 <body>
   <div class="content login">
@@ -13,6 +13,7 @@
         <small class="disabled">Войдите в свою учётную запись</small>
       </p>
       <input type="text" name="login" placeholder="Логин" required="required" />
+      <input type="hidden" name="redirect" value="/dashboard.xhtml" />
       <input type="password" name="password" placeholder="Пароль" required="required" />
       <button>Войти</button>
     </form>
