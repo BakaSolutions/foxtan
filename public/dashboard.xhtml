@@ -6,16 +6,31 @@
   <link rel="stylesheet" href="/css/dashboard.css" />
   <script type="text/javascript" src="/js/doT.min.js"></script>
   <script type="text/javascript" src="/js/dashboard.js"></script>
-  <script type="text/template" id="template-hello">
+  <template type="text/template" id="template-hello">
     <h1>Панель управления</h1>
     {{!it.text || ''}}
-  </script>
-  <script type="text/template" id="template-users">
+  </template>
+  <template type="text/template" id="template-users">
     <h1>Пользователи</h1>
-    {{!it.text || ''}}
-  </script>
-  <script type="text/template" id="template-boards">
+    <button>+ Добавить пользователя</button>
+    {{ for(var user of it.users) { }}
+      <table>
+        <tr>
+          <td>Логин</td>
+          <td>Разделы</td>
+          <td>Уровень</td>
+        </tr>
+        <tr>
+          <td>{{!user._id}}</td>
+          <td>{{!user.boards}}</td>
+          <td>{{!user.level}}</td>
+        </tr>
+      </table>
+    {{ } }}
+  </template>
+  <template type="text/template" id="template-boards">
     <h1>Разделы</h1>
+    <button>+ Добавить раздел</button>
     {{ for(var url in it.boards) { }}
     <table>
       <tr>
@@ -41,32 +56,40 @@
         <td>{{!it.boards[url].bumpLimit}}</td>
         <td>{{!it.boards[url].fileLimit}}</td>
         <td>
-          {{? it.boards[url].hidden }}
-            <input type="checkbox" checked="checked" />
+          {{? it.boards[url].closed }}
+            <input type="checkbox" checked="checked" disabled="disabled" />
           {{??}}
-            <input type="checkbox" />
+            <input type="checkbox" disabled="disabled" />
           {{?}}
         </td>
         <td>
           {{? it.boards[url].closed }}
-            <input type="checkbox" checked="checked" />
+            <input type="checkbox" checked="checked" disabled="disabled" />
           {{??}}
-            <input type="checkbox" />
+            <input type="checkbox" disabled="disabled" />
           {{?}}
         </td>
         <td>{{!new Date(it.boards[url].createdAt).toDateString()}}</td>
       </tr>
     </table>
     {{ } }}
-  </script>
-  <script type="text/template" id="template-bans">
+  </template>
+  <template type="text/template" id="template-bans">
     <h1>Баны</h1>
     {{!it.text || ''}}
-  </script>
-  <script type="text/template" id="template-error">
+  </template>
+  <template type="text/template" id="template-reports">
+    <h1>Жалобы</h1>
+    {{!it.text || ''}}
+  </template>
+  <template type="text/template" id="template-settings">
+    <h1>Настройки</h1>
+    {{!it.text || ''}}
+  </template>
+  <template type="text/template" id="template-error">
     <h1>Ошибка!</h1>
-    <pre>{{!stack || ''}}</pre>
-  </script>
+    <pre>{{!it.stack || ''}}</pre>
+  </template>
 </head>
 <body>
   <div class="content dash">

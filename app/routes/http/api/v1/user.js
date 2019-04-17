@@ -23,7 +23,9 @@ router.get('readAll', async ctx => {
         message: 'You must be logged as admin to perform this action'
       });
     }
-    let out = await UserLogic.readAll();
+    let out = {
+      users: await UserLogic.readAll()
+    };
     Controller.success(ctx, out);
   } catch (e) {
     Controller.fail(ctx, e);

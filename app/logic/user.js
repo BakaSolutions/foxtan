@@ -69,7 +69,10 @@ User.readAll = async () => {
     };
   }
 
-  return users;
+  return users.map(user => {
+    delete user.password;
+    return user;
+  });
 };
 
 User.deleteOne = async ({ login, password } = {}, checkPassword = true) => {
