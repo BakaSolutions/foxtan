@@ -63,6 +63,10 @@ module.exports = async (fields, params) => {
           return done('Nor post nor file is present');
         }
 
+        if (isThread && !files.length) {
+          return done('OP-post should contain at least one attachment');
+        }
+
         for (let i = 0; i < fileAmount; i++) {
           let file = files[i];
           if (CommonLogic.isEmpty(file)) {
