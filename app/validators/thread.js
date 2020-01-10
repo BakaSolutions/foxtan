@@ -1,9 +1,7 @@
-const ThreadModel = require('../models/mongo/thread');
-
 const Validator = require('../helpers/validator');
 
 module.exports = async (fields, params) => {
-  let {board, isThread, lastNumber, now} = params;
+  let {board, lastNumber, now} = params;
 
   let input = {
     _id: {
@@ -24,20 +22,7 @@ module.exports = async (fields, params) => {
     threadNumber: {
       value: fields.threadNumber,
       type: 'number',
-      func: async (v, done, approved) => {
-        if (!isThread) {
-          let thread = await ThreadModel.readOne({
-            board: approved.boardName,
-            thread: v
-          });
-          if (!thread) {
-            return done('Thread doesn\'t exist!');
-          }
-          if (thread.closed) {
-            return done('Thread is closed!');
-          }
-        }
-      }
+      required: true
     },
     number: {
       value: lastNumber,

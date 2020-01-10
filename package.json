@@ -23,7 +23,7 @@
     "dot": "^1.1.2",
     "figurecon": "github:rngnrs/figurecon",
     "ioredis": "^3.2.2",
-    "jwt-simple": "^0.5.1",
+    "jwt-simple": "^0.5.6",
     "koa": "^2.3.0",
     "koa-router": "^7.2.1",
     "mime": "^2.3.1",

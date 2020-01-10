@@ -8,7 +8,7 @@ const Tools = require('../helpers/tools');
 const Validator = require('../helpers/validator');
 
 module.exports = async (fields, params) => {
-  let {board, isThread, token, lastNumber, now} = params;
+  let {board, isThread, thread, token, lastNumber, now} = params;
 
   let input = {
     _id: {
@@ -31,7 +31,17 @@ module.exports = async (fields, params) => {
         ? lastNumber
         : fields.threadNumber,
       type: 'number',
-      required: true
+      required: true,
+      func: async (v, done) => {
+        if (!isThread) {
+          if (!thread) {
+            return done('Thread doesn\'t exist!');
+          }
+          if (thread.closed) {
+            return done('Thread is closed!');
+          }
+        }
+      }
     },
     number: {
       value: lastNumber,

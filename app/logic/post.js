@@ -28,21 +28,48 @@ Post.create = async (fields, token) => {
     now
   };
 
-  let validation = await require('../validators/post')(fields, params);
-  let postInput = CommonLogic.cleanEmpty(validation);
+  if (!params.isThread) {
+    params.thread = await ThreadModel.readOne({
+      board: fields.boardName,
+      thread: fields.threadNumber
+    });
+  }
+
+  let postValidation = await require('../validators/post')(fields, params);
 
   if (params.isThread) {
-    let validation = await require('../validators/thread')(fields, params);
-    let threadInput = CommonLogic.cleanEmpty(validation, params);
+    let threadValidation = await require('../validators/thread')(fields, params);
+    let threadInput = CommonLogic.cleanEmpty(threadValidation, params);
     await ThreadModel.create(threadInput); // Thread hook
   }
 
-  await PostModel.create(postInput); // Post hook
+  let postInput = CommonLogic.cleanEmpty(postValidation);
+  postInput = await PostModel.create(postInput); // Post hook
+
+  let { boardName, threadNumber, number, sage, createdAt } = postInput;
+
+  let count = await this.count({
+    query: {
+      boardName,
+      threadNumber
+    }
+  });
+  if (count <= config(`board.${boardName}.bumpLimit`, config('board.bumpLimit')) || !sage) {
+    await ThreadModel.update({
+      query: {
+        boardName,
+        number: threadNumber
+      },
+      fields: {
+        updatedAt: createdAt
+      }
+    })
+  }
 
   let out = [
-    postInput.boardName,
-    postInput.threadNumber,
-    postInput.number
+    boardName,
+    threadNumber,
+    number
   ];
 
   WS.broadcast('RNDR ' + JSON.stringify(out)); // post-hook

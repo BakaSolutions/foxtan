@@ -19,19 +19,6 @@ class PostModel extends SuperModel {
         }
       });
       return this.clearEntry(out.ops[0]);
-    }).then(async out => {
-      if (!out.sage) {
-        await ThreadModel.update({
-          query: {
-            boardName: out.boardName,
-            number: out.threadNumber
-          },
-          fields: {
-            updatedAt: new Date
-          }
-        })
-      }
-      return out;
     });
   }
 
