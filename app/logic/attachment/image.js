@@ -42,16 +42,25 @@ class ImageAttachment extends Attachment {
 
     if (proportion > 1.25) { // wide image
       buffer = this.image
-        .resize(cw, cw * 0.75)
-        .crop(sharp.strategy.attention);
+        .resize({
+          width: cw,
+          height: cw * 0.75,
+          position: sharp.strategy.attention
+        });
     } else if (proportion < 0.75) { // tall image
       buffer = this.image
-        .resize(ch * 0.75, ch)
-        .crop(sharp.strategy.attention);
+        .resize({
+          width: cw * 0.75,
+          height: cw,
+          position: sharp.strategy.attention
+        });
     } else {
       buffer = this.image
-        .resize(cw, ch)
-        .max();
+        .resize({
+          width: cw,
+          height: cw,
+          fit: 'contain'
+        });
     }
 
     buffer = await buffer
