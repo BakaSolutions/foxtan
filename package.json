@@ -18,7 +18,7 @@
   "homepage": "https://bitbucket.org/rngnrs/foxtan#readme",
   "dependencies": {
     "busboy": "^0.2.14",
-    "canvas": "^2.0.0-alpha.12",
+    "canvas": "^2.6.1",
     "crc": "^3.5.0",
     "dot": "^1.1.2",
     "figurecon": "github:rngnrs/figurecon",
@@ -27,7 +27,7 @@
     "koa": "^2.3.0",
     "koa-router": "^7.2.1",
     "mime": "^2.3.1",
-    "mmmagic": "^0.5.0",
+    "mmmagic": "^0.5.3",
     "sharp": "^0.23.4",
     "ws": "^3.1.0"
   },
