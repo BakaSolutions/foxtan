@@ -1,5 +1,4 @@
 const SuperModel = require('./super');
-const ThreadModel = require('./thread');
 const CounterModel = require('./counter');
 
 class PostModel extends SuperModel {
@@ -10,15 +9,16 @@ class PostModel extends SuperModel {
 
   async create() {
     return await super.create(...arguments).then(async out => {
+      let createdPost = out.ops[0]; // NOTE: super.create() can work with 1+ posts ;)
       await CounterModel.update({
         query: {
-          _id: out.ops[0].boardName
+          _id: createdPost.boardName
         },
         fields: {
-          lastPostNumber: out.ops[0].number
+          lastPostNumber: createdPost.number
         }
       });
-      return this.clearEntry(out.ops[0]);
+      return this.clearEntry(createdPost);
     });
   }
 
@@ -50,16 +50,16 @@ class PostModel extends SuperModel {
 
   /**
    * Reads a post with defined number
-   * @param {String} board
-   * @param {String|Number} post
+   * @param {String} boardName
+   * @param {Number} postNumber
    * @param {Boolean} [clear]
    * @return {Promise}
    */
-  async readOne({board, post, clear}) {
+  async readOne({boardName, postNumber: number, clear} = {}) {
     return await this.read({
       query: {
-        boardName: board,
-        number: +post
+        boardName,
+        number
       },
       limit: 1,
       clear
@@ -68,18 +68,17 @@ class PostModel extends SuperModel {
 
   /**
    * Counts how many posts are exist with defined board
-   * @param {String} board
-   * @param {Number} [thread]
-   * @param {Number} limit
+   * @param {String} boardName
+   * @param {Number} [threadNumber]
+   * @param {Number} [limit]
    * @return {Promise}
    */
-  async countPage({board, thread, limit} = {}) {
-    let query = {};
-    if (board) {
-      query.boardName = board;
-    }
-    if (thread) {
-      query.threadNumber = thread;
+  async countPage({boardName, threadNumber, limit} = {}) {
+    let query = {
+      boardName
+    };
+    if (threadNumber) {
+      query.threadNumber = threadNumber;
     }
     let out = await this.count({ query });
     return Math.ceil(out / limit);
@@ -87,19 +86,17 @@ class PostModel extends SuperModel {
 
   /**
    * Reads post pages
-   * @param {String} board
-   * @param {Number} [thread]
+   * @param {String} boardName
+   * @param {Number} [threadNumber]
    * @param {Number} [page]
    * @param {Number} [limit]
    * @return {Promise}
    */
-  async readPage({board, thread, page = 0, limit = 0}) {
+  async readPage({boardName, threadNumber, page = 0, limit = 0}) {
     let offset = page * limit;
     return await this.readAll({
-      query: {
-        boardName: board,
-        threadNumber: thread
-      },
+      boardName,
+      threadNumber,
       order: 'createdAt',
       orderBy: 'ASC',
       limit,
@@ -109,21 +106,21 @@ class PostModel extends SuperModel {
 
   /**
    * Reads all posts
-   * @param {String} board
-   * @param {Number} [thread]
+   * @param {String} boardName
+   * @param {Number} [threadNumber]
    * @param {String} [order]
    * @param {String} [orderBy]
    * @param {Number} [limit]
    * @param {Number} [offset]
    * @return {Promise}
    */
-  async readAll({board, thread, order = 'createdAt', orderBy = 'ASC', limit = null, offset = null}) {
+  async readAll({boardName, threadNumber, order = 'createdAt', orderBy = 'ASC', limit = null, offset = null}) {
     let query = {};
-    if (board) {
-      query.boardName = board;
+    if (boardName) {
+      query.boardName = boardName;
     }
-    if (thread) {
-      query.threadNumber = thread;
+    if (threadNumber) {
+      query.threadNumber = threadNumber;
     }
     return await this.read({
       query,

@@ -44,22 +44,22 @@ async function get(command, message, id, ws) {
 
 async function board(command, message, id, ws) {
   try {
-    let [board, action, limit, lastReplies, lastRepliesForFixed] = message.split(' ');
+    let [boardName, action, limit, lastReplies, lastRepliesForFixed] = message.split(' ');
     let page, out;
 
     limit = parseInt(limit);
+    lastReplies = parseInt(lastReplies);
 
     switch (action.toLocaleUpperCase()) {
       case "FEED":
         page = limit;
-        limit = +lastReplies;
-        out = await ThreadLogic.readFeedPage(board, page, limit);
+        limit = lastReplies;
+        out = await ThreadLogic.readFeedPage(boardName, page, limit);
         break;
       default:
         page = parseInt(action);
-        lastReplies = parseInt(lastReplies);
         lastRepliesForFixed = parseInt(lastRepliesForFixed);
-        out = await ThreadLogic.readPage(board, page, limit, lastReplies, lastRepliesForFixed);
+        out = await ThreadLogic.readPage(boardName, page, limit, lastReplies, lastRepliesForFixed);
         break;
     }
     return Controller.success(ws, out, id);
@@ -70,16 +70,16 @@ async function board(command, message, id, ws) {
 
 async function count(command, message, id, ws) {
   try {
-    let [action, board, limit] = message.split(' ');
+    let [action, boardName, limit] = message.split(' ');
     limit = parseInt(limit);
     let out;
 
     switch (action) {
       case "THREADS":
-        out = await ThreadLogic.countPage({board, limit});
+        out = await ThreadLogic.countPage({boardName, limit});
         break;
       case "POSTS":
-        out = await PostLogic.countPage({board, limit});
+        out = await PostLogic.countPage({boardName, limit});
     }
     return Controller.success(ws, out, id);
   } catch (e) {

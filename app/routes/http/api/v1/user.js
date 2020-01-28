@@ -6,58 +6,63 @@ const Controller = require('../../index');
 const UserLogic = require('../../../../logic/user');
 
 router.post('create', async ctx => {
-  let query = ctx.request.body;
+  try {
+    let { login, password } = ctx.request.body;
 
-  await UserLogic.create(query)
-    .then(
-      out => Controller.success(ctx, out),
-      out => Controller.fail(ctx, out)
-    )
+    let out = await UserLogic.create({ login, password });
+    return Controller.success(ctx, out)
+  } catch (e) {
+    return Controller.fail(ctx, e);
+  }
 });
 
 router.get('readAll', async ctx => {
-  if (!UserLogic.hasPermission(ctx.request.token, config('permissions.users.manage'))) {
-    return ctx.throw(403, {
-      message: 'You must be logged as admin to perform this action'
-    });
+  try {
+    if (!UserLogic.hasPermission(ctx.request.token, config('permissions.users.manage'))) {
+      return ctx.throw(403, {
+        message: 'You must be logged as admin to perform this action'
+      });
+    }
+    let out = await UserLogic.readAll();
+    return Controller.success(ctx, out)
+  } catch (e) {
+    return Controller.fail(ctx, e);
   }
-  await UserLogic.readAll()
-    .then(
-      out => Controller.success(ctx, out),
-      out => Controller.fail(ctx, out)
-    )
 });
 
 router.post('login', async ctx => {
-  let query = ctx.request.body;
+  try {
+    let { login, password, redirect } = ctx.request.body;
 
-  await UserLogic.login(query)
-    .then(token => UserLogic.setToken(ctx, token))
-    .then(
-      out => {
-        if (query.redirect) {
-          return ctx.redirect(query.redirect);
-        }
-        Controller.success(ctx, out)
-      },
-      out => Controller.fail(ctx, out)
-    )
+    let token = await UserLogic.login({ login, password });
+    let out = UserLogic.setToken(ctx, token);
+
+    if (redirect) {
+      return ctx.redirect(redirect);
+    }
+
+    return Controller.success(ctx, out);
+  } catch (e) {
+    return Controller.fail(ctx, e);
+  }
 });
 
 router.get('logout', async ctx => {
-  ctx.cookies.set('accessToken');
+  ctx.cookies.set('accessToken', null);
   Controller.success(ctx, 'OK');
 });
 
 router.post('delete', async ctx => {
-  let { login } = ctx.request.body;
+  try {
+    let { body: { login }, token } = ctx.request;
 
-  let grantedUser = UserLogic.hasPermission(ctx.request.token, config('permissions.users.delete'));
+    let grantedUser = UserLogic.hasPermission(token, config('permissions.users.delete'));
 
-  await UserLogic.deleteOne({ login }, !grantedUser).then(
-    out => Controller.success(ctx, out),
-    out => Controller.fail(ctx, out)
-  )
+    let out = await UserLogic.deleteOne({ login }, !grantedUser);
+    return Controller.success(ctx, out);
+  } catch (e) {
+    return Controller.fail(ctx, e);
+  }
 });
 
 module.exports = router;

@@ -7,7 +7,7 @@ Common.hasEmpty = input => {
     return Common.isEmpty(input);
   }
   let out = [];
-  for (let key of input) {
+  for (let key in input) {
     if (Common.isEmpty(input[key])) {
       out.push(key);
     }
@@ -23,7 +23,7 @@ Common.isEmpty = input => (typeof input === 'undefined')
   || (Array.isArray(input) && !input.length);
 
 Common.cleanEmpty = input => {
-  for (let key of input) {
+  for (let key in input) {
     if (Common.isEmpty(input[key])) {
       delete input[key];
     }

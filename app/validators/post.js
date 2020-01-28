@@ -113,12 +113,13 @@ module.exports = async (fields, params) => {
       value: fields.op,
       func: async (v, done, approved) => {
         if (!isThread) { // OP-post check
+          let {boardName, threadNumber, id} = approved;
           let opPost = await PostModel.readOne({
-            board: fields.boardName,
-            post: fields.threadNumber,
+            boardName,
+            threadNumber,
             clear: false
           });
-          if (v && (opPost.id === approved.id)) {
+          if (v && (opPost.id === id)) {
             return done(null, true);
           }
         } else if (v) {

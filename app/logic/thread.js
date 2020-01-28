@@ -8,7 +8,12 @@ const ThreadModel = require('../models/mongo/thread');
 
 let Thread = module.exports = {};
 
-Thread.countPage = async ({board: boardName, limit} = {}) => {
+/**
+ * @param {String} boardName
+ * @param {Number} [limit]
+ * @returns {Promise}
+ */
+Thread.countPage = async ({ boardName, limit}) => {
   if (!boardName) {
     throw {
       status: 400
@@ -18,11 +23,17 @@ Thread.countPage = async ({board: boardName, limit} = {}) => {
     limit = config('board.threadsPerPage');
   }
   return await ThreadModel.countPage({
-    board: boardName,
+    boardName,
     limit
   });
 };
 
+/**
+ * @param {String} boardName
+ * @param {Number} threadNumber
+ * @param {Number} [last]
+ * @returns {Promise}
+ */
 Thread.readOne = async (boardName, threadNumber, last = config('board.lastPostsNumber')) => {
   if (!Tools.isNumber(threadNumber)) {
     throw {
@@ -37,7 +48,7 @@ Thread.readOne = async (boardName, threadNumber, last = config('board.lastPostsN
     };
   }
 
-  let out = await readOneThread(boardName, threadNumber);
+  let out = await readOneThread(boardName, +threadNumber);
 
   let count = await PostModel.count({
     query: {
@@ -53,14 +64,14 @@ Thread.readOne = async (boardName, threadNumber, last = config('board.lastPostsN
   }
 
   let opPost = await PostLogic.readOne({
-    board: boardName,
-    post: threadNumber
+    boardName,
+    postNumber: threadNumber
   });
   out.posts = [ opPost ];
 
   let posts = await PostLogic.readAll({
-    board: boardName,
-    thread: threadNumber,
+    boardName,
+    threadNumber,
     order: 'createdAt',
     orderBy: 'ASC',
     limit: last,
@@ -77,6 +88,14 @@ Thread.readOne = async (boardName, threadNumber, last = config('board.lastPostsN
   return out;
 };
 
+/**
+ * @param {String} boardName
+ * @param {Number} page
+ * @param {Number} [limit]
+ * @param {Number} [lastReplies]
+ * @param {Number} [lastRepliesForFixed]
+ * @returns {Promise}
+ */
 Thread.readPage = async (boardName, page, limit, lastReplies, lastRepliesForFixed) => {
   if (!Tools.isNumber(page)) {
     throw {
@@ -95,7 +114,7 @@ Thread.readPage = async (boardName, page, limit, lastReplies, lastRepliesForFixe
   }
 
   let threads = await ThreadModel.readPage({
-    board: boardName,
+    boardName,
     page,
     limit
   });
@@ -106,8 +125,8 @@ Thread.readPage = async (boardName, page, limit, lastReplies, lastRepliesForFixe
   }
   for (let i = 0; i < threads.length; i++) {
     let opPost = await PostLogic.readOne({
-      board: boardName,
-      post: threads[i].number
+      boardName,
+      postNumber: threads[i].number
     });
     if (!opPost) {
       let message = `There's a thread, but no OP-post: ${boardName}/${threads[i].number}`;
@@ -121,8 +140,8 @@ Thread.readPage = async (boardName, page, limit, lastReplies, lastRepliesForFixe
 
     if (lr) {
       let posts = await PostLogic.readAll({
-        board: boardName,
-        thread: threads[i].number,
+        boardName,
+        threadNumber: threads[i].number,
         order: 'createdAt',
         orderBy: 'DESC',
         limit: lr
@@ -151,12 +170,19 @@ Thread.readPage = async (boardName, page, limit, lastReplies, lastRepliesForFixe
     threads,
     lastPostNumber: await CounterModel.readOne(boardName),
     pageCount: await ThreadModel.countPage({
-      board: boardName,
+      boardName,
       limit
     })
   };
 };
 
+/**
+ * @param {String} boardName
+ * @param {Number} page
+ * @param {Number} limit
+ * @param {String} order
+ * @returns {Promise}
+ */
 Thread.readFeedPage = async (boardName, page, limit = config('board.threadsPerPage'), order = 'createdAt') => {
   if (!Tools.isNumber(page)) {
     throw {
@@ -166,7 +192,7 @@ Thread.readFeedPage = async (boardName, page, limit = config('board.threadsPerPa
   }
 
   let feed = await PostLogic.readAll({
-    board: boardName,
+    boardName,
     order,
     orderBy: 'DESC',
     limit,
@@ -181,12 +207,19 @@ Thread.readFeedPage = async (boardName, page, limit = config('board.threadsPerPa
     feed,
     lastPostNumber: await CounterModel.readOne(boardName),
     pageCount: await PostModel.countPage({
-      board: boardName,
+      boardName,
       limit
     })
   };
 };
 
+/**
+ * @param {String} boardName
+ * @param {Number} page
+ * @param {Number} limit
+ * @param {String} order
+ * @returns {Promise}
+ */
 Thread.readCatPage = async (boardName, page, limit = config('board.threadsPerPage'), order = 'createdAt') => {
   if (!Tools.isNumber(page)) {
     throw {
@@ -196,7 +229,7 @@ Thread.readCatPage = async (boardName, page, limit = config('board.threadsPerPag
   }
 
   let feed = await ThreadModel.readAll({
-    board: boardName,
+    boardName,
     order,
     orderBy: 'DESC',
     limit,
@@ -209,8 +242,8 @@ Thread.readCatPage = async (boardName, page, limit = config('board.threadsPerPag
   }
   for (let i = 0; i < feed.length; i++) {
     feed[i].opPost = await PostLogic.readOne({
-      board: boardName,
-      post: feed[i].number
+      boardName,
+      postNumber: feed[i].number
     });
   }
   return feed;
@@ -225,20 +258,19 @@ Thread.syncData = async () => {
     lastPostNumbers: await CounterModel.read(),
     threadCounts: {}
   };
-  await ThreadModel.readAll().then(async threads => {
-    for (let i = 0; i < threads.length; i++) {
-      let { boardName, number } = threads[i];
-      if (typeof out.threadCounts[boardName] === 'undefined') {
-        out.threadCounts[boardName] = {};
-      }
-      out.threadCounts[boardName][+number] = await PostModel.count({
-        query: {
-          boardName,
-          threadNumber: +number
-        }
-      });
+  let threads = await ThreadModel.readAll();
+  for (let i = 0; i < threads.length; i++) {
+    let { boardName, number } = threads[i];
+    if (typeof out.threadCounts[boardName] === 'undefined') {
+      out.threadCounts[boardName] = {};
     }
-  });
+    out.threadCounts[boardName][number] = await PostModel.count({
+      query: {
+        boardName,
+        threadNumber: number
+      }
+    });
+  }
   return out;
 };
 
@@ -259,8 +291,7 @@ async function changeThreadBoolean(boardName, threadNumber, param) {
 
   let key = Object.keys(param)[0];
   let value = param[key];
-
-  let isParamSetManually = typeof value !== 'undefined';
+  let isParamSetManually = (typeof value !== 'undefined');
   let realValue = isParamSetManually
     ? value
     : !thread[key]; // reverse exist if not set
@@ -280,10 +311,15 @@ async function changeThreadBoolean(boardName, threadNumber, param) {
   };
 }
 
+/**
+ * @param {String} boardName
+ * @param {Number} threadNumber
+ * @returns {Promise}
+ */
 async function readOneThread(boardName, threadNumber) {
   let thread = await ThreadModel.readOne({
-    board: boardName,
-    thread: threadNumber
+    boardName,
+    threadNumber
   });
   if (!thread) {
     throw {

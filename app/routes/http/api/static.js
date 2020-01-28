@@ -31,95 +31,104 @@ router.all('/', async ctx => {
 });
 
 router.get('/boards.json', async ctx => {
-  await BoardLogic.readAll().then(
-    out => Controller.success(ctx, out),
-    out => Controller.fail(ctx, out)
-  )
+  try {
+    let out = await BoardLogic.readAll();
+    return Controller.success(ctx, out);
+  } catch (e) {
+    return Controller.fail(ctx, e);
+  }
 });
 
 router.get('/:board/board.json', async ctx => {
-  let board = ctx.params.board;
-
-  await BoardLogic.readOne(board).then(
-    out => Controller.success(ctx, out),
-    out => Controller.fail(ctx, out)
-  )
+  try {
+    let { board } = ctx.params;
+    let out = await BoardLogic.readOne(board);
+    return Controller.success(ctx, out);
+  } catch (e) {
+    return Controller.fail(ctx, e);
+  }
 });
 
-/**
+/*
  * Why do we use ThreadLogic instead of BoardLogic in the routers below?
  * Coz we grab threads, not boards!
+ * Is it correct? ( о.о)?
  */
 router.get('/:board/pageCount.json', async ctx => {
-  let board = ctx.params.board;
+  try {
+    let { board } = ctx.params;
 
-  await ThreadLogic.countPage({
-    board: board,
-    limit: ctx.request.query.limit
-  }).then(
-    out => Controller.success(ctx, {pageCount: out}),
-    out => Controller.fail(ctx, out)
-  )
+    let out = await ThreadLogic.countPage({
+      board,
+      limit: ctx.request.query.limit
+    });
+    return Controller.success(ctx, {pageCount: out});
+  } catch (e) {
+    return Controller.fail(ctx, e);
+  }
 });
 
 router.get('/:board/:page.json', async ctx => {
-  let board = ctx.params.board;
-  let page = +ctx.params.page;
-
-  await ThreadLogic.readPage(board, page, ctx.request.query.limit).then(
-    out => Controller.success(ctx, out),
-    out => Controller.fail(ctx, out)
-  );
+  try {
+    let { board, page } = ctx.params;
+    let out = await ThreadLogic.readPage(board, +page, ctx.request.query.limit);
+    return Controller.success(ctx, out);
+  } catch (e) {
+    return Controller.fail(ctx, e);
+  }
 });
 
 router.get('/:board/feed/:page.json', async ctx => {
-  let board = ctx.params.board;
-  let page = +ctx.params.page;
-
-  await ThreadLogic.readPage(board, page).then(
-    out => Controller.success(ctx, out),
-    out => Controller.fail(ctx, out)
-  );
+  try {
+    let { board, page } = ctx.params;
+    let out = await ThreadLogic.readFeedPage(board, +page);
+    return Controller.success(ctx, out);
+  } catch (e) {
+    return Controller.fail(ctx, e);
+  }
 });
 
 router.get('/:board/cat/:type/:page.json', async ctx => {
-  let {board, page, type} = ctx.params;
+  try {
+    let { board, page, type } = ctx.params;
 
-  let order;
-  switch (type) {
-    case 'recent':
-      order = 'createdAt';
-      break;
-    case 'bumped':
-      order = 'updatedAt';
-      break;
-    default:
-      return ctx.throw(400, 'Wrong `type` parameter.');
+    let order;
+    switch (type) {
+      case 'recent':
+        order = 'createdAt';
+        break;
+      case 'bumped':
+        order = 'updatedAt';
+        break;
+      default:
+        return ctx.throw(400, 'Wrong `type` parameter.');
+    }
+
+    let out = await ThreadLogic.readCatPage(board, page, order);
+    return Controller.success(ctx, out);
+  } catch (e) {
+    return Controller.fail(ctx, e);
   }
-
-  await ThreadLogic.readCatPage(board, page, order).then(
-    out => Controller.success(ctx, out),
-    out => Controller.fail(ctx, out)
-  );
 });
 
 router.get('/:board/res/:thread/:last.json', async ctx => {
-  let board = ctx.params.board;
-  let thread = +ctx.params.thread;
-  let last = +ctx.params.last;
-  await ThreadLogic.readOne(board, thread, last).then(
-    out => Controller.success(ctx, out),
-    out => Controller.fail(ctx, out)
-  );
+  try {
+    let { board, thread, last } = ctx.params;
+    let out = await ThreadLogic.readOne(board, +thread, +last);
+    return Controller.success(ctx, out);
+  } catch (e) {
+    return Controller.fail(ctx, e);
+  }
 });
 
 router.get('/:board/res/:thread.json', async ctx => {
-  let board = ctx.params.board;
-  let thread = +ctx.params.thread;
-  await ThreadLogic.readOne(board, thread).then(
-      out => Controller.success(ctx, out),
-      out => Controller.fail(ctx, out)
-  );
+  try {
+    let { board, thread } = ctx.params;
+    let out = await ThreadLogic.readOne(board, +thread);
+    return Controller.success(ctx, out);
+  } catch (e) {
+    return Controller.fail(ctx, e);
+  }
 });
 
 module.exports = router;

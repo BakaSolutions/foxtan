@@ -58,7 +58,7 @@ Board.readAll = async () => {
   });
 };
 
-Board.delete = async ({board}) => {
+Board.delete = async ({board} = {}) => {
   let boardInput = { board };
 
   let keys = CommonLogic.hasEmpty(boardInput);

@@ -8,6 +8,11 @@ class ThreadModel extends SuperModel {
     super('thread');
   }
 
+  /**
+   * @param {Number} [limit]
+   * @param {Boolean} [clear]
+   * @returns {Promise}
+   */
   async read({limit, clear = true} = {}) {
     return await super.read(...arguments).then(async out => {
       if (!out || !clear) {
@@ -28,24 +33,29 @@ class ThreadModel extends SuperModel {
 
   /**
    * Reads a thread with defined number
-   * @param {String} board
-   * @param {Number} thread
+   * @param {String} boardName
+   * @param {Number} threadNumber
    * @return {Promise}
    */
-  async readOne({board, thread} = {}) {
+  async readOne({boardName, threadNumber} = {}) {
     return await this.read({
       query: {
-        boardName: board,
-        number: thread
+        boardName,
+        number: threadNumber
       },
       limit: 1
     });
   }
 
-  async countPage({board, limit} = {}) {
+  /**
+   * @param {String} boardName
+   * @param {number} limit
+   * @returns {Promise<number>}
+   */
+  async countPage({boardName, limit} = {}) {
     let out = await this.count({
       query: {
-        boardName: board
+        boardName
       }
     });
     return Math.ceil(out / limit);
@@ -53,15 +63,15 @@ class ThreadModel extends SuperModel {
 
   /**
    * Reads thread pages
-   * @param {String} [board]
+   * @param {String} [boardName]
    * @param {Number} [page]
    * @param {Number} [limit]
    * @return {Promise}
    */
-  async readPage({board = null, page = 0, limit = config('board.threadsPerPage')} = {}) {
+  async readPage({boardName = null, page = 0, limit = config('board.threadsPerPage')} = {}) {
     let offset = page * limit;
     return await this.readAll({
-      board,
+      boardName,
       order: ['pinned', 'updatedAt'],
       orderBy: ['DESC'],
       limit,
@@ -71,17 +81,17 @@ class ThreadModel extends SuperModel {
 
   /**
    * Reads thread posts
-   * @param {String} [board]
+   * @param {String} [boardName]
    * @param {String} [order]
    * @param {String} [orderBy]
    * @param {Number} [limit]
    * @param {Number} [offset]
    * @return {Promise}
    */
-  async readAll({board = null, order = 'createdAt', orderBy = 'DESC', limit = null, offset = null} = {}) {
+  async readAll({boardName = null, order = 'createdAt', orderBy = 'DESC', limit = null, offset = null} = {}) {
     let query = {};
-    if (board) {
-      query.boardName = board;
+    if (boardName) {
+      query.boardName = boardName;
     }
 
     return await this.read({
@@ -114,19 +124,19 @@ class ThreadModel extends SuperModel {
 
     let out = {};
     for (let i = 0; i < threads.length; i++) {
-      let board = boards[i] || boards[0];
-      let number = threads[i] || null;
-      if (!out[board]) {
-        out[board] = {};
+      let boardName = boards[i] || boards[0];
+      let threadNumber = threads[i] || null;
+      if (!out[boardName]) {
+        out[boardName] = {};
       }
       let postEntry = await PostModel.readAll({
-        board,
-        thread,
+        boardName,
+        threadNumber,
         order: 'createdAt',
         orderBy: 'DESC',
         limit: 1
       });
-      out[board][number] = postEntry !== null
+      out[boardName][threadNumber] = postEntry !== null
         ? postEntry.number
         : null;
     }

@@ -10,13 +10,15 @@ module.exports = [
 ];
 
 async function post(command, message, id, ws) {
-  let [ board, post ] = message.split(':');
-  let input = {
-    board,
-    post: +post
-  };
-  await PostLogic.readOne(input).then(
-    out => Controller.success(ws, out, id),
-    out => Controller.fail(ws, out, id)
-  );
+  try {
+    let [ boardName, postNumber ] = message.split(':');
+    postNumber = +postNumber;
+    let out = await PostLogic.readOne({
+      boardName,
+      postNumber
+    });
+    return Controller.success(ws, out, id);
+  } catch (e) {
+    return Controller.fail(ws, e, id);
+  }
 }

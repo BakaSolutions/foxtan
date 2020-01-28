@@ -10,10 +10,11 @@ module.exports = [
 ];
 
 async function thread(command, message, id, ws) {
-  let [ board, thread, last ] = message.split(':');
-
-  await ThreadLogic.readOne(board, +thread, +last).then(
-    out => Controller.success(ws, out, id),
-    out => Controller.fail(ws, out, id)
-  );
+  try {
+    let [ boardName, threadNumber, last ] = message.split(':');
+    let out = await ThreadLogic.readOne(boardName, +threadNumber, +last);
+    return Controller.success(ws, out, id);
+  } catch (e) {
+    return Controller.fail(ws, e, id);
+  }
 }

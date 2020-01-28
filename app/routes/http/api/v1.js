@@ -4,10 +4,12 @@ const CounterModel = require('../../../models/mongo/counter');
 const Controller = require('../index');
 
 router.get('/lastPostNumbers.json', async ctx => {
-  return await CounterModel.read().then(
-    out => Controller.success(ctx, out),
-    out => Controller.fail(ctx, out)
-  );
+  try {
+    let out = await CounterModel.read();
+    return Controller.success(ctx, out);
+  } catch (e) {
+    return Controller.fail(ctx, e);
+  }
 });
 
 router.get('/api/v1/', async ctx => {
@@ -15,10 +17,12 @@ router.get('/api/v1/', async ctx => {
 });
 
 router.get('/api/v1/sync.data', async ctx => {
-  return await ThreadLogic.syncData().then(
-    out => Controller.success(ctx, out),
-    out => Controller.fail(ctx, out)
-  );
+  try {
+    let out = await ThreadLogic.syncData();
+    return Controller.success(ctx, out);
+  } catch (e) {
+    return Controller.fail(ctx, e);
+  }
 });
 
 module.exports = router;

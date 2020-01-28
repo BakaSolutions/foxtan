@@ -82,9 +82,7 @@ class SuperModel {
 
     let type = ((query === null)
       ? fields.length
-      : Object.keys(query).length) === 1
-        ? 'updateOne'
-        : 'updateMany';
+      : Object.keys(query).length);
 
     return await Model[type === 1 ? 'updateOne' : 'updateMany'](query, {$set: fields}, {upsert: true});
   }

@@ -13,25 +13,24 @@ const Tools = require('../helpers/tools');
 const Websocket = require('../routes/websocket');
 let WS = Websocket();
 
-let Post = module.exports = {};
+let PostLogic = module.exports = {};
 
-Post.create = async (fields, token) => {
+PostLogic.create = async (fields, token) => {
   let now = new Date;
-  let lastNumber = await CounterModel.readOne(fields.boardName);
-  ++lastNumber;
 
   let params = {
     board: await BoardModel.readOne(fields.boardName),
     isThread: CommonLogic.isEmpty(fields.threadNumber),
     token,
-    lastNumber,
+    lastNumber: await CounterModel.readOne(fields.boardName),
     now
   };
+  params.lastNumber++;
 
   if (!params.isThread) {
     params.thread = await ThreadModel.readOne({
-      board: fields.boardName,
-      thread: fields.threadNumber
+      boardName: fields.boardName,
+      threadNumber: fields.threadNumber
     });
   }
 
@@ -48,20 +47,22 @@ Post.create = async (fields, token) => {
 
   let { boardName, threadNumber, number, sage, createdAt } = postInput;
 
-  let count = await this.count({
+  let count = await PostModel.count({
     query: {
       boardName,
       threadNumber
     }
   });
-  if (count <= config(`board.${boardName}.bumpLimit`, config('board.bumpLimit')) || !sage) {
+
+  let { bumpLimit } = params.board;
+  if (count <= bumpLimit || config('board.bumpLimit') || !sage) {
     await ThreadModel.update({
       query: {
         boardName,
         number: threadNumber
       },
       fields: {
-        updatedAt: createdAt
+        updatedAt: now
       }
     })
   }
@@ -74,23 +75,28 @@ Post.create = async (fields, token) => {
 
   WS.broadcast('RNDR ' + JSON.stringify(out)); // post-hook
 
-  return await Post.readOne({
-    board: out[0],
-    post: out[2]
+  return await PostLogic.readOne({
+    boardName,
+    postNumber: number
   });
 };
 
-Post.readOne = async fields => {
-  let board = fields.board;
-  let post = +fields.post;
+/**
+ * Reads one post with attachments.
+ * @param {String} boardName
+ * @param {Number} postNumber
+ * @returns {Promise}
+ */
+PostLogic.readOne = async ({boardName, postNumber} = {}) => {
+  postNumber = +postNumber;
 
-  if (!board) {
+  if (!boardName) {
     throw {
       status: 400,
       message: `Board parameter is missed.`
     };
   }
-  if (!post || post < 1) {
+  if (!postNumber || postNumber < 1) {
     throw {
       status: 400,
       message: `Post parameter is missed.`
@@ -98,14 +104,14 @@ Post.readOne = async fields => {
   }
 
   let out = await PostModel.readOne({
-    board,
-    post,
+    boardName,
+    postNumber,
     clear: true
   });
 
   if (!out) {
-    let counter = await CounterModel.readOne(board);
-    let wasPosted = (post <= counter);
+    let counter = await CounterModel.readOne(boardName);
+    let wasPosted = (postNumber <= counter);
     let status = wasPosted ? 410 : 404;
     throw {
       status,
@@ -123,8 +129,13 @@ Post.readOne = async fields => {
   return await _appendAttachments(out);
 };
 
-Post.countPage = async ({board, limit} = {}) => {
-  if (!board) {
+/**
+ * @param {String} boardName
+ * @param {Number} [limit]
+ * @returns {Promise}
+ */
+PostLogic.countPage = async ({boardName, limit} = {}) => {
+  if (!boardName) {
     throw {
       status: 400
     };
@@ -133,17 +144,27 @@ Post.countPage = async ({board, limit} = {}) => {
     limit = config('board.threadsPerPage');
   }
   return await PostModel.countPage({
-    board,
+    boardName,
     limit
   });
 };
 
-Post.readAll = async args => {
+/**
+ * Reads all posts
+ * @param {String} boardName
+ * @param {Number} [threadNumber]
+ * @param {String} [order]
+ * @param {String} [orderBy]
+ * @param {Number} [limit]
+ * @param {Number} [offset]
+ * @return {Promise}
+ */
+PostLogic.readAll = async args => {
   let posts = await PostModel.readAll(args);
   return Promise.all(posts.map(_appendAttachments));
 };
 
-Post.delete = async (fields, checkPassword) => {
+PostLogic.delete = async (fields, checkPassword) => {
   if (!fields.post) {
     throw {
       status: 400,
@@ -192,11 +213,11 @@ async function deletePosts(posts, password, checkPassword) {
 }
 
 
-async function deletePost({boardName, postNumber, threadNumber} = {}, password, checkPassword) {
+async function deletePost({boardName, threadNumber, postNumber} = {}, password, checkPassword) {
   let post = await PostModel.readOne({
-    board: boardName,
-    post: +postNumber || null,
+    boardName,
     threadNumber: +threadNumber || null,
+    postNumber: +postNumber || null,
     clear: false
   });
   if (!post) {
@@ -267,8 +288,8 @@ async function deleteFile(hash, boardName, postNumber, password, checkPassword) 
   }
 
   let post = await PostModel.readOne({
-    board: boardName,
-    post: postNumber,
+    boardName,
+    postNumber,
     clear: false
   });
   if (!post) {
