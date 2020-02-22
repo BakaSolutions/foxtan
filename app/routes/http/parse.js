@@ -47,7 +47,7 @@ module.exports = ctx => {
     ctx.req.pipe(busboy);
     setTimeout(() => resolve('Body parsing timeout'), 5000);
 
-    busboy.on('file', (fieldname, file, filename, encoding) => {
+    busboy.on('file', async (fieldname, file, filename, encoding) => {
 
       if (!filename) { //TODO: Filter mimetype
         return file.resume();
@@ -56,8 +56,8 @@ module.exports = ctx => {
       let extension = path.parse(filename).ext;
       let tmpPath = path.join(config('directories.temporary'), +new Date + extension);
 
-      setTimeout(() => {
-        FS.unlinkSync(tmpPath);
+      setTimeout(async () => {
+        await FS.unlink(tmpPath);
       }, 300000);
 
 

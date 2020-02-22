@@ -1,6 +1,6 @@
-const PostLogic = require('../../../logic/post');
+const PostLogic = require('../../logic/post');
 
-const Controller = require('../index');
+const Controller = require('../../helpers/ws.js');
 
 module.exports = [
   {

@@ -1,35 +1,47 @@
-const Koa = require('koa');
 const http = require('http');
 
-const app = new Koa();
-const server = http.createServer();
-
-const config = require('./helpers/config');
-const routes = require('./routes');
+const config = require('./helpers/config.js');
+const Tools = require('./helpers/tools.js');
+const routes = require('./routes/index.js');
 
 (async () => {
+  let log = logError(console);
+  catchThrown(log);
 
-  server.on('request', app.callback());
-  await routes.initWebsocket(server);
-  await routes.initHTTP(app);
+  try {
+    const server = http.createServer();
 
-  switch (config('server.output')) {
+    await routes.initWebsocket(server);
+    await routes.initHTTP(server);
 
-    case 'socket':
-      server.listen(config('server.socket'), onListening(config('server.socket')));
-      break;
-
-    default:
-      server.listen(
-          config('server.port'),
-          config('server.host'),
-          onListening(`http://${config('server.host')}:${config('server.port')}`)
-      );
-      break;
+    await listen(server);
+  } catch (e) {
+    log(e);
   }
-
 })();
 
-function onListening (address) {
+async function listen(server) {
+  let { output, host, port, socket } = config('server');
+  let address, serverParams;
+
+  if (output === 'socket') {
+    address = socket;
+    serverParams = [ socket ];
+  } else {
+    address = `http://${host}:${port}`;
+    serverParams = [config('server.port'), config('server.host')]
+  }
+
+  await server.listen(...serverParams);
   console.log(`\x1b[32mФырк!\x1b[0m ${address}/index.xhtml`);
+}
+
+function catchThrown(log) {
+  process.on('uncaughtException', log);
+  process.on('unhandledRejection', log);
+  process.on('warning', log);
+}
+
+function logError(log) {
+  return e => log.error(Tools.returnPrettyError(e));
 }

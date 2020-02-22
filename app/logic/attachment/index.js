@@ -40,7 +40,8 @@ class Attachment {
         message: `Can't create a hash without a file.`
       }
     }
-    return this.file._id = Crypto.crc32(await FS.readFile(this.file.path, null));
+    let file = await FS.readFile(this.file.path);
+    return this.file._id = Crypto.crc32(file);
   }
 
   async checkFile() {
@@ -66,8 +67,8 @@ class Attachment {
       let extension = this.file.name.split('.').pop() || this.file.mime.split('/').pop();
       let filePath = `${this.file._id}.${extension}`;
 
-      await this.createThumb(filePath).catch(err => {
-        FS.unlinkSync(this.file.path);
+      await this.createThumb(filePath).catch(async err => {
+        await FS.unlink(this.file.path);
         throw err;
       });
 
@@ -175,19 +176,19 @@ class Attachment {
     return true;
   }
 
-  _deleteFile(meta) {
+  async _deleteFile(meta) {
     if (debug && config('debug.log.files')) {
       console.log(`[File deleting: ${this.file._id}]: Deleting file... ${config('directories.upload') + meta.path}`);
     }
 
-    FS.unlinkSync(`${config('directories.upload') + meta.path}`);
+    await FS.unlink(`${config('directories.upload') + meta.path}`);
 
     if (meta.thumb) {
       if (debug && config('debug.log.files')) {
         console.log(`[File deleting: ${this.file._id}]: Deleting thumbnail... ${config('directories.thumb') + meta.path}`);
       }
 
-      return FS.unlinkSync(`${config('directories.thumb') + meta.path}`);
+      return await FS.unlink(`${config('directories.thumb') + meta.path}`);
     }
 
     if (debug && config('debug.log.files')) {
@@ -200,8 +201,8 @@ class Attachment {
 let out = { Attachment };
 
 (async () => {
-  let types = await Tools.requireAll('logic/attachment/', /^(?!index\.).*?js$/);
-  let typeNames = types[Tools.fileNames].map(type => Tools.capitalize(type.split('.')[0]));
+  let types = await Tools.requireRecursive('app/logic/attachment/', {mask: /(?<!index)\.js$/});
+  let typeNames = types.map(type => type.name);
   for (let typeIndex in typeNames) {
     let typeName = typeNames[typeIndex];
     out[typeName] = types[typeIndex];

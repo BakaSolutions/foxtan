@@ -23,7 +23,7 @@ const DESTI_FOLDER = path.join(__dirname, '../../', DESTI, path.sep);
 Render.loadTemplates = async () => {
   try {
     let templatePaths = await FS.readdir(DESTI_FOLDER);
-    templatePaths.forEach(templatePath => {
+    templatePaths.forEach(({name: templatePath}) => {
       if (!templatePath.match(/\.js$/i)) {
         return false;
       }
@@ -47,7 +47,7 @@ Render.loadTemplates = async () => {
  */
 Render.compileTemplates = async () => {
   Logger.info('[Rndr] Compiling templates...');
-  let sources = (await FS.readdir(TEMPL_FOLDER)).map(source => source.replace(TEMPL_FOLDER, ''));
+  let sources = (await FS.readdir(TEMPL_FOLDER)).map(source => source.name.replace(TEMPL_FOLDER, ''));
 
   let k;
   let l = sources.length;
@@ -93,7 +93,7 @@ Render.renderPage = (templateName, model) => {
 };
 
 Render.rerender = async what => {
-  let routes = Tools.requireWrapper(require('../routes'));
+  let routes = require('../routes');
   for (let router of routes.routers) {
     let paths = typeof router.paths === 'function'
         ? await router.paths()

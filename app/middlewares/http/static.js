@@ -1,11 +1,11 @@
-const config = require('../../../helpers/config');
-const Tools = require('../../../helpers/tools');
+const config = require('../../helpers/config');
+const Tools = require('../../helpers/tools');
 
 let middleware = app => {
   if (!config('server.static.external')) {
     if (Tools.moduleAvailable('koa-static')) {
       const Static = require('koa-static');
-      app.use(Static(__dirname + '/../../../../public'));
+      app.use(Static(__dirname + '/../../../public'));
     } else {
       console.warn(
           '\x1b[35mЧтобы использовать Foxtan без Nginx, установите модуль koa-static:\x1b[0m\n\n' +

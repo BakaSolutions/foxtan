@@ -4,7 +4,7 @@ class WS {
   constructor (server) {
     this.middlewares = {};
     this.instance = new WebSocket.Server({
-      server: server,
+      server,
       path: '/ws'
     });
 
@@ -87,7 +87,7 @@ module.exports = server => {
 };
 
 function success(ws, out, id) {
-  if (typeof out === 'object') {
+  if (out instanceof Object) {
     try {
       out = JSON.stringify(out);
     } catch (e) {

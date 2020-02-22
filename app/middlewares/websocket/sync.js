@@ -1,6 +1,6 @@
-const ThreadLogic = require('../../../logic/thread');
+const ThreadLogic = require('../../logic/thread');
 
-const Controller = require('../index');
+const Controller = require('../../helpers/ws.js');
 
 module.exports = [
   {

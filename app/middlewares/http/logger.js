@@ -1,5 +1,5 @@
-const config = require('../../../helpers/config');
-const parseForm = require('../parse');
+const config = require('../../helpers/config');
+const parseForm = require('../../routes/http/parse');
 
 let middleware = app => {
   app.use(async (ctx, next) => {

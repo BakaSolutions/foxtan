@@ -1,64 +1,70 @@
-const Controllers = module.exports = {};
+const Koa = require('koa');
 
-const Tools = require('../helpers/tools');
-const WS = require('./websocket');
+const Tools = require('../helpers/tools.js');
+const WS = require('../helpers/ws.js');
 
-/**
- * Inits controllers: requires all .js from /controllers/http/ and sets routers
- * @param app
- */
-Controllers.initHTTP = async app => {
+const Routes = module.exports = {};
 
-  let middlewares = await Tools.requireAll(
-      [
-        'routes/http/middlewares',
-        // TODO: Add custom middlewares
-      ],
-      /\.js$/
-  );
+Routes.initHTTP = async server => {
 
-  for (let i = 0; i < middlewares.length; i++) {
-    middlewares[i].middleware(app);
-  }
+  const app = new Koa();
 
-  let routes = await Tools.requireAll(
-      [
-        'routes/http/api',
-        'routes/http/api/v1',
-        'routes/http/pages',
-        // TODO: Add custom routes
-      ],
-      /\.js$/
-  );
+  server.on('request', app.callback());
 
-  for (let i = 0; i < routes.length; i++) {
-    app.use(routes[i].routes());
-    app.use(routes[i].allowedMethods());
-  }
+  let middlewares = await load('http', 'middlewares');
+
+  middlewares.forEach(({ middleware }) => middleware(app));
+
+  let routes = await load('http', 'routes');
+
+  routes.forEach(route => {
+    try {
+      app.use(route.routes());
+      app.use(route.allowedMethods());
+    } catch (e) {
+      console.log(route);
+      throw e;
+    }
+  });
 
 };
 
-Controllers.initWebsocket = async server => {
+Routes.initWebsocket = async server => {
 
-  let WSInstance = WS(server);
+  const app = WS(server);
 
-  let middlewares = await Tools.requireAll('routes/websocket/middlewares', /\.js$/);
+  let middlewares = await load('websocket', 'middlewares');
 
-  for (let i = 0; i < middlewares.length; i++) {
+  middlewares.forEach(m => {
+    m = Tools.arrayify(m);
 
-    if (!Array.isArray(middlewares[i])) {
-      middlewares[i] = [ middlewares[i] ];
-    }
-
-    for (let j = 0; j < middlewares[i].length; j++) {
-      let { command, middleware } = middlewares[i][j];
+    for (let j = 0; j < m.length; j++) {
+      let { command, middleware } = m[j];
       if (!command || !middleware) {
         console.log(`A middleware for command ${command} is broken.`);
         continue;
       }
-      WSInstance.use(command, middleware);
+      app.use(command, middleware);
     }
-
-  }
+  });
 
 };
+
+async function load(server, type) {
+  try {
+    let main = await Tools.requireRecursive(`app/${type}/${server}`, {
+      mask: /(?<!index|parse)\.js$/,  // TODO: Move http/*.js
+      isFallible: false
+    });
+    let custom = await Tools.requireRecursive(`custom/app/${type}/${server}`, {
+      mask: /\.js$/,
+      isFallible: true
+    });
+    let out = [...main, ...custom];
+    console.log(`Loaded ${out.length} ${type} for ${server}.`);
+    return out;
+  } catch (e) {
+    console.log(`Can't load ${type} for ${server}:`);
+    console.log(e);
+  }
+}

@@ -1,9 +1,9 @@
-const BoardLogic = require('../../../logic/board');
-const ThreadLogic = require('../../../logic/thread');
-const PostLogic = require('../../../logic/post');
-const CounterModel = require('../../../models/mongo/counter');
+const BoardLogic = require('../../logic/board');
+const ThreadLogic = require('../../logic/thread');
+const PostLogic = require('../../logic/post');
+const CounterModel = require('../../models/mongo/counter');
 
-const Controller = require('../index');
+const Controller = require('../../helpers/ws.js');
 
 module.exports = [
   {

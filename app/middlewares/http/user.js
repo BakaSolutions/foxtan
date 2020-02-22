@@ -1,5 +1,5 @@
-const config = require('../../../helpers/config');
-const UserLogic = require('../../../logic/user');
+const config = require('../../helpers/config');
+const UserLogic = require('../../logic/user');
 
 const WHITELISTED_URLS = [
   '/api/v1/token.obtain',

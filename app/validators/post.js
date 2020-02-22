@@ -87,7 +87,7 @@ module.exports = async (fields, params) => {
             file.nsfw = true;
           }
 
-          let type = Tools.capitalize(file.mime.split('/')[0]);
+          let type = Tools.capitalize(file.mime.split('/')[0]) + "Attachment";
           let attachment = (!Attachment[type])
             ? new Attachment(file)
             : new Attachment[type](file);

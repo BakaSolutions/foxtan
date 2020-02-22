@@ -1,5 +1,5 @@
-const config = require('../../../helpers/config');
-const Controller = require('../index');
+const config = require('../../helpers/config');
+const Controller = require('../../routes/http');
 
 const ROOT = new RegExp(config('directories.root').replace(/\\/g, '\\\\'), 'g');
 
@@ -55,10 +55,6 @@ function errorHandler(err, ctx, isError = true) {
 
   return Controller.fail(ctx, err);
 }
-
-process.on('uncaughtException', reason => console.log('Uncaught Exception at:', reason));
-process.on('unhandledRejection', reason => console.log('Unhandled Rejection at:', reason));
-process.on('rejectionHandled', () => console.log('REJECTIONHANDLED'));
 
 module.exports = {
   middleware

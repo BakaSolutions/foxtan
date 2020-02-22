@@ -1,33 +1,6 @@
 const MongoClient = require('mongodb').MongoClient;
 const config = require('../helpers/config');
 
-/*const INDEX_PATH = `${__dirname}/../../misc/mongodb/indexes`;
-const INDEXES = _([INDEX_PATH, `${INDEX_PATH}/custom`].map((path) => {
-  return FSSync.readdirSync(path).map(entry => `${path}/${entry}`).filter((entry) => {
-    return (entry.split('.').slice(-1)[0] === 'json') && FSSync.statSync(entry).isFile();
-  });
-})).flatten().map((file) => {
-  try {
-    let json = require(file);
-    return {
-      collectionName: json.collectionName || file.split('.').slice(0, -1).join('.'),
-      indexes: json.indexes
-    };
-  } catch (err) {
-    console.log(err);
-  }
-}).filter(index => !!index).reduce((acc, index) => {
-  let indexes = acc[index.collectionName];
-  if (!indexes) {
-    indexes = {};
-  }
-  _(index.indexes).each((index, name) => {
-    indexes[name] = index;
-  });
-  acc[index.collectionName] = indexes;
-  return acc;
-}, {});*/
-
 let client = null;
 
 class MongoDBClient {
@@ -139,24 +112,6 @@ class MongoDBClient {
     await this.waitForConnected();
     return await this._db.unref.call(this._db, ...args);
   }
-
-  /*async createIndexes({ dropExisting, dropAll } = {}) {
-    await this.waitForConnected();
-    let db = this._db;
-    await Tools.series(INDEXES, async function(indexes, collectionName) {
-      let collection = db.collection(collectionName);
-      if (dropAll) {
-        await collection.dropIndexes();
-      }
-      return Tools.series(indexes, async function({ index, options = {} }, name) {
-        if (dropExisting && !dropAll) {
-          await collection.dropIndex(name);
-        }
-        options.name = name;
-        return await collection.createIndex(index, options);
-      });
-    });
-  }*/
 
   async waitForConnected() {
     if (!this._db) {

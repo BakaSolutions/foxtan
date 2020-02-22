@@ -1,6 +1,6 @@
-const IndexLogic = require('../../../logic');
+const IndexLogic = require('../../logic');
 
-const Controller = require('../index');
+const Controller = require('../../helpers/ws.js');
 
 module.exports = [
   {

@@ -10,7 +10,7 @@ const config = require('../helpers/config');
 const Crypto = require('../helpers/crypto');
 const Tools = require('../helpers/tools');
 
-const Websocket = require('../routes/websocket');
+const Websocket = require('../helpers/ws.js');
 let WS = Websocket();
 
 let PostLogic = module.exports = {};
