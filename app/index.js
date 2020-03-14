@@ -3,6 +3,7 @@ const http = require('http');
 const config = require('./helpers/config.js');
 const Tools = require('./helpers/tools.js');
 const routes = require('./routes/index.js');
+const EventBus = require('./core/event.js');
 
 (async () => {
   let log = logError(console);
@@ -11,8 +12,8 @@ const routes = require('./routes/index.js');
   try {
     const server = http.createServer();
 
-    await routes.initWebsocket(server);
     await routes.initHTTP(server);
+    await routes.initWebsocket(server);
 
     await listen(server);
   } catch (e) {
@@ -40,6 +41,7 @@ function catchThrown(log) {
   process.on('uncaughtException', log);
   process.on('unhandledRejection', log);
   process.on('warning', log);
+  EventBus.on('error', log);
 }
 
 function logError(log) {

@@ -10,8 +10,7 @@ const config = require('../helpers/config');
 const Crypto = require('../helpers/crypto');
 const Tools = require('../helpers/tools');
 
-const Websocket = require('../helpers/ws.js');
-let WS = Websocket();
+const EventBus = require('../core/event.js');
 
 let PostLogic = module.exports = {};
 
@@ -73,7 +72,7 @@ PostLogic.create = async (fields, token) => {
     number
   ];
 
-  WS.broadcast('RNDR ' + JSON.stringify(out)); // post-hook
+  EventBus.emit('ws.broadcast', 'RNDR ' + JSON.stringify(out));
 
   return await PostLogic.readOne({
     boardName,
@@ -243,7 +242,8 @@ async function deletePost({boardName, threadNumber, postNumber} = {}, password, 
     post.threadNumber,
     post.number
   ];
-  WS.broadcast('REM ' + JSON.stringify(out)); // TODO: Create WS events
+
+  EventBus.emit('ws.broadcast', 'REM ' + JSON.stringify(out)); // TODO: WS API subscriptions
 
   await deleteFiles(post.files, post.boardName, post.number, password, checkPassword);
 

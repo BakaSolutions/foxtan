@@ -39,12 +39,12 @@ Routes.initWebsocket = async server => {
     m = Tools.arrayify(m);
 
     for (let j = 0; j < m.length; j++) {
-      let { command, middleware } = m[j];
-      if (!command || !middleware) {
-        console.log(`A middleware for command ${command} is broken.`);
+      let { request, middleware } = m[j];
+      if (!request || !middleware) {
+        console.log(`A middleware for command ${request} is broken.`);
         continue;
       }
-      app.use(command, middleware);
+      app.use(request, middleware);
     }
   });
 

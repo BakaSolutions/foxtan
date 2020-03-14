@@ -16,7 +16,7 @@ let Thread = module.exports = {};
 Thread.countPage = async ({ boardName, limit}) => {
   if (!boardName) {
     throw {
-      status: 400
+      code: 400
     };
   }
   if (!limit) {
@@ -37,14 +37,16 @@ Thread.countPage = async ({ boardName, limit}) => {
 Thread.readOne = async (boardName, threadNumber, last = config('board.lastPostsNumber')) => {
   if (!Tools.isNumber(threadNumber)) {
     throw {
-      status: 400,
-      message: 'Wrong `thread` parameter.'
+      code: 400,
+      message: "WRONG_PARAM",
+      description: 'Wrong `thread` parameter.'
     };
   }
   if (last && last !== config('board.lastPostsNumber') && last < 3) {
     throw {
-      status: 400,
-      message: 'Wrong `last` parameter.'
+      code: 400,
+      message: "WRONG_PARAM",
+      description: 'Wrong `last` parameter.'
     };
   }
 
@@ -99,8 +101,9 @@ Thread.readOne = async (boardName, threadNumber, last = config('board.lastPostsN
 Thread.readPage = async (boardName, page, limit, lastReplies, lastRepliesForFixed) => {
   if (!Tools.isNumber(page)) {
     throw {
-      status: 400,
-      message: `Wrong \`page\` parameter.`
+      code: 400,
+      message: "WRONG_PARAM",
+      description: `Wrong \`page\` parameter.`
     };
   }
   if (!Tools.isNumber(limit)) {
@@ -120,7 +123,7 @@ Thread.readPage = async (boardName, page, limit, lastReplies, lastRepliesForFixe
   });
   if (!threads || !threads.length) {
     throw {
-      status: 404
+      code: 404
     };
   }
   for (let i = 0; i < threads.length; i++) {
@@ -186,8 +189,9 @@ Thread.readPage = async (boardName, page, limit, lastReplies, lastRepliesForFixe
 Thread.readFeedPage = async (boardName, page, limit = config('board.threadsPerPage'), order = 'createdAt') => {
   if (!Tools.isNumber(page)) {
     throw {
-      status: 400,
-      message: `Wrong \`page\` parameter.`
+      code: 400,
+      message: "WRONG_PARAM",
+      description: `Wrong \`page\` parameter.`
     };
   }
 
@@ -200,7 +204,7 @@ Thread.readFeedPage = async (boardName, page, limit = config('board.threadsPerPa
   });
   if (!feed || !feed.length) {
     throw {
-      status: 404
+      code: 404
     };
   }
   return {
@@ -223,8 +227,9 @@ Thread.readFeedPage = async (boardName, page, limit = config('board.threadsPerPa
 Thread.readCatPage = async (boardName, page, limit = config('board.threadsPerPage'), order = 'createdAt') => {
   if (!Tools.isNumber(page)) {
     throw {
-      status: 400,
-      message: `Wrong \`page\` parameter.`
+      code: 400,
+      message: "WRONG_PARAM",
+      description: `Wrong \`page\` parameter.`
     };
   }
 
@@ -237,7 +242,7 @@ Thread.readCatPage = async (boardName, page, limit = config('board.threadsPerPag
   });
   if (!feed || !feed.length) {
     throw {
-      status: 404
+      code: 404
     };
   }
   for (let i = 0; i < feed.length; i++) {
@@ -251,6 +256,7 @@ Thread.readCatPage = async (boardName, page, limit = config('board.threadsPerPag
 
 /**
  * Return some counters to be a client synced
+ * @deprecated Use syncThread instead.
  * @return {Promise}
  */
 Thread.syncData = async () => {
@@ -265,6 +271,21 @@ Thread.syncData = async () => {
       out.threadCounts[boardName] = {};
     }
     out.threadCounts[boardName][number] = await PostModel.count({
+      query: {
+        boardName,
+        threadNumber: number
+      }
+    });
+  }
+  return out;
+};
+
+Thread.syncThread = async boardName => {
+  let out = {};
+  let threads = await ThreadModel.readAll({ boardName });
+  for (let i = 0; i < threads.length; i++) {
+    let { number } = threads[i];
+    out[number] = await PostModel.count({
       query: {
         boardName,
         threadNumber: number
@@ -323,7 +344,7 @@ async function readOneThread(boardName, threadNumber) {
   });
   if (!thread) {
     throw {
-      status: 404,
+      code: 404,
       message: `Thread ${boardName}:${threadNumber} doesn't exist.`
     };
   }

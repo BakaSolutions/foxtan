@@ -18,6 +18,7 @@ class FSError extends Error {
     this.name = "FSError";
   }
 }
+
 class FSAccessError extends FSError {
   constructor(error) {
     super(error);
@@ -64,7 +65,6 @@ FS.unlink = async filePath => {
   }
 };
 
-
 /**
  * Check if file exists directly
  * @param {String} filePath
@@ -92,9 +92,7 @@ FS.exists = async filePath => {
 FS.mkdir = async (dir, rootType, recursive = true) => {
   try {
     dir = FS.normalize(dir, rootType);
-    if (!FS.check(dir)) {
-      return throwFSError(new FSAccessError('Forbidden'));
-    }
+    checkAndThrow(dir);
 
     if (await FS.exists(dir)) {
       return true;
@@ -112,9 +110,8 @@ FS.copyFile = async (source, target, flags) => {
     source = FS.normalize(source);
     target = FS.normalize(target);
 
-    if (!FS.check(source) || !FS.check(target)) {
-      return throwFSError(new FSAccessError('Forbidden'));
-    }
+    checkAndThrow(source);
+    checkAndThrow(target);
 
     return copyFile(source, target, flags);
   } catch (e) {
@@ -124,9 +121,7 @@ FS.copyFile = async (source, target, flags) => {
 
 FS.createWriteStream = (filePath) => {
   filePath = FS.normalize(filePath);
-  if (!FS.check(filePath)) {
-    return throwFSError(new FSAccessError('Forbidden'));
-  }
+  checkAndThrow(filePath);
   return fs.createWriteStream(filePath);
 };
 
@@ -140,9 +135,7 @@ FS.createWriteStream = (filePath) => {
 FS.readdir = async (directory, {recursive = true, onlyFiles = true} = {}) => {
   try {
     directory = FS.normalize(directory);
-    if (!FS.check(directory)) {
-      return throwFSError(new FSAccessError('Forbidden'));
-    }
+    checkAndThrow(directory);
 
     let dir = await readdir(directory, {withFileTypes: true});
     let promises = dir.map(async dirent => {
@@ -168,9 +161,7 @@ FS.readdir = async (directory, {recursive = true, onlyFiles = true} = {}) => {
 FS.readFile = async (filePath, encoding = 'utf8') => {
   try {
     filePath = FS.normalize(filePath);
-    if (!FS.check(filePath)) {
-      return throwFSError(new FSAccessError('Forbidden'));
-    }
+    checkAndThrow(filePath);
     return await readFile(filePath, encoding);
   } catch (e) {
     return throwFSError(e);
@@ -179,20 +170,17 @@ FS.readFile = async (filePath, encoding = 'utf8') => {
 
 FS.writeFile = async (filePath, content, rootType) => {
   try {
-    await createDirectoryIfNotExists(filePath, rootType);
+    await createDirectoryIfNotExists(filePath, rootType); // TODO: check directory after ENOENT
     return await writeFile(filePath, content || '');
   } catch (e) {
     return throwFSError(e);
   }
 };
 
-
 FS.renameFile = async (old, mew, rootType) => {
   try {
     old = FS.normalize(old);
-    if (!FS.check(old)) {
-      return throwFSError(new FSAccessError('Forbidden'));
-    }
+    checkAndThrow(old);
 
     mew = await createDirectoryIfNotExists(mew, rootType);
 
@@ -208,15 +196,19 @@ FS.getExtension = async filePath => await mime.getExtension(filePath);
 
 async function createDirectoryIfNotExists(directory, rootType) {
   directory = FS.normalize(directory, rootType);
-  if (!FS.check(directory)) {
-    return throwFSError(new FSAccessError('Forbidden'));
-  }
+  checkAndThrow(directory);
 
   let dir = path.parse(directory).dir + path.sep;
   if (!(await FS.exists(dir))) {
     await FS.mkdir(dir);
   }
   return directory;
+}
+
+function checkAndThrow(directory) {
+  if (!FS.check(directory)) {
+    return throwFSError(new FSAccessError('Forbidden'));
+  }
 }
 
 function throwFSError(e) {

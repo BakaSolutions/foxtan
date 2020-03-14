@@ -1,20 +1,42 @@
-const ThreadLogic = require('../../logic/thread');
+const ThreadLogic = require('../../logic/thread.js');
 
-const Controller = require('../../helpers/ws.js');
+const Controller = require('../../helpers/ws.js')();
 
 module.exports = [
   {
-    command: 'THREAD',
-    middleware: thread
-  },
-];
-
-async function thread(command, message, id, ws) {
-  try {
-    let [ boardName, threadNumber, last ] = message.split(':');
-    let out = await ThreadLogic.readOne(boardName, +threadNumber, +last);
-    return Controller.success(ws, out, id);
-  } catch (e) {
-    return Controller.fail(ws, e, id);
+    request: 'threads',
+    middleware: async (params, ws) => {
+      let { boardName, count, page } = params;
+      if (!params.boardName) {
+        return Controller.fail(ws, params, {
+          message: "MISSING_PARAM",
+          description: "boardName is missing",
+          code: 400
+        });
+      }
+      let out = await ThreadLogic.readPage(boardName, page, count);
+      return Controller.success(ws, params, out);
+    }
+  }, {
+    request: 'thread',
+    middleware: async (params, ws) => {
+      let { boardName, id } = params;
+      if (!boardName) {
+        return Controller.fail(ws, params, {
+          message: "MISSING_PARAM",
+          description: "boardName is missing",
+          code: 400
+        });
+      }
+      if (!id) {
+        return Controller.fail(ws, params, {
+          message: "MISSING_PARAM",
+          description: "id is missing",
+          code: 400
+        });
+      }
+      let out = await ThreadLogic.readOne(boardName, id);
+      return Controller.success(ws, params, out);
+    }
   }
-}
+];
