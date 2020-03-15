@@ -48,9 +48,8 @@ module.exports = class WS {
   async onMessage (message, ws) {
     try {
       let params = JSON.parse(message);
-      let { request: what } = params;
 
-      let sequence = this.middlewares[what];
+      let sequence = this.middlewares[params.request];
       if (!sequence) {
         return this.fail(ws, {code: 404});
       }
@@ -87,12 +86,12 @@ module.exports = class WS {
     m.value(params, ws, next);
   }
 
-  success(ws, params, data) {
-    let out = Object.assign(params, {data});
+  success(ws, what, data) {
+    let out = Object.assign({what}, {data});
     ws.send(JSON.stringify(out));
   }
 
-  fail(ws, params, e) {
+  fail(ws, what, e) {
     let error = {
       message: e ? e.message : e,
       description: e ? e.description : e,
@@ -101,7 +100,7 @@ module.exports = class WS {
         : e
     };
 
-    let out = Object.assign(params, {error});
+    let out = Object.assign({what}, {error});
     ws.send(JSON.stringify(out));
   }
 };
