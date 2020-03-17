@@ -50,9 +50,9 @@ Board.readAll = async () => {
   return await BoardModel.readAll().then(boards => {
     let out = {};
     for (let i = 0; i < boards.length; i++) {
-      let board = boards[i].board;
+      boards[i].name = boards[i].board;
       delete boards[i].board;
-      out[board] = boards[i];
+      out[boards[i].name] = boards[i];
     }
     return out;
   });
