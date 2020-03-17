@@ -61,6 +61,17 @@ async function processThread(boardName, thread) {
     boardName,
     postNumber: thread.id
   });
+  thread.head.text = thread.head.rawText;
+  delete thread.head.rawText;
+  thread.head.attachments = thread.head.files;
+  delete thread.head.files;
+  thread.head.modifiers = [];
+  ['sage', 'op'].forEach(bool => {
+    if (thread.head[bool]) {
+      delete thread.head[bool];
+      thread.head.modifiers.push(bool);
+    }
+  });
   thread.posts = await PostModel.count({
     query: {boardName, threadNumber: thread.id}
   });

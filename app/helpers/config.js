@@ -78,7 +78,7 @@ let config = {
   server: {
     host: '0.0.0.0', // or 'localhost',
     output: 'port', // or 'socket'
-    port: 1337,
+    port: 6749,
     socket: '/tmp/sock',
     static: {
       external: false
@@ -94,9 +94,9 @@ let config = {
     thumb: path.resolve(__dirname, '../../public/res/thumb') + path.sep
   },
   paths: { // with forward slashes!
-    public: 'http://127.0.0.1:1337/',
-    upload: 'http://127.0.0.1:1337/res/',
-    thumb: 'http://127.0.0.1:1337/res/thumb/'
+    public: 'http://127.0.0.1:6749/',
+    upload: 'http://127.0.0.1:6749/res/',
+    thumb: 'http://127.0.0.1:6749/res/thumb/'
   },
   token: {
     expires: { // d    h    m    s
