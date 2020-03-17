@@ -1,5 +1,9 @@
+const ThreadModel = require('../../models/mongo/thread.js');
+const PostModel = require('../../models/mongo/post.js');
+
 const ThreadLogic = require('../../logic/thread.js');
 
+const Tools = require('../../helpers/tools.js');
 const Controller = require('../../helpers/ws.js')();
 
 module.exports = [
@@ -14,7 +18,20 @@ module.exports = [
           code: 400
         });
       }
-      let out = await ThreadLogic.readPage(boardName, page, count);
+
+      //TODO: Rewrite this temporary fix for API mismatch
+      let threadArray = await ThreadModel.readPage({boardName, page, limit: count});
+      let out = await Tools.sequence(threadArray, async thread => {
+        delete thread.createdAt;
+        delete thread.updatedAt;
+        thread.id = thread.number;
+        delete thread.number;
+        thread.posts = await PostModel.count({
+          query: {boardName, threadNumber: thread.id}
+        });
+        return thread;
+      });
+
       return Controller.success(ws, params, out);
     }
   }, {
