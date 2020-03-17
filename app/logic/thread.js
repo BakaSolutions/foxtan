@@ -303,8 +303,8 @@ Thread.close = async (boardName, threadNumber, closed) => {
   return await changeThreadBoolean(boardName, threadNumber, { closed });
 };
 
-Thread.bumpLock = async (boardName, threadNumber, unbumpable) => {
-  return await changeThreadBoolean(boardName, threadNumber, { unbumpable });
+Thread.freeze = async (boardName, threadNumber, frozen) => {
+  return await changeThreadBoolean(boardName, threadNumber, { frozen });
 };
 
 async function changeThreadBoolean(boardName, threadNumber, param) {
