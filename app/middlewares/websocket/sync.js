@@ -12,19 +12,19 @@ module.exports = [
           return Controller.success(ws, params, await CounterLogic.read());
         case "thread":
           if (!params.boardName) {
-            return Controller.fail(ws, params, {
+            throw {
               message: "MISSING_PARAM",
               description: "boardName is missing",
               code: 400
-            });
+            };
           }
           return Controller.success(ws, params, await ThreadLogic.syncThread(params.boardName));
         default:
-          return Controller.fail(ws, params, {
+          throw {
             message: "MISSING_PARAM",
             description: "Define a type for syncing-syncing~",
             code: 400
-          });
+          };
       }
     }
   },

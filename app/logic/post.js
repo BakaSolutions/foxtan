@@ -315,3 +315,23 @@ async function _appendAttachments(post) {
   }
   return post;
 }
+
+PostLogic.processPost = post => {
+  if (!post) {
+    throw {
+      code: 404
+    };
+  }
+  post.text = post.rawText;
+  delete post.rawText;
+  post.attachments = post.files;
+  delete post.files;
+  post.modifiers = [];
+  ['sage', 'op'].forEach(bool => {
+    delete post[bool];
+    if (post[bool]) {
+      post.modifiers.push(bool);
+    }
+  });
+  return post;
+};

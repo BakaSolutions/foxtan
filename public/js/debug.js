@@ -44,20 +44,15 @@ function onload() {
     });
 
     let arr = [
-        /* 400 */ '{"request": "sync"}',
-        /* OK  */ '{"request": "sync", "type": "board"}',
-        /* 400 */ '{"request": "sync", "type": "thread"}',
-        /* OK  */ '{"request": "sync", "type": "thread", "boardName":"test"}',
-        /* OK  */ '{"request": "boards"}',
-        /* 400 */ '{"request": "board"}',
-        /* OK  */ '{"request": "board", "name": "test"}',
-        /* 400 */ '{"request": "threads"}',
-        /* 400 */ '{"request": "threads", "boardName": "test"}',
-        /* OK  */ '{"request": "threads", "boardName": "test", "page": 0}',
-        /* OK  */ '{"request": "threads", "boardName": "test", "count": 3, "page": 0}',
-        /* 400 */ '{"request": "thread"}',
-        /* 400 */ '{"request": "thread", "boardName": "test"}',
-/* API MISMATCH */ '{"request": "thread", "boardName": "test", "id": 1}',
+        '{"request": "sync", "type": "board"}',
+        '{"request": "sync", "type": "thread", "boardName":"test"}',
+        '{"request": "boards"}',
+        '{"request": "board", "name": "test"}',
+        '{"request": "threads", "boardName": "test", "count": 3, "page": 0}',
+        '{"request": "thread", "boardName": "test", "id": 1}',
+        '{"request": "posts", "boardName": "test", "threadId": 1, "count": 3, "page": 0}',
+        '{"request": "posts", "boardName": "test", "threadId": 1, "count": 3, "page": "tail"}',
+        '{"request": "post", "boardName": "test", "postId": 1}',
     ];
     await sequence(arr, async cmd => {
       websocket.send(display(cmd, "outcoming"));

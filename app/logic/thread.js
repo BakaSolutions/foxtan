@@ -350,3 +350,33 @@ async function readOneThread(boardName, threadNumber) {
   }
   return thread;
 }
+
+//TODO: Remove this temporary fix for API mismatch
+Thread.processThread = async thread => {
+  if (!thread) {
+    throw {
+      code: 404
+    };
+  }
+  let { boardName } = thread;
+  delete thread.createdAt;
+  delete thread.updatedAt;
+  thread.id = thread.number;
+  delete thread.number;
+  thread.head = await PostLogic.readOne({
+    boardName,
+    postNumber: thread.id
+  });
+  thread.head = PostLogic.processPost(thread.head);
+  thread.posts = await PostModel.count({
+    query: {boardName, threadNumber: thread.id}
+  });
+  thread.modifiers = [];
+  ['pinned', 'closed', 'frozen'].forEach(bool => {
+    delete thread[bool];
+    if (thread[bool]) {
+      thread.modifiers.push(bool);
+    }
+  });
+  return thread;
+};
