@@ -132,7 +132,7 @@ class PostModel extends SuperModel {
   }
 
   clearEntry(entry) {
-    super.clearEntry(entry, true);
+    super.clearEntry(entry, false);
     delete entry.password;
     delete entry.id;
     return entry;

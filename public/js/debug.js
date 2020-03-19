@@ -1,6 +1,7 @@
 function onload() {
   let textarea = document.getElementsByTagName('textarea')[0];
   let input = document.getElementsByTagName('input')[0];
+  textarea.value = '';
 
   let websocket = new WebSocket("ws://localhost:6749/ws");
   function display(message, type = '', {ln = true} = {}) {
@@ -52,7 +53,9 @@ function onload() {
         '{"request": "thread", "boardName": "test", "id": 1}',
         '{"request": "posts", "boardName": "test", "threadId": 1, "count": 3, "page": 0}',
         '{"request": "posts", "boardName": "test", "threadId": 1, "count": 3, "page": "tail"}',
-        '{"request": "post", "boardName": "test", "postId": 1}',
+        '{"request": "posts", "boardName": "test", "count": 3, "page": 0}',
+        '{"request": "post", "boardName": "test", "postNumber": 1}',
+        '{"request": "post", "postId": "test:1"}'
     ];
     await sequence(arr, async cmd => {
       websocket.send(display(cmd, "outcoming"));

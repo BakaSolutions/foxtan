@@ -322,6 +322,8 @@ PostLogic.processPost = post => {
       code: 404
     };
   }
+  post.id = post._id;
+  delete post._id;
   post.text = post.rawText;
   delete post.rawText;
   post.attachments = post.files;
