@@ -4,12 +4,15 @@ const config = require('./helpers/config.js');
 const Tools = require('./helpers/tools.js');
 const routes = require('./routes/index.js');
 const EventBus = require('./core/event.js');
+const Database = require('./models/dao.js');
 
 (async () => {
   let log = logError(console);
   catchThrown(log);
 
   try {
+    await Database.connect();
+
     const server = http.createServer();
 
     await routes.initHTTP(server);

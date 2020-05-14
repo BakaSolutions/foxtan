@@ -2,7 +2,7 @@ const config = require('../../helpers/config');
 const Crypto = require('../../helpers/crypto');
 const FS = require('../../helpers/fs');
 const Tools = require('../../helpers/tools');
-const AttachmentModel = require('../../models/mongo/attachment');
+const AttachmentModel =  require('../../models/dao').DAO('attachment');
 
 const debug = config('debug.enable');
 

@@ -1,4 +1,4 @@
-const PostModel = require('../models/mongo/post');
+const PostModel = require('../models/database').model('post');
 
 const CommonLogic = require('../logic/common');
 const Attachment = require('../logic/attachment');

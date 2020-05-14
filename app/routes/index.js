@@ -1,6 +1,7 @@
 const Koa = require('koa');
 
 const Tools = require('../helpers/tools.js');
+const config = require('../helpers/config.js');
 const WS = require('../helpers/ws.js');
 
 const Routes = module.exports = {};
@@ -22,7 +23,9 @@ Routes.initHTTP = async server => {
       app.use(route.routes());
       app.use(route.allowedMethods());
     } catch (e) {
-      console.log(route);
+      if (!route) {
+        // TODO: Print error and exit
+      }
       throw e;
     }
   });
@@ -56,12 +59,18 @@ async function load(server, type) {
       mask: /(?<!index|parse)\.js$/,  // TODO: Move http/*.js
       isFallible: false
     });
-    let custom = await Tools.requireRecursive(`custom/app/${type}/${server}`, {
-      mask: /\.js$/,
-      isFallible: true
-    });
-    let out = [...main, ...custom];
-    console.log(`Loaded ${out.length} ${type} for ${server}.`);
+    console.log(`Loaded ${main.length} main ${type} for ${server}.`);
+    let out = [...main];
+
+    if (config('server.useCustom')) {
+      let custom = await Tools.requireRecursive(`custom/app/${type}/${server}`, {
+        mask: /\.js$/,
+        isFallible: true
+      });
+      console.log(`Loaded ${custom.length} custom ${type} for ${server}.`);
+      out = [...out, ...custom];
+    }
+
     return out;
   } catch (e) {
     console.log(`Can't load ${type} for ${server}:`);

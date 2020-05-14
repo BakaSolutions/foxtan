@@ -8,10 +8,10 @@
 	<body>
 		<main>
 			<header>
-				<div>{{!it.error}}</div>
-				<div>{{!it.message}}</div>
+				<div>{{!it.error || 'Error!'}}</div>
+				<div>{{!it.message || 'No message...'}}</div>
 				{{?it.debug && it.stack}}
-					<pre>{{=it.stack}}</pre>
+					<pre>{{=it.stack || 'No stack...'}}</pre>
 				{{?}}
 			</header>
 		</main>

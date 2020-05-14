@@ -1,6 +1,8 @@
 function onload() {
   let textarea = document.getElementsByTagName('textarea')[0];
   let input = document.getElementsByTagName('input')[0];
+  let [ prevBtn, repeatBtn, nextBtn ] = document.getElementsByTagName('button');
+
   textarea.value = '';
 
   let websocket = new WebSocket("ws://localhost:6749/ws");
@@ -33,7 +35,7 @@ function onload() {
       }
       return out;
     };
-    let delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+    //let delay = ms => new Promise(resolve => setTimeout(resolve, ms));
     let waitForResponse = ms => new Promise((resolve, reject) => {
       let timeout = setTimeout(reject, ms);
       let func = () => {
@@ -50,17 +52,34 @@ function onload() {
         '{"request": "boards"}',
         '{"request": "board", "name": "test"}',
         '{"request": "threads", "boardName": "test", "count": 3, "page": 0}',
-        '{"request": "thread", "boardName": "test", "id": 1}',
-        '{"request": "posts", "boardName": "test", "threadId": 1, "count": 3, "page": 0}',
-        '{"request": "posts", "boardName": "test", "threadId": 1, "count": 3, "page": "tail"}',
+        '{"request": "thread", "id": 1}',
+        '{"request": "thread", "headId": 1}',
+        '{"request": "thread", "boardName": "test", "postNumber": 1}',
+        '{"request": "posts", "threadId": 1, "count": 3, "page": 0}',
+        '{"request": "posts", "threadId": 1, "count": 3, "page": "tail"}',
         '{"request": "posts", "boardName": "test", "count": 3, "page": 0}',
         '{"request": "post", "boardName": "test", "postNumber": 1}',
-        '{"request": "post", "postId": "test:1"}'
+        '{"request": "post", "postId": 1}'
     ];
-    await sequence(arr, async cmd => {
+    let iter = -1;
+    prevBtn.onclick = () => request(arr[--iter]);
+    repeatBtn.onclick = () => request(arr[iter]);
+    nextBtn.onclick = () => request(arr[++iter]);
+    /*await sequence(arr, request);*/
+    async function request(cmd) {
+      if (!cmd) {
+        display("No command specified. Iterator #" + iter);
+        if (iter < 0) {
+          iter = 0;
+        } else if (iter > arr.length - 1) {
+          iter = arr.length - 1;
+        }
+        display("Set iterator to #" + iter);
+        return;
+      }
       websocket.send(display(cmd, "outcoming"));
       await waitForResponse(1000).catch(() => display("\n\n^^^ POSSIBLE PROBLEM ^^^\n\n"));
-    })
+    }
   };
   websocket.onmessage = (e) => {
     try {

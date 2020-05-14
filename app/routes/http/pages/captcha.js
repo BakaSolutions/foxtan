@@ -1,10 +1,10 @@
-const router = require('koa-router')({ prefix: '/' });
+const router = require('koa-router')();
 
 const config = require('../../../helpers/config');
-const Controller = require('../index');
+const HTTP = require('../index');
 
-router.get('captcha.html', async ctx => {
-  return Controller.success(ctx, {
+router.get('/captcha.html', async ctx => {
+  return HTTP.success(ctx, {
     width: config('captcha.width'),
     height: config('captcha.height'),
   }, 'pages/captcha');

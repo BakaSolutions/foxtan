@@ -49,7 +49,13 @@ class Captcha {
     this.noise = !!o.noise || false;
     this.mime = o.mime || 'image/png';
 
-    this.id = this._random(0, Math.pow(2, 48));
+    if (this.mime === 'image/png') {
+      this.compressionLevel = o.compressionLevel || 0;
+    } else {
+      this.quality = o.quality || 0.15;
+    }
+
+    this.id = this._random(0, Number.MAX_SAFE_INTEGER);
   }
 
   createCanvas() {
@@ -80,17 +86,34 @@ class Captcha {
       this._eraseLetters(ctx, 3, this.color);
     }
 
+    let method = (output.toLowerCase() === 'dataurl')
+        ? 'toDataURL'
+        : 'toBuffer';
+    return this._stupidCanvasRender(method);
+  }
+
+  _stupidCanvasRender(method) {
     return new Promise((resolve, reject) => {
-      let method = (output.toLowerCase() === 'dataurl')
-          ? 'toDataURL'
-          : 'toBuffer';
-      return this.canvas[method]((err, jpeg) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(jpeg);
-      });
+      let options = {
+        quality: this.quality,
+        compressionLevel: this.compressionLevel
+      };
+      switch (method) {
+        case 'toDataURL':
+          return this.canvas[method](this.mime, options, this._stupidCanvasCallback(resolve, reject));
+        case 'toBuffer':
+          return this.canvas[method](this._stupidCanvasCallback(resolve, reject), this.mime, options);
+      }
     });
+  }
+
+  _stupidCanvasCallback(resolve, reject) {
+    return (err, pic) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(pic);
+    }
   }
 
   _eraseLetters(ctx, iterations = 6, lineColor, lineWidth = this.lineWidth / 2) {

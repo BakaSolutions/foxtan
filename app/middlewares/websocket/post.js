@@ -1,7 +1,5 @@
-const PostModel = require('../../models/mongo/post.js');
 const PostLogic = require('../../logic/post.js');
 
-const Tools = require('../../helpers/tools.js');
 const Controller = require('../../helpers/ws.js')();
 
 module.exports = [
@@ -9,58 +7,37 @@ module.exports = [
     request: 'posts',
     middleware: async (params, ws) => {
       let { boardName, threadId, count, page } = params;
-      ['boardName', 'count'].forEach(param => {
-        if (!params[param]) {
-          throw {
-            message: "MISSING_PARAM",
-            description: `${param} is missing`,
-            code: 400
-          };
-        }
-      });
 
       let postArray = [];
 
-      if (!threadId) {
-        // feed (last posts on the board)
-        postArray = await PostLogic.readAll({
-          boardName,
-          order: 'createdAt',
-          orderBy: 'DESC',
-          limit: count
-        });
-      } else if (page && !Tools.isNumber(page) && page.toLowerCase() === "tail") {
-        // last posts in the thread ("tail")
-        postArray = await PostLogic.readAll({
-          boardName,
-          threadNumber: threadId,
-          order: 'createdAt',
-          orderBy: 'DESC',
-          limit: count
-        });
-        /* Uncomment it for cutting OP form array!
-          let lastPost = postArray[postArray.length - 1];
-          if (lastPost.number === lastPost.threadNumber) {
-            postArray.pop();
-          }
-        */
-        postArray.reverse();
-      } else {
-        // just posts in a thread
-        postArray = await PostModel.readPage({
-          boardName,
-          threadNumber: threadId,
-          page,
-          limit: count
-        });
+      switch (true) {
+        case !!(threadId && page && page.toLowerCase() === 'tail'):
+          // tail (last posts in the thread)
+          postArray = await PostLogic.readAllByThreadId(threadId, {count, order: 'desc'});
+          postArray = postArray.reverse();
+          break;
+        case !!(threadId && !boardName):
+          // just posts in a thread
+          postArray = await PostLogic.readAllByThreadId(threadId, {count, page});
+          break;
+        case !!(!threadId && boardName):
+          // feed (last posts on the board)
+          postArray = await PostLogic.readAllByBoardName(boardName, {count, page, order: 'desc'});
+          break;
+        default:
+          throw {
+            message: "MISSING_PARAM",
+            description: "threadId or boardName is missing",
+            code: 400
+          };
       }
+
       if (!postArray.length) {
         throw {
           code: 404
         }
       }
-      let out = await Tools.sequence(postArray, PostLogic.processPost);
-      return Controller.success(ws, params, out);
+      return Controller.success(ws, params, postArray);
     }
   }, {
     request: 'post',
@@ -68,32 +45,21 @@ module.exports = [
       let { boardName, postId, postNumber } = params;
       let post;
 
-      if (postId) {
-        post = await PostModel.read({
-          query:{
-            _id: postId
-          },
-          limit: 1
-        });
-      } else {
-        ['boardName', 'postNumber'].forEach(param => {
-          if (!params[param]) {
-            throw {
-              message: "MISSING_PARAM",
-              description: `${param} is missing`,
-              code: 400
-            };
-          }
-        });
-        post = await PostModel.readOne({boardName, postNumber});
+      switch (true) {
+        case !!(postId):
+          post = await PostLogic.readOneById(postId);
+          break;
+        case !!(boardName && postNumber):
+          post = await PostLogic.readOneByBoardAndPost(boardName, postNumber);
+          break;
+        default:
+          throw {
+            message: "MISSING_PARAM",
+            description: `postId or boardName/postNumber is missing`,
+            code: 400
+          };
       }
-      if (!post) {
-        throw {
-          code: 404
-        }
-      }
-      let out = PostLogic.processPost(post);
-      return Controller.success(ws, params, out);
+      return Controller.success(ws, params, post);
     }
   }
 ];

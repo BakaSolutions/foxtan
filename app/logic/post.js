@@ -1,9 +1,8 @@
 const CommonLogic = require('./common');
 
-const CounterModel = require('../models/mongo/counter');
-const BoardModel = require('../models/mongo/board');
-const ThreadModel = require('../models/mongo/thread');
-const PostModel = require('../models/mongo/post');
+const BoardModel = require('../models/dao').DAO('board');
+const ThreadModel = require('../models/dao').DAO('thread');
+const PostModel = require('../models/dao').DAO('post');
 const Attachment = require('./attachment');
 
 const config = require('../helpers/config');
@@ -21,10 +20,8 @@ PostLogic.create = async (fields, token) => {
     board: await BoardModel.readOne(fields.boardName),
     isThread: CommonLogic.isEmpty(fields.threadNumber),
     token,
-    lastNumber: await CounterModel.readOne(fields.boardName),
     now
   };
-  params.lastNumber++;
 
   if (!params.isThread) {
     params.thread = await ThreadModel.readOne({
@@ -74,10 +71,7 @@ PostLogic.create = async (fields, token) => {
 
   EventBus.emit('ws.broadcast', 'RNDR ' + JSON.stringify(out));
 
-  return await PostLogic.readOne({
-    boardName,
-    postNumber: number
-  });
+  return PostModel.readOneByBoardAndPost(boardName, number);
 };
 
 /**
@@ -86,7 +80,7 @@ PostLogic.create = async (fields, token) => {
  * @param {Number} postNumber
  * @returns {Promise}
  */
-PostLogic.readOne = async ({boardName, postNumber} = {}) => {
+PostLogic.readOneByBoardAndPost = async (boardName, postNumber) => {
   postNumber = +postNumber;
 
   if (!boardName) {
@@ -102,15 +96,11 @@ PostLogic.readOne = async ({boardName, postNumber} = {}) => {
     };
   }
 
-  let out = await PostModel.readOne({
-    boardName,
-    postNumber,
-    clear: true
-  });
+  let out = await PostModel.readOneByBoardAndPost(boardName, postNumber);
 
   if (!out) {
-    let counter = await CounterModel.readOne(boardName);
-    let wasPosted = (postNumber <= counter);
+    //let counter = await CounterModel.readOne(boardName);
+    let wasPosted = false; //(postNumber <= counter);
     let status = wasPosted ? 410 : 404;
     throw {
       status,
@@ -125,42 +115,23 @@ PostLogic.readOne = async ({boardName, postNumber} = {}) => {
     return out;
   }
 
-  return await _appendAttachments(out);
+  return out; // _appendAttachments(out);
 };
 
-/**
- * @param {String} boardName
- * @param {Number} [limit]
- * @returns {Promise}
- */
-PostLogic.countPage = async ({boardName, limit} = {}) => {
-  if (!boardName) {
-    throw {
-      status: 400
-    };
-  }
-  if (!limit) {
-    limit = config('board.threadsPerPage');
-  }
-  return await PostModel.countPage({
-    boardName,
-    limit
-  });
+PostLogic.readOneById = async postId => {
+  let post = await PostModel.readOneById(postId);
+  return post; // _appendAttachments(post);
 };
 
-/**
- * Reads all posts
- * @param {String} boardName
- * @param {Number} [threadNumber]
- * @param {String} [order]
- * @param {String} [orderBy]
- * @param {Number} [limit]
- * @param {Number} [offset]
- * @return {Promise}
- */
-PostLogic.readAll = async args => {
-  let posts = await PostModel.readAll(args);
-  return Promise.all(posts.map(_appendAttachments));
+PostLogic.readAllByBoardName = async (boardName, { count, page, order }) => {
+  let posts = await PostModel.readAllByBoardName(boardName, { count, page, order });
+  return posts;//Promise.all(posts.map(_appendAttachments));
+};
+
+
+PostLogic.readAllByThreadId = async (threadId, { count, page, order }) => {
+  let posts = await PostModel.readAllByThreadId(threadId, { count, page, order });
+  return posts;//Promise.all(posts.map(_appendAttachments));
 };
 
 PostLogic.delete = async (fields, checkPassword) => {
@@ -315,25 +286,3 @@ async function _appendAttachments(post) {
   }
   return post;
 }
-
-PostLogic.processPost = post => {
-  if (!post) {
-    throw {
-      code: 404
-    };
-  }
-  post.id = post._id;
-  delete post._id;
-  post.text = post.rawText;
-  delete post.rawText;
-  post.attachments = post.files;
-  delete post.files;
-  post.modifiers = [];
-  ['sage', 'op'].forEach(bool => {
-    delete post[bool];
-    if (post[bool]) {
-      post.modifiers.push(bool);
-    }
-  });
-  return post;
-};

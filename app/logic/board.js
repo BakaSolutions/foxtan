@@ -1,10 +1,12 @@
 const CommonLogic = require('./common');
 
-const BoardModel = require('../models/mongo/board');
+const Tools = require('../helpers/tools.js');
 
-let Board = module.exports = {};
+const BoardModel = require('../models/dao').DAO('board');
 
-Board.create = async fields => {
+let BoardLogic = module.exports = {};
+
+BoardLogic.create = async fields => {
 
   let boardInput = {
     _id: fields.board,
@@ -41,24 +43,21 @@ Board.create = async fields => {
   }
 
   await BoardModel.create(boardInput);
-  return Board.readOne(boardInput.board);
+  return BoardLogic.readOne(boardInput.board);
 };
 
-Board.readOne = async board => await BoardModel.readOne(board);
+BoardLogic.readOne = async boardName => await BoardModel.readByName(boardName);
 
-Board.readAll = async () => {
-  return await BoardModel.readAll().then(boards => {
-    let out = {};
-    for (let i = 0; i < boards.length; i++) {
-      boards[i].name = boards[i].board;
-      delete boards[i].board;
-      out[boards[i].name] = boards[i];
-    }
-    return out;
-  });
+BoardLogic.readAll = async () => {
+  let boards = await BoardModel.readAll();
+  let out = {};
+  for (let i = 0; i < boards.length; i++) {
+    out[boards[i].name] = boards[i];
+  }
+  return out;
 };
 
-Board.delete = async ({board} = {}) => {
+BoardLogic.delete = async ({board} = {}) => {
   let boardInput = { board };
 
   let keys = CommonLogic.hasEmpty(boardInput);
@@ -77,5 +76,13 @@ Board.delete = async ({board} = {}) => {
     };
   }
 
-  return await BoardModel.deleteOne(boardInput);
+  return BoardModel.deleteOne(boardInput);
+};
+
+BoardLogic.sync = async (boardNames) => {
+  boardNames = Tools.arrayify(boardNames);
+  if (!boardNames) {
+    return BoardModel.getLastPostNumbers();
+  }
+  return BoardModel.getLastPostNumbers(boardNames);
 };

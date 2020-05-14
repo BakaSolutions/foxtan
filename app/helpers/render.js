@@ -15,7 +15,7 @@ const settings = {
 const ILLEGAL_CHARACTERS_REGEXP = /[^a-zA-Z$_]/gi;
 
 const TEMPL = 'src/views';
-const DESTI = '.tmp/views';
+const DESTI = '.tmp/views'; // TODO: use system temp folder (config('directories.temporary'))
 const TEMPL_FOLDER = path.join(__dirname, '../../', TEMPL, path.sep);
 const DESTI_FOLDER = path.join(__dirname, '../../', DESTI, path.sep);
 

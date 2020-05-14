@@ -1,6 +1,6 @@
 {
   "name": "foxtan",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Slyest imageboard engine that was ever made!!1",
   "main": "app/index.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://rngnrs@bitbucket.org/bakaso/foxtan.git"
+    "url": "git+https://bitbucket.org/bakaso/foxtan.git"
   },
   "keywords": [
     "imageboard"
@@ -37,6 +37,7 @@
   "devDependencies": {},
   "optionalDependencies": {
     "koa-static": "^4.0.1",
-    "mongodb": "^2.2.33"
+    "knex": "^0.20.13",
+    "pg": "^7.18.2"
   }
 }

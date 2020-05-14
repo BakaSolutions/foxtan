@@ -1,7 +1,6 @@
-const ThreadModel = require('../../models/mongo/thread.js');
+const ThreadModel = require('../../models/dao').DAO('thread');
 const ThreadLogic = require('../../logic/thread.js');
 
-const Tools = require('../../helpers/tools.js');
 const Controller = require('../../helpers/ws.js')();
 
 module.exports = [
@@ -17,26 +16,34 @@ module.exports = [
         };
       }
 
-      let threadArray = await ThreadModel.readPage({boardName, page, limit: count});
-      let out = await Tools.sequence(threadArray, ThreadLogic.processThread);
-      return Controller.success(ws, params, out);
+      let threads = await ThreadLogic.readAllByBoard(boardName, { count, page });
+      return Controller.success(ws, params, threads);
     }
   }, {
     request: 'thread',
     middleware: async (params, ws) => {
-      let { boardName, id } = params;
-      ['boardName', 'id'].forEach(param => {
-        if (!params[param]) {
+      let { id, headId, boardName, postNumber } = params;
+      let thread;
+
+      switch (true) {
+        case !!id:
+          thread = await ThreadLogic.readOneById(id);
+          break;
+        case !!headId:
+          thread = await ThreadLogic.readOneByHeadId(headId);
+          break;
+        case !!(boardName && postNumber):
+          thread = await ThreadLogic.readOneByBoardAndPost(boardName, postNumber);
+          break;
+        default:
           throw {
             message: "MISSING_PARAM",
-            description: `${param} is missing`,
+            description: "id or headId or boardName/postNumber is missing",
             code: 400
           };
-        }
-      });
-      let thread = await ThreadModel.readOne({boardName, threadNumber: id});
-      let out = await ThreadLogic.processThread(thread);
-      return Controller.success(ws, params, out);
+      }
+
+      return Controller.success(ws, params, thread);
     }
   }
 ];

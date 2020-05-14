@@ -8,6 +8,8 @@ const USER = 12;
 const MODER = 24;
 const ADMIN = 42;
 
+const HOST = '127.0.0.1:6749';
+
 let config = {
   board: {
     boardLimit: 200, // threads
@@ -19,8 +21,12 @@ let config = {
     threadsPerPage: 20
   },
   captcha: {
-    ttl: 300, // seconds
+    ttl: 60, // seconds
     postsPerCaptcha: 24,
+
+    mime: 'image/jpeg',
+    quality: 0.24, // for 'image/jpeg' [0 ... 1]
+    compressionLevel: 4, // for 'image/png' [0 ... 9]
 
     width: 192,
     height: 64,
@@ -41,13 +47,15 @@ let config = {
     log: {
       requests: true,
       tokens: true,
+      database: true,
       files: true
     }
   },
   db: {
-    type: 'mongo', // only 'mongo' now, sorry!
-    mongo: {
-      url: 'mongodb://localhost:27017/foxtantest'
+    schema: 'foxtan',
+    type: 'pg', // only 'pg' now, sorry!
+    pg: {
+      url: 'postgresql://localhost:5432/foxtantest'
     },
     redis: {
       url: 'redis://localhost:6379/0',
@@ -67,8 +75,8 @@ let config = {
     maxHeight: 10000,
     thumbnail: {
       extension: 'jpg',
-      width: 256,
-      height: 256,
+      width: 200,
+      height: 200,
       options: {
         quality: 67,
         progressive: true
@@ -79,10 +87,11 @@ let config = {
     host: '0.0.0.0', // or 'localhost',
     output: 'port', // or 'socket'
     port: 6749,
-    socket: '/tmp/sock',
+    socket: path.resolve(os.tmpdir(), 'foxtan') + path.sep + 'socket',
     static: {
       external: false
     },
+    useCustom: false,
     version: packageJSON.version
   },
   directories: {
@@ -94,9 +103,9 @@ let config = {
     thumb: path.resolve(__dirname, '../../public/res/thumb') + path.sep
   },
   paths: { // with forward slashes!
-    public: 'http://127.0.0.1:6749/',
-    upload: 'http://127.0.0.1:6749/res/',
-    thumb: 'http://127.0.0.1:6749/res/thumb/'
+    upload: `http://${HOST}/res/`,
+    thumb: `http://${HOST}/res/thumb/`,
+    ws: `ws://${HOST}/ws`
   },
   token: {
     expires: { // d    h    m    s

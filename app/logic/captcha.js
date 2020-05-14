@@ -13,13 +13,19 @@ Captcha.create = () => {
   return captcha;
 };
 
-Captcha.check = ({id, code}) => {
-  if (CommonLogic.hasEmpty({id, code})) {
-    return false;
-  }
-  let key = `captcha:${id}`;
-  return redis.get(key).then(result => {
+Captcha.check = async ({id, code}) => {
+  try {
+    if (CommonLogic.hasEmpty({
+      id,
+      code
+    })) {
+      return false;
+    }
+    let key = `captcha:${id}`;
+    let result = await redis.get(key);
     redis.del(key);
     return result === code;
-  }).catch(() => false);
+  } catch {
+    return false;
+  }
 };

@@ -6,8 +6,8 @@
 		<title>Captcha</title>
 	</head>
 	<body>
-    <form action="/api/v1/captcha.check" method="POST">
-      <iframe src="/api/v1/captcha.frame" width="{{!it.width}}" height="{{!it.height}}" frameborder="0"></iframe>
+    <form action="/api/checkCaptcha" method="POST">
+      <iframe src="/api/captcha?frame" width="{{!it.width}}" height="{{!it.height}}" frameborder="0"></iframe>
       <br />
       <input name="code" required autocomplete="off" autofocus />
       <button>Submit</button>

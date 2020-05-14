@@ -30,6 +30,10 @@ HTTP.fail = (ctx, out, templateName = 'pages/error') => {
     return ctx.throw(out);
   }
 
+  if (!out.error) {
+    out.error = http.STATUS_CODES[ctx.status];
+  }
+
   if (!HTTP.isAJAXRequested(ctx)) {
     ctx.type = 'text/html';
     out.debug = config('debug.enable');
@@ -38,11 +42,19 @@ HTTP.fail = (ctx, out, templateName = 'pages/error') => {
 
   delete out.status;
 
-  out.error = out.error || http.STATUS_CODES[ctx.status];
-
   ctx.body = out;
 };
 
-HTTP.isRedirect = query => !(typeof query.redirect === 'undefined' || query.redirect === '');
+HTTP.isRedirect = ({redirect} = {}) => !(typeof redirect === 'undefined' || redirect === '');
+
+HTTP.redirect = (ctx, {redirect} = {}, regexp, map) => {
+  if (!HTTP.isRedirect({redirect})) {
+    return false;
+  }
+  if (typeof map !== 'undefined') {
+    redirect = redirect.replace(regexp, m => map[m]);
+  }
+  return ctx.redirect(redirect);
+};
 
 module.exports = HTTP;

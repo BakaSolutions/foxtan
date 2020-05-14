@@ -15,6 +15,9 @@ Tools.moduleAvailable = name => {
 };
 
 Tools.arrayify = input => {
+  if (!input) {
+    return input;
+  }
   if (!(input instanceof Array)) {
     input = [ input ];
   }

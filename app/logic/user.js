@@ -1,7 +1,7 @@
 const jwt = require('jwt-simple');
 
 const CommonLogic = require('./common');
-const UserModel = require('../models/mongo/user');
+const UserModel = require('../models/dao').DAO('user');
 
 const config = require('../helpers/config');
 const Crypto = require('../helpers/crypto');

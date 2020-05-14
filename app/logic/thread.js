@@ -1,40 +1,39 @@
 const config = require('../helpers/config');
 const Tools = require('../helpers/tools');
 
-const CounterModel = require('../models/mongo/counter');
-const PostModel = require('../models/mongo/post');
+const PostModel = require('../models/dao').DAO('post');
 const PostLogic = require('./post');
-const ThreadModel = require('../models/mongo/thread');
+const ThreadModel = require('../models/dao').DAO('thread');
 
-let Thread = module.exports = {};
+let ThreadLogic = module.exports = {};
 
-/**
- * @param {String} boardName
- * @param {Number} [limit]
- * @returns {Promise}
- */
-Thread.countPage = async ({ boardName, limit}) => {
-  if (!boardName) {
-    throw {
-      code: 400
-    };
-  }
-  if (!limit) {
-    limit = config('board.threadsPerPage');
-  }
-  return await ThreadModel.countPage({
-    boardName,
-    limit
-  });
+ThreadLogic.readAllByBoard = async (boardName, {count, page} = {}) => {
+  let out = await ThreadModel.readAllByBoard(boardName, {count, page});
+  return Tools.sequence(out, processThread);
 };
 
-/**
+ThreadLogic.readOneById = async (id, {count, page} = {}) => {
+  let out = await ThreadModel.readOneById(id, {count, page});
+  return processThread(out);
+};
+
+ThreadLogic.readOneByHeadId = async (headId, {count, page} = {}) => {
+  let out = await ThreadModel.readOneByHeadId(headId, {count, page});
+  return processThread(out);
+};
+
+ThreadLogic.readOneByBoardAndPost = async (boardName, postNumber, {count, page} = {}) => {
+  let out = await ThreadModel.readOneByBoardAndPost(boardName, postNumber, {count, page});
+  return processThread(out);
+};
+
+/*
  * @param {String} boardName
  * @param {Number} threadNumber
  * @param {Number} [last]
  * @returns {Promise}
  */
-Thread.readOne = async (boardName, threadNumber, last = config('board.lastPostsNumber')) => {
+ThreadLogic.readOne = async (boardName, threadNumber, last = config('board.lastPostsNumber')) => {
   if (!Tools.isNumber(threadNumber)) {
     throw {
       code: 400,
@@ -93,12 +92,12 @@ Thread.readOne = async (boardName, threadNumber, last = config('board.lastPostsN
 /**
  * @param {String} boardName
  * @param {Number} page
- * @param {Number} [limit]
+ * @param {Number} [count]
  * @param {Number} [lastReplies]
  * @param {Number} [lastRepliesForFixed]
  * @returns {Promise}
  */
-Thread.readPage = async (boardName, page, limit, lastReplies, lastRepliesForFixed) => {
+ThreadLogic.readPage = async (boardName, page, {count, lastReplies, lastRepliesForFixed} = {}) => {
   if (!Tools.isNumber(page)) {
     throw {
       code: 400,
@@ -106,7 +105,7 @@ Thread.readPage = async (boardName, page, limit, lastReplies, lastRepliesForFixe
       description: `Wrong \`page\` parameter.`
     };
   }
-  if (!Tools.isNumber(limit)) {
+  if (!Tools.isNumber(count)) {
     lastReplies = config('board.threadsPerPage');
   }
   if (!Tools.isNumber(lastReplies)) {
@@ -116,11 +115,7 @@ Thread.readPage = async (boardName, page, limit, lastReplies, lastRepliesForFixe
     lastRepliesForFixed = lastReplies;
   }
 
-  let threads = await ThreadModel.readPage({
-    boardName,
-    page,
-    limit
-  });
+  let threads = await ThreadModel.readAllByBoard(boardName, {count, page});
   if (!threads || !threads.length) {
     throw {
       code: 404
@@ -169,14 +164,7 @@ Thread.readPage = async (boardName, page, limit, lastReplies, lastRepliesForFixe
     threads[i].omittedPosts = count - threads[i].posts.length;
     threads[i].postCount = count;
   }
-  return {
-    threads,
-    lastPostNumber: await CounterModel.readOne(boardName),
-    pageCount: await ThreadModel.countPage({
-      boardName,
-      limit
-    })
-  };
+  return threads;
 };
 
 /**
@@ -186,7 +174,7 @@ Thread.readPage = async (boardName, page, limit, lastReplies, lastRepliesForFixe
  * @param {String} order
  * @returns {Promise}
  */
-Thread.readFeedPage = async (boardName, page, limit = config('board.threadsPerPage'), order = 'createdAt') => {
+ThreadLogic.readFeedPage = async (boardName, page, limit = config('board.threadsPerPage'), order = 'createdAt') => {
   if (!Tools.isNumber(page)) {
     throw {
       code: 400,
@@ -207,103 +195,28 @@ Thread.readFeedPage = async (boardName, page, limit = config('board.threadsPerPa
       code: 404
     };
   }
-  return {
-    feed,
-    lastPostNumber: await CounterModel.readOne(boardName),
-    pageCount: await PostModel.countPage({
-      boardName,
-      limit
-    })
-  };
-};
-
-/**
- * @param {String} boardName
- * @param {Number} page
- * @param {Number} limit
- * @param {String} order
- * @returns {Promise}
- */
-Thread.readCatPage = async (boardName, page, limit = config('board.threadsPerPage'), order = 'createdAt') => {
-  if (!Tools.isNumber(page)) {
-    throw {
-      code: 400,
-      message: "WRONG_PARAM",
-      description: `Wrong \`page\` parameter.`
-    };
-  }
-
-  let feed = await ThreadModel.readAll({
-    boardName,
-    order,
-    orderBy: 'DESC',
-    limit,
-    offset: page * limit
-  });
-  if (!feed || !feed.length) {
-    throw {
-      code: 404
-    };
-  }
-  for (let i = 0; i < feed.length; i++) {
-    feed[i].opPost = await PostLogic.readOne({
-      boardName,
-      postNumber: feed[i].number
-    });
-  }
   return feed;
 };
 
-/**
- * Return some counters to be a client synced
- * @deprecated Use syncThread instead.
- * @return {Promise}
- */
-Thread.syncData = async () => {
-  let out = {
-    lastPostNumbers: await CounterModel.read(),
-    threadCounts: {}
-  };
-  let threads = await ThreadModel.readAll();
-  for (let i = 0; i < threads.length; i++) {
-    let { boardName, number } = threads[i];
-    if (typeof out.threadCounts[boardName] === 'undefined') {
-      out.threadCounts[boardName] = {};
-    }
-    out.threadCounts[boardName][number] = await PostModel.count({
-      query: {
-        boardName,
-        threadNumber: number
-      }
-    });
-  }
-  return out;
-};
-
-Thread.syncThread = async boardName => {
+ThreadLogic.sync = async boardName => {
   let out = {};
-  let threads = await ThreadModel.readAll({ boardName });
+  let threads = await ThreadModel.readAllByBoard(boardName);
   for (let i = 0; i < threads.length; i++) {
-    let { number } = threads[i];
-    out[number] = await PostModel.count({
-      query: {
-        boardName,
-        threadNumber: number
-      }
-    });
+    let { id } = threads[i];
+    out[id] = await PostModel.countByThreadId(id);
   }
   return out;
 };
 
-Thread.pin = async (boardName, threadNumber, pinned) => {
+ThreadLogic.pin = async (boardName, threadNumber, pinned) => {
   return await changeThreadBoolean(boardName, threadNumber, { pinned });
 };
 
-Thread.close = async (boardName, threadNumber, closed) => {
+ThreadLogic.close = async (boardName, threadNumber, closed) => {
   return await changeThreadBoolean(boardName, threadNumber, { closed });
 };
 
-Thread.freeze = async (boardName, threadNumber, frozen) => {
+ThreadLogic.freeze = async (boardName, threadNumber, frozen) => {
   return await changeThreadBoolean(boardName, threadNumber, { frozen });
 };
 
@@ -351,32 +264,15 @@ async function readOneThread(boardName, threadNumber) {
   return thread;
 }
 
-//TODO: Remove this temporary fix for API mismatch
-Thread.processThread = async thread => {
+async function processThread(thread) {
   if (!thread) {
     throw {
       code: 404
     };
   }
-  let { boardName } = thread;
-  delete thread.createdAt;
-  delete thread.updatedAt;
-  thread.id = thread.number;
-  delete thread.number;
-  thread.head = await PostLogic.readOne({
-    boardName,
-    postNumber: thread.id
-  });
-  thread.head = PostLogic.processPost(thread.head);
-  thread.posts = await PostModel.count({
-    query: {boardName, threadNumber: thread.id}
-  });
-  thread.modifiers = [];
-  ['pinned', 'closed', 'frozen'].forEach(bool => {
-    delete thread[bool];
-    if (thread[bool]) {
-      thread.modifiers.push(bool);
-    }
-  });
+  let { headId } = thread;
+  delete thread.headId;
+  thread.head = await PostModel.readOneById(headId);
+  thread.posts = await PostModel.countByThreadId(thread.id);
   return thread;
-};
+}
