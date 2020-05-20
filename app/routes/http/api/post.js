@@ -1,10 +1,13 @@
-const router = require('koa-router')();
+const config = require('../../../helpers/config');
+const router = require('koa-router')({
+  prefix: config('server.pathPrefix')
+});
 
 const HTTP = require('../index');
 const PostLogic = require('../../../logic/post');
 const UserLogic = require('../../../logic/user');
 
-router.post('/api/createPost', async ctx => {
+router.post('api/createPost', async ctx => {
   try {
     let { body: query, token } = ctx.request;
 

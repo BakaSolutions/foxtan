@@ -1,16 +1,18 @@
-const router = require('koa-router')();
+const config = require('../../../helpers/config');
+const router = require('koa-router')({
+  prefix: config('server.pathPrefix')
+});
 
-const config = require('../../../helpers/config.js');
 const CaptchaLogic = require('../../../logic/captcha.js');
 const UserLogic = require('../../../logic/user.js');
 
 const HTTP = require('../index.js');
 
 function onlyExactGetParam(params, param) {
-  return params.every(p => p.toLowerCase() === param);
+  return Array.isArray(params) && params.length && params.every(p => p.toLowerCase() === param);
 }
 
-router.get('/api/captcha', async ctx => {
+router.get('api/captcha', async ctx => {
   try {
     let getParams = Object.keys(ctx.request.query);
 
@@ -39,7 +41,7 @@ router.get('/api/captcha', async ctx => {
   }
 });
 
-router.post('/api/checkCaptcha', async ctx => {
+router.post('api/checkCaptcha', async ctx => {
   try {
     let {id, code} = ctx.request.body;
 

@@ -8,6 +8,8 @@ const Routes = module.exports = {};
 
 Routes.initHTTP = async server => {
 
+  config.set('server.pathPrefix', Tools.wrapWith(config('server.pathPrefix'), '/'));
+
   const app = new Koa();
 
   server.on('request', app.callback());
@@ -34,7 +36,7 @@ Routes.initHTTP = async server => {
 
 Routes.initWebsocket = async server => {
 
-  const app = WS(server);
+  const app = WS(server, config('server.pathPrefix') + 'ws');
 
   let middlewares = await load('websocket', 'middlewares');
 

@@ -88,6 +88,7 @@ let config = {
     output: 'port', // or 'socket'
     port: 6749,
     socket: path.resolve(os.tmpdir(), 'foxtan') + path.sep + 'socket',
+    pathPrefix: '/',
     static: {
       external: false
     },

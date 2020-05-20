@@ -25,7 +25,7 @@ const Database = require('./models/dao.js');
 })();
 
 async function listen(server) {
-  let { output, host, port, socket } = config('server');
+  let { output, host, port, socket, pathPrefix } = config('server');
   let address, serverParams;
 
   if (output === 'socket') {
@@ -37,7 +37,7 @@ async function listen(server) {
   }
 
   await server.listen(...serverParams);
-  console.log(`\x1b[32mФырк!\x1b[0m ${address}/index.xhtml`);
+  console.log(`\x1b[32mФырк!\x1b[0m ${address}${pathPrefix}index.xhtml`);
 }
 
 function catchThrown(log) {

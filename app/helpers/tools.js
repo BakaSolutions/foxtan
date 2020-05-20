@@ -124,4 +124,13 @@ Tools.random = (type = 10, n) => {
 };
 
 Tools.randomInt = length => Tools.random(10, length);
+
 Tools.randomHex = length => Tools.random(16, length);
+
+Tools.startWith = (string, char) => (''+string).startsWith(char) ? string : char + string;
+
+Tools.endWith = (string, char) => (''+string).endsWith(char) ? string : string + char;
+
+Tools.wrapWith = (string, charStart, charEnd = charStart) => {
+  return Tools.endWith(Tools.startWith(string, charEnd), charStart);
+};

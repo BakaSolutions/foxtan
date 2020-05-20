@@ -2,7 +2,7 @@ const doT = require('dot');
 const path = require('path');
 const FS = require('../helpers/fs');
 const Logger = console; // TODO: Import Logger from Kuri
-const Tools = require('../helpers/tools');
+const config = require('../helpers/config.js');
 
 let Render = module.exports = {};
 let includes = {};
@@ -14,11 +14,8 @@ const settings = {
 };
 const ILLEGAL_CHARACTERS_REGEXP = /[^a-zA-Z$_]/gi;
 
-const TEMPL = 'src/views';
-const DESTI = '.tmp/views'; // TODO: use system temp folder (config('directories.temporary'))
-const TEMPL_FOLDER = path.join(__dirname, '../../', TEMPL, path.sep);
-const DESTI_FOLDER = path.join(__dirname, '../../', DESTI, path.sep);
-
+const TEMPL_FOLDER = path.join(__dirname, '../../', 'src/views', path.sep);
+const DESTI_FOLDER = path.join(config('directories.temporary'), 'views', path.sep);
 
 Render.loadTemplates = async () => {
   try {
@@ -83,7 +80,11 @@ Render.renderPage = (templateName, model) => {
     if (!template) {
       throw new Error('This template doesn\'t exist: ' + templateName);
     }
-    let baseModel = {}; //TODO: Is this really needed?
+    let baseModel = {
+      server: {
+        pathPrefix: config('server.pathPrefix')
+      }
+    };
     model = Object.assign({}, baseModel, model); //model = Tools.merge(model, baseModel) || baseModel;
     return template(model);
   } catch (e) {
