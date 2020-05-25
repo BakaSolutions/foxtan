@@ -5,7 +5,7 @@ function onload() {
 
   textarea.value = '';
 
-  let websocket = new WebSocket("ws://" + location.host + location.pathname.replace('/debug.xhtml','') + "/ws");
+  let websocket = new WebSocket("ws" + (location.protocol.endsWith('s:') ? 's' : '') + "://" + location.host + location.pathname.replace('/debug.xhtml','') + "/ws");
   function display(message, type = '', {ln = true} = {}) {
     let json = message;
     try {
