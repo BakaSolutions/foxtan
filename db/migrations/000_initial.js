@@ -15,7 +15,7 @@ exports.up = knex => {
       table.specificType('width', 'smallint').unsigned();
       table.specificType('height', 'smallint').unsigned();
       table.text('caption');
-      table.jsonb('modifiers');
+      table.specificType('modifiers', 'varchar[]');
       table.specificType('thumbWidth', 'smallint').unsigned();
       table.specificType('thumbHeight', 'smallint').unsigned();
     })
@@ -39,7 +39,7 @@ exports.up = knex => {
       table.string('title', 20);
       table.string('defaultSubject', 60);
       table.string('description');
-      table.jsonb('modifiers');
+      table.specificType('modifiers', 'varchar[]');
       //table.string('locale', 5);
       table.timestamp('created').defaultTo(knex.fn.now());
       table.timestamp('deleled');
@@ -49,15 +49,11 @@ exports.up = knex => {
     .createTable('thread', (table) => {
       table.increments('id').unsigned().primary();
       table.string('boardName', boardNameMaxLength).notNullable();
-      table.integer('headId').unsigned().notNullable();
       table.integer('limitsId').unsigned();
       table.specificType('pinned', 'smallint').unsigned();
-      table.jsonb('modifiers');
+      table.specificType('modifiers', 'varchar[]');
 
       table.foreign('boardName').references('name').inTable(schema + '.board');
-      setTimeout(() => {
-        table.foreign('headId').references('id').inTable(schema + '.post');
-      }, 1000);
       table.foreign('limitsId').references('id').inTable(schema + '.limits');
     })
     .createTable('post', (table) => {
@@ -67,8 +63,8 @@ exports.up = knex => {
       table.integer('number').unsigned();
       table.string('subject', 60);
       table.text('text');
-      table.string('sessionKey', 8);
-      table.jsonb('modifiers');
+      table.string('sessionKey');
+      table.specificType('modifiers', 'varchar[]');
       table.specificType('ipAddress', 'inet');
       table.timestamp('created').defaultTo(knex.fn.now());
       table.timestamp('updated');
@@ -211,11 +207,9 @@ exports.up = knex => {
     });
 };
 
-exports.down = async knex => {
+exports.down = knex => {
   if (knex.client.config.client === 'pg') {
-    await knex.raw(`DROP SCHEMA ${schema} CASCADE`);
-  } else {
-    await knex.dropSchemaIfExists(schema);
+    return knex.raw(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);
   }
-  return knex.schema.createSchemaIfNotExists(schema);
+  return knex.dropSchemaIfExists(schema);
 };

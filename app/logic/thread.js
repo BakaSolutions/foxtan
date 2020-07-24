@@ -270,9 +270,7 @@ async function processThread(thread) {
       code: 404
     };
   }
-  let { headId } = thread;
-  delete thread.headId;
-  thread.head = await PostModel.readOneById(headId);
+  thread.head = await PostModel.readOneByThreadId(thread.id);
   thread.posts = await PostModel.countByThreadId(thread.id);
   return thread;
 }

@@ -1,35 +1,25 @@
 const config = require('./app/helpers/config.js');
 
 const dbType = config('db.type');
-const { connection } = config(`db.${dbType}`);
+const { url } = config(`db.${dbType}`);
 
 module.exports = {
 
   development: {
     client: dbType || 'pg',
-    connection: {
-      host: connection.host || '127.0.0.1',
-      user: connection.user || 'postgres',
-      password: connection.password || '',
-      database: connection.database || 'foxtantest'
-    },
+    connection: url,
     migrations: {
       directory: './db/migrations',
       tableName: 'migrations'
     },
     seeds: {
-      directory: './db/seeds/dev'
+      directory: './db/seeds'
     }
   },
 
   production: {
     client: dbType || 'pg',
-    connection: {
-      host: connection.host || '127.0.0.1',
-      user: connection.user || 'postgres',
-      password: connection.password || '',
-      database: connection.database || 'foxtan'
-    },
+    connection: url,
     migrations: {
       directory: './db/migrations',
       tableName: 'migrations'

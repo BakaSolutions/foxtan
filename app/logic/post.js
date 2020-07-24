@@ -5,7 +5,9 @@ const ThreadModel = require('../models/dao').DAO('thread');
 const PostModel = require('../models/dao').DAO('post');
 const Attachment = require('./attachment');
 
-const config = require('../helpers/config');
+const Thread = require('../object/Thread.js');
+const Post = require('../object/Post.js');
+
 const Crypto = require('../helpers/crypto');
 const Tools = require('../helpers/tools');
 
@@ -15,63 +17,82 @@ let PostLogic = module.exports = {};
 
 PostLogic.create = async (fields, token) => {
   let now = new Date;
+  let {boardName, threadNumber, sage, subject, text} = fields;
 
-  let params = {
-    board: await BoardModel.readOne(fields.boardName),
-    isThread: CommonLogic.isEmpty(fields.threadNumber),
-    token,
-    now
-  };
-
-  if (!params.isThread) {
-    params.thread = await ThreadModel.readOne({
-      boardName: fields.boardName,
-      threadNumber: fields.threadNumber
-    });
+  let board = await BoardModel.readByName(boardName);
+  if (board.modifiers && board.modifiers.closed) {
+    throw {
+      status: 403,
+      message: 'This board is closed'
+    };
   }
 
-  let postValidation = await require('../validators/post')(fields, params);
-
-  if (params.isThread) {
-    let threadValidation = await require('../validators/thread')(fields, params);
-    let threadInput = CommonLogic.cleanEmpty(threadValidation, params);
-    await ThreadModel.create(threadInput); // Thread hook
-  }
-
-  let postInput = CommonLogic.cleanEmpty(postValidation);
-  postInput = await PostModel.create(postInput); // Post hook
-
-  let { boardName, threadNumber, number, sage, createdAt } = postInput;
-
-  let count = await PostModel.count({
-    query: {
-      boardName,
-      threadNumber
+  let isThread = CommonLogic.isEmpty(threadNumber);
+  let thread;
+  if (isThread) {
+    thread = new Thread({creative: true})
+  } else {
+    threadNumber = +threadNumber; // "1" => 1
+    let threadFromDB = await ThreadModel.readOneByBoardAndPost(boardName, threadNumber);
+    if (!threadFromDB) {
+      throw {
+        status: 404,
+        message: 'There is no such a thread'
+      };
     }
-  });
-
-  let { bumpLimit } = params.board;
-  if (count <= bumpLimit || config('board.bumpLimit') || !sage) {
-    await ThreadModel.update({
-      query: {
-        boardName,
-        number: threadNumber
-      },
-      fields: {
-        updatedAt: now
-      }
-    })
+    thread = new Thread().bulk(threadFromDB); // TODO: Create Thread in ThreadModel
   }
 
-  let out = [
-    boardName,
-    threadNumber,
-    number
-  ];
+  try {
+    await ThreadModel.transactionBegin();
 
-  EventBus.emit('ws.broadcast', 'RNDR ' + JSON.stringify(out));
+    if (isThread) {
+      thread.boardName = boardName;
+      thread.created = now;
 
-  return PostModel.readOneByBoardAndPost(boardName, number);
+      thread = await ThreadModel.create(thread); // Thread hook
+      thread = new Thread().bulk(thread); // TODO: Create Thread in ThreadModel
+    }
+
+    let post = new Post({creative: true});
+    let lastNumber = await PostModel.readLastNumberByBoardName(boardName);
+    console.log(thread.toObject());
+    // "threadId", "userId", "number", "subject", "text",
+    // "sessionKey", "modifiers", "ipAddress", "created", "deleled"
+    post.threadId = thread.id;
+    post.number = ++lastNumber;
+    if (subject.length) {
+      post.subject = subject;
+    }
+    post.text = text;
+    post.sessionKey = token.tid;
+
+    if (sage) {
+      post.modifiers = [];
+      post.modifiers.push('sage');
+    }
+
+    post.created = now;
+
+    post = await PostModel.create(post); // Post hook
+    post = new Post().bulk(post); // TODO: Create Post in PostModel
+
+    await ThreadModel.transactionEnd();
+
+    console.log(post.toObject());
+
+    let out = [
+      boardName,
+      post.threadId,
+      post.number
+    ];
+
+    EventBus.emit('ws.broadcast', 'RNDR ' + JSON.stringify(out));
+    return out;
+  } catch (e) {
+    await ThreadModel.transactionRollback();
+    throw e;
+  }
 };
 
 /**
@@ -99,8 +120,8 @@ PostLogic.readOneByBoardAndPost = async (boardName, postNumber) => {
   let out = await PostModel.readOneByBoardAndPost(boardName, postNumber);
 
   if (!out) {
-    //let counter = await CounterModel.readOne(boardName);
-    let wasPosted = false; //(postNumber <= counter);
+    let counter = await PostModel.readLastNumberByBoardName(boardName);
+    let wasPosted = (postNumber <= counter);
     let status = wasPosted ? 410 : 404;
     throw {
       status,

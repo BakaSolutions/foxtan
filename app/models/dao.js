@@ -31,7 +31,8 @@ Database.DAO = (table, type = config('db.type')) => {
 
 Database.createConnection = (table, type = config('db.type')) => {
   if (!Database.connections[type]) {
-    console.log('no connection!!1')
+    console.error('No connection to database. Check your config and/or DB instance.');
+    process.exit(0);
   }
   try {
     const DAO = require(`./dao/${Tools.capitalize(table)}.js`);

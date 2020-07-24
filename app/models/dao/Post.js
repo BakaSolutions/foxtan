@@ -1,4 +1,5 @@
 const DAO = require('./super.js');
+const Post = require('../../object/Post.js');
 
 class PostDAO extends DAO {
 
@@ -6,13 +7,30 @@ class PostDAO extends DAO {
     super(connection, schema + '.');
   }
 
-  create(post) {
-    throw new Error();
+  async create(post) {
+    if (!(post instanceof Post)) {
+      throw new Error('Post must be created via PostObject');
+    }
+    const template = `INSERT INTO ${this._schema}post 
+("threadId", "userId", "number", "subject", "text", "sessionKey", 
+"modifiers", "ipAddress", "created", "updated", "deleled") 
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+RETURNING *`;
+    const values = post.toArray();
+    const query = await this._executeQuery(template, values);
+    return query[0];
   }
 
   async readOneById(id) {
-    const template = `SELECT * FROM ${this._schema}post WHERE post.id = $1 LIMIT 1`;
+    const template = `SELECT * FROM ${this._schema}post WHERE id = $1 ORDER BY id LIMIT 1`;
     const values = [ id ];
+    const query = await this._executeQuery(template, values);
+    return query[0];
+  }
+
+  async readOneByThreadId(threadId) {
+    const template = `SELECT * FROM ${this._schema}post WHERE "threadId" = $1 ORDER BY id LIMIT 1`;
+    const values = [ threadId ];
     const query = await this._executeQuery(template, values);
     return query[0];
   }
@@ -52,10 +70,19 @@ AND p."threadId" = $1`;
   }
 
   async countByThreadId(threadId) {
-    const template = `SELECT COUNT(id) FROM ${this._schema}post WHERE post."threadId" = $1`;
+    const template = `SELECT COUNT(id) FROM ${this._schema}post p WHERE p."threadId" = $1`;
     const values = [ threadId ];
     const query = await this._executeQuery(template, values);
     return +query[0].count;
+  }
+
+  async readLastNumberByBoardName(boardName) {
+    const template = `SELECT MAX(p.number)
+FROM ${this._schema}post p, ${this._schema}thread t, ${this._schema}board b
+WHERE p."threadId" = t.id AND t."boardName" = b.name AND b.name = $1`;
+    const values = [ boardName ];
+    const query = await this._executeQuery(template, values);
+    return +query[0].max;
   }
 
   update(post) {

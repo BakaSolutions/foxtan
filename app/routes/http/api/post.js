@@ -23,8 +23,7 @@ router.post('api/createPost', async ctx => {
       return ctx.redirect('/captcha.html', 303);
     }
 
-    query.threadNumber = +query.threadNumber;
-    let {boardName, threadNumber, number} = await PostLogic.create(query, token);
+    let [boardName, threadId, number] = await PostLogic.create(query, token);
     token.trustedPostCount--;
     let newToken = UserLogic.createToken(token);
     UserLogic.setToken(ctx, newToken);
@@ -32,7 +31,7 @@ router.post('api/createPost', async ctx => {
     if (!HTTP.isAJAXRequested(ctx)) {
       let map = {
         ':board': boardName,
-        ':thread': threadNumber,
+        ':thread': threadId,
         ':post': number
       };
       return HTTP.redirect(ctx, query, /:(?:board|thread|post)/g, map);
@@ -40,7 +39,7 @@ router.post('api/createPost', async ctx => {
 
     const out = {
       boardName,
-      threadNumber,
+      threadId,
       number,
       message: 'Post was successfully created!',
       trustedPostCount: token.trustedPostCount
