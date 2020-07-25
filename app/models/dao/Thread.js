@@ -23,7 +23,7 @@ RETURNING *`;
     return query[0];
   }
 
-  async createOp(thread, post) {
+  async createOp(thread, post) { // TODO: Remove transactions from logic
     try {
       await this._executeQuery('BEGIN');
       await this.create(thread);
@@ -36,7 +36,7 @@ RETURNING *`;
   }
 
   async readOneById(id) {
-    const template = `SELECT * FROM ${this._schema}thread WHERE thread.id = $1 LIMIT 1`;
+    const template = `SELECT * FROM ${this._schema}thread WHERE id = $1 LIMIT 1`;
     const values = [ id ];
     const query = await this._executeQuery(template, values);
     return query[0];
@@ -70,7 +70,7 @@ AND t."boardName" = $1
 AND p.id IN
 (SELECT DISTINCT ON ("threadId") id FROM ${this._schema}post WHERE NOT ('sage' = ANY(COALESCE(modifiers, array[]::varchar[]))))
 GROUP BY t.id, p.id
-ORDER BY MAX(p.created) DESC`;
+ORDER BY MAX(p.id) DESC`;
     let values = [ boardName ];
     let query = this._limitOffset(template, values, { count, page });
     return this._executeQuery(...query);
