@@ -18,7 +18,8 @@ let config = {
 
     defaultUserName: "",
     lastPostsNumber: 3,
-    threadsPerPage: 20
+    threadsPerPage: 20,
+    captcha: true
   },
   captcha: {
     ttl: 60, // seconds

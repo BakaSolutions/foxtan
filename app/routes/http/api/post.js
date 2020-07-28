@@ -6,12 +6,14 @@ const router = require('koa-router')({
 const HTTP = require('../index');
 const PostLogic = require('../../../logic/post');
 const UserLogic = require('../../../logic/user');
+const CommonLogic = require('../../../logic/common');
 
 router.post('api/createPost', async ctx => {
   try {
     let { body: query, token } = ctx.request;
+    let isCaptchaEnabled = config('board.captcha', config(`board.${query.boardName}.captcha`, false));
 
-    if (!token || typeof token.trustedPostCount === 'undefined' || !token.trustedPostCount) {
+    if (isCaptchaEnabled && (CommonLogic.isEmpty(token.trustedPostCount) || !token.trustedPostCount)) {
       if (HTTP.isAJAXRequested(ctx)) {
         let error = {
           status: 400,
