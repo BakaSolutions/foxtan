@@ -1,9 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-const fsPromises = require('fs').promises;
-const mime = require("mime");
-
-const { access, readdir, copyFile, readFile, writeFile, mkdir, rename, unlink } = fsPromises;
+const { access, readdir, copyFile, readFile, writeFile, mkdir, rename, unlink } = fs.promises;
 
 const config = require('./config.js');
 
@@ -12,16 +9,16 @@ let FS = module.exports = {};
 FS.ROOT = config('directories')['root'];
 
 class FSError extends Error {
-  constructor(error) {
-    super(error);
+  constructor() {
+    super();
     Error.captureStackTrace(this, this.constructor);
     this.name = "FSError";
   }
 }
 
 class FSAccessError extends FSError {
-  constructor(error) {
-    super(error);
+  constructor() {
+    super();
     this.name = "FSAccessError";
   }
 }
@@ -189,10 +186,6 @@ FS.renameFile = async (old, mew, rootType) => {
     return throwFSError(e);
   }
 };
-
-FS.getMime = async filePath => await mime.getType(filePath);
-
-FS.getExtension = async filePath => await mime.getExtension(filePath);
 
 async function createDirectoryIfNotExists(directory, rootType) {
   directory = FS.normalize(directory, rootType);

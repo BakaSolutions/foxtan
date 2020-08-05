@@ -1,4 +1,6 @@
 const Busboy = require('busboy');
+const FileType = require('file-type');
+
 const path = require('path');
 const config = require('../../helpers/config');
 const FS = require('../../helpers/fs');
@@ -43,38 +45,39 @@ module.exports = ctx => {
   return new Promise((resolve, reject) => {
     let busboy = new Busboy({ headers: ctx.req.headers });
     let fields = {};
+    let uploadedFiles = [];
 
     ctx.req.pipe(busboy);
-    setTimeout(() => resolve('Body parsing timeout'), 5000);
+    setTimeout(() => reject('Body parsing timeout'), 5000);
 
-    busboy.on('file', async (fieldname, file, filename, encoding) => {
+    busboy.on('file', async (fieldname, file, filename) => {
+      let size = 0;
+      let {ext, mime} = await FileType.fromStream(file);
 
-      if (!filename) { //TODO: Filter mimetype
-        return file.resume();
+      if (!(fieldname.startsWith('file'))) {
+        throw new Error('Files must be in appropriate form fields');
+      }
+      if (!mime) {
+        throw new Error('Unsupported file type: ' + filename);
       }
 
-      let extension = path.parse(filename).ext;
-      let tmpPath = path.join(config('directories.temporary'), +new Date + extension);
+      let tmpPath = path.join(config('directories.temporary'), +new Date + '.' + ext);
 
-      setTimeout(async () => {
-        await FS.unlink(tmpPath);
-      }, 300000);
-
-
-      let size = 0;
+      uploadedFiles.push(tmpPath);
 
       file.on('data', data => size += data.length);
 
-      file.pipe(FS.createWriteStream(tmpPath)).on('close', async () => {
+      file.on('end', async () => {
         correctFieldMatching(fields, fieldname, {
-          encoding,
-          mime: await FS.getMime(tmpPath),
-          extension: await FS.getExtension(tmpPath) || extension,
+          mime,
+          extension: ext,
           name: filename,
           size,
           path: tmpPath
         });
       });
+
+      file.pipe(FS.createWriteStream(tmpPath));
     });
 
     busboy.on('field', (fieldname, val) => correctFieldMatching(fields, fieldname, val));
@@ -85,8 +88,12 @@ module.exports = ctx => {
         ctx.request.body = fields;
       }
       resolve(ctx.request.body);
+      uploadedFiles.forEach(file => FS.unlink(file)); // TODO: Remove this and call after move/copy
     });
 
-    busboy.on('error', reject);
+    busboy.on('error', err => {
+      reject(err);
+      uploadedFiles.forEach(file => FS.unlink(file));
+    });
   });
 };
