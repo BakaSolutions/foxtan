@@ -10,6 +10,9 @@ const Database = require('./models/dao.js');
   let log = logError(console);
   catchThrown(log);
 
+  require('sharp');
+  require('canvas');
+
   try {
     await Database.connect();
 
