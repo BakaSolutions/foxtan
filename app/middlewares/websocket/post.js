@@ -42,20 +42,20 @@ module.exports = [
   }, {
     request: 'post',
     middleware: async (params, ws) => {
-      let { boardName, postId, postNumber } = params;
+      let { boardName, postId, number } = params;
       let post;
 
       switch (true) {
         case !!(postId):
           post = await PostLogic.readOneById(postId);
           break;
-        case !!(boardName && postNumber):
-          post = await PostLogic.readOneByBoardAndPost(boardName, postNumber);
+        case !!(boardName && number):
+          post = await PostLogic.readOneByBoardAndPost(boardName, number);
           break;
         default:
           throw {
             message: "MISSING_PARAM",
-            description: `postId or boardName/postNumber is missing`,
+            description: `postId or boardName/number is missing`,
             code: 400
           };
       }

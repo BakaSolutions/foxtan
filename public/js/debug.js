@@ -58,7 +58,7 @@ function onload() {
         '{"request": "posts", "threadId": 1, "count": 3, "page": 0}',
         '{"request": "posts", "threadId": 1, "count": 3, "page": "tail"}',
         '{"request": "posts", "boardName": "test", "count": 3, "page": 0}',
-        '{"request": "post", "boardName": "test", "postNumber": 1}',
+        '{"request": "post", "boardName": "test", "number": 1}',
         '{"request": "post", "postId": 1}'
     ];
     let iter = -1;
