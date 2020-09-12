@@ -16,35 +16,47 @@ const EventBus = require('../core/event.js');
 let PostLogic = module.exports = {};
 
 PostLogic.create = async (fields, token) => {
-  let now = new Date;
-  let {boardName, threadNumber, sage, subject, text} = fields;
-
-  let board = await BoardModel.readByName(boardName);
-  if (board.modifiers && board.modifiers.closed) {
-    throw {
-      status: 403,
-      message: 'This board is closed'
-    };
-  }
-
-  let isThread = CommonLogic.isEmpty(threadNumber);
-  let thread;
-  if (isThread) {
-    thread = new Thread({creative: true})
-  } else {
-    threadNumber = +threadNumber; // "1" => 1
-    let threadFromDB = await ThreadModel.readOneByBoardAndPost(boardName, threadNumber);
-    if (!threadFromDB) {
-      throw {
-        status: 404,
-        message: 'There is no such a thread'
-      };
-    }
-    thread = new Thread().bulk(threadFromDB); // TODO: Create Thread in ThreadModel
-  }
-
   try {
     await ThreadModel.transactionBegin();
+
+    let now = new Date;
+    let {boardName, threadNumber, sage, subject, text, file, fileMark} = fields;
+
+    let board = await BoardModel.readByName(boardName);
+    if (board.modifiers && board.modifiers.closed) {
+      throw {
+        status: 403,
+        message: 'This board is closed'
+      };
+    }
+
+    let isThread = CommonLogic.isEmpty(threadNumber);
+    let thread;
+    if (isThread) {
+      thread = new Thread({creative: true})
+    } else {
+      threadNumber = +threadNumber; // "1" => 1
+      let threadFromDB = await ThreadModel.readOneByBoardAndPost(boardName, threadNumber);
+      if (!threadFromDB) {
+        throw {
+          status: 404,
+          message: 'There is no such a thread'
+        };
+      }
+      thread = new Thread().bulk(threadFromDB); // TODO: Create Thread in ThreadModel
+    }
+
+    console.log(Object.values(file), fileMark);
+    for (let { mime, name, size, path } of Object.values(file)) {
+      mime = mime.split('/')[0];
+      let F = new File[mime]({ name, size, path });
+      await F.createHash();
+      await F.check();
+      await F.createThumb();
+    }
+    debugger;
+    // TODO: File
+
 
     if (isThread) {
       thread.boardName = boardName;
@@ -98,11 +110,11 @@ PostLogic.create = async (fields, token) => {
 /**
  * Reads one post with attachments.
  * @param {String} boardName
- * @param {Number} postNumber
+ * @param {Number} number
  * @returns {Promise}
  */
-PostLogic.readOneByBoardAndPost = async (boardName, postNumber) => {
-  postNumber = +postNumber;
+PostLogic.readOneByBoardAndPost = async (boardName, number) => {
+  number = +number;
 
   if (!boardName) {
     throw {
@@ -110,18 +122,18 @@ PostLogic.readOneByBoardAndPost = async (boardName, postNumber) => {
       message: `Board parameter is missed.`
     };
   }
-  if (!postNumber || postNumber < 1) {
+  if (!number || number < 1) {
     throw {
       status: 400,
       message: `Post parameter is missed.`
     };
   }
 
-  let out = await PostModel.readOneByBoardAndPost(boardName, postNumber);
+  let out = await PostModel.readOneByBoardAndPost(boardName, number);
 
   if (!out) {
     let counter = await PostModel.readLastNumberByBoardName(boardName);
-    let wasPosted = (postNumber <= counter);
+    let wasPosted = (number <= counter);
     let status = wasPosted ? 410 : 404;
     throw {
       status,

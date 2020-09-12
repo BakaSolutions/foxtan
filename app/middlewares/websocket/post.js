@@ -42,12 +42,12 @@ module.exports = [
   }, {
     request: 'post',
     middleware: async (params, ws) => {
-      let { boardName, postId, number } = params;
+      let { boardName, id, number } = params;
       let post;
 
       switch (true) {
-        case !!(postId):
-          post = await PostLogic.readOneById(postId);
+        case !!(id):
+          post = await PostLogic.readOneById(id);
           break;
         case !!(boardName && number):
           post = await PostLogic.readOneByBoardAndPost(boardName, number);

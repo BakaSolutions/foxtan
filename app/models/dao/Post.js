@@ -35,14 +35,14 @@ RETURNING *`;
     return query[0];
   }
 
-  async readOneByBoardAndPost(boardName, postNumber) {
+  async readOneByBoardAndPost(boardName, number) {
     const template = `SELECT p.*
 FROM ${this._schema}post p, ${this._schema}thread t
 WHERE p."threadId" = t.id
 AND t."boardName" = $1
 AND p.number = $2
 LIMIT 1`;
-    const values = [ boardName, postNumber ];
+    const values = [ boardName, number ];
     const query = await this._executeQuery(template, values);
     return query[0];
   }

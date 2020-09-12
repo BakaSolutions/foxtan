@@ -59,7 +59,7 @@ function onload() {
         '{"request": "posts", "threadId": 1, "count": 3, "page": "tail"}',
         '{"request": "posts", "boardName": "test", "count": 3, "page": 0}',
         '{"request": "post", "boardName": "test", "number": 1}',
-        '{"request": "post", "postId": 1}'
+        '{"request": "post", "id": 1}'
     ];
     let iter = -1;
     prevBtn.onclick = () => request(arr[--iter]);
