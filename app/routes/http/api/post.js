@@ -15,12 +15,11 @@ router.post('api/createPost', async ctx => {
 
     if (isCaptchaEnabled && (CommonLogic.isEmpty(token.trustedPostCount) || token.trustedPostCount < 1)) {
       if (HTTP.isAJAXRequested(ctx)) {
-        let error = {
+        throw {
           status: 400,
           message: 'No more posts without captcha!',
           url: '/captcha.html'
         };
-        return HTTP.fail(ctx, { error });
       }
       return ctx.redirect('/captcha.html', 303);
     }

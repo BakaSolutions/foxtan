@@ -22,12 +22,27 @@ function correctFieldMatching(fields, field, value) {
 
 let tempFileName;
 
-function fileName() {
+function timestamp() {
   let date = +new Date();
   tempFileName = (date === tempFileName)
     ? ++date
     : date;
   return tempFileName;
+}
+
+async function readChunk(file, filename) {
+  let chunk = file.read(4100);
+  if (!chunk) {
+    return new Promise(resolve => {
+      file.once('readable', () => resolve(readChunk(...arguments)));
+    });
+  }
+  let { ext, mime } = await FileType.fromBuffer(chunk) || {};
+  if (!mime) {
+    throw new Error('Unsupported file type: ' + filename);
+  }
+  file.unshift(chunk);
+  return { ext, mime };
 }
 
 module.exports = ctx => {
@@ -44,48 +59,44 @@ module.exports = ctx => {
     setTimeout(() => reject('Body parsing timeout'), 30000);
 
     busboy.on('file', async (fieldname, file, filename) => {
-      if (!(fieldname.startsWith('file'))) {
-        return reject('Files must be in appropriate form fields');
-      }
+      try {
+        if (!(fieldname.startsWith('file'))) {
+          throw new Error('Files must be in appropriate form fields');
+        }
+        if (!filename) {
+          return file.resume();
+        }
+        let {ext, mime} = await readChunk(file, filename);
 
-      let size = 0;
-      file.on('data', data => size += data.length);
+        let size = 0;
+        let tmpPath = path.join(config('directories.temporary'), timestamp() + '.' + ext);
+        uploadedFiles.push(tmpPath);
 
-      let stream = await FileType.stream(file);
-      if (!size) {
-        return file.resume(); // empty field
-      }
-
-      let {ext, mime} = stream.fileType || {};
-      if (!mime) {
-        return reject('Unsupported file type: ' + filename);
-      }
-
-      let tmpPath = path.join(config('directories.temporary'), fileName() + '.' + ext);
-      uploadedFiles.push(tmpPath);
-
-      let writable = FS.createWriteStream(tmpPath);
-      stream.pipe(writable);
-
-      file.on('end', () => {
-        correctFieldMatching(fields, fieldname, {
-          mime,
-          name: filename,
-          size,
-          path: tmpPath
+        file.on('data', data => size += data.length);
+        file.on('end', () => {
+          correctFieldMatching(fields, fieldname, {
+            mime,
+            name: filename,
+            size,
+            path: tmpPath
+          });
+          setTimeout(() => FS.unlink(tmpPath), 10000); // TODO: remove temp file only on errors!
         });
-      });
+        let writable = FS.createWriteStream(tmpPath);
+        file.pipe(writable);
+      } catch (e) {
+        file.resume();
+        busboy.emit('error', e);
+      }
     });
 
     busboy.on('field', (fieldname, val) => correctFieldMatching(fields, fieldname, val));
 
     busboy.on('finish', () => {
-      process.nextTick(() => {
-        if (Object.keys(fields).length) {
-          ctx.request.body = fields;
-        }
-        resolve(ctx.request.body);
-      });
+      if (Object.keys(fields).length) {
+        ctx.request.body = fields;
+      }
+      resolve(ctx.request.body);
     });
 
     busboy.on('error', err => {
@@ -93,11 +104,11 @@ module.exports = ctx => {
       busboy = null;
       reject(err);
     });
-  }).catch(async e => {
-    await Tools.parallel(uploadedFiles, FS.unlink);
+  }).catch(e => {
+    Tools.parallel(uploadedFiles, FS.unlink);
     throw {
       status: 400,
-      message: e
+      message: e.message
     }
   });
 };
