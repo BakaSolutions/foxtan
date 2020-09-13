@@ -181,7 +181,17 @@ FS.renameFile = async (old, mew, rootType) => {
 
     mew = await createDirectoryIfNotExists(mew, rootType);
 
-    return await rename(old, mew).catch(async () => await FS.copyFile(old, mew));
+    try {
+      await rename(old, mew);
+    } catch (e) {
+      if (e.code === 'EXDEV') { // cross-device renaming is not allowed
+        await FS.copyFile(old, mew);
+        await FS.unlink(old);
+      } else {
+        throw e;
+      }
+    }
+    return mew;
   } catch (e) {
     return throwFSError(e);
   }

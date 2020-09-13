@@ -1,5 +1,7 @@
 const config = require('../../helpers/config');
-const parseForm = require('../../routes/http/parse');
+const parseForm = require('../../helpers/formdata.js');
+
+const debug = config('debug.enable') && config('debug.log.requests');
 
 let middleware = app => {
   app.use(async (ctx, next) => {
@@ -12,7 +14,7 @@ let middleware = app => {
 
     ctx.set('X-Response-Time', `${ms} ms`);
 
-    if (config('debug.enable') && config('debug.log.requests')) {
+    if (debug) {
       console.log(`[HTTP] [${(''+ms).padStart(3)} ms] [${ctx.method}] [${ctx.status}] ${ctx.url}`);
     }
   });

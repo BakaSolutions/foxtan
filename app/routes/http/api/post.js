@@ -13,7 +13,7 @@ router.post('api/createPost', async ctx => {
     let { body: query, token } = ctx.request;
     let isCaptchaEnabled = config('board.captcha', config(`board.${query.boardName}.captcha`, false));
 
-    if (isCaptchaEnabled && (CommonLogic.isEmpty(token.trustedPostCount) || !token.trustedPostCount)) {
+    if (isCaptchaEnabled && (CommonLogic.isEmpty(token.trustedPostCount) || token.trustedPostCount < 1)) {
       if (HTTP.isAJAXRequested(ctx)) {
         let error = {
           status: 400,
@@ -30,23 +30,25 @@ router.post('api/createPost', async ctx => {
     let newToken = UserLogic.createToken(token);
     UserLogic.setToken(ctx, newToken);
 
-    if (!HTTP.isAJAXRequested(ctx)) {
-      let map = {
-        ':board': boardName,
-        ':thread': threadId,
-        ':post': number
+    if (HTTP.isAJAXRequested(ctx)) {
+      const out = {
+        boardName,
+        threadId,
+        number,
+        message: 'Post was successfully created!',
+        trustedPostCount: token.trustedPostCount
       };
-      return HTTP.redirect(ctx, query, /:(?:board|thread|post)/g, map);
+      return HTTP.success(ctx, out);
     }
 
-    const out = {
-      boardName,
-      threadId,
-      number,
-      message: 'Post was successfully created!',
-      trustedPostCount: token.trustedPostCount
+    let map = {
+      ':board': boardName,
+      ':thread': threadId,
+      ':post': number
     };
-    return HTTP.success(ctx, out);
+    if (!HTTP.redirect(ctx, query, /:(?:board|thread|post)/g, map)) {
+      return HTTP.success(ctx, 'OK');
+    }
   } catch (e) {
     return HTTP.fail(ctx, e);
   }

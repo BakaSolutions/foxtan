@@ -3,24 +3,28 @@ const CommonLogic = require('./common');
 const BoardModel = require('../models/dao').DAO('board');
 const ThreadModel = require('../models/dao').DAO('thread');
 const PostModel = require('../models/dao').DAO('post');
-const Attachment = require('./attachment');
+
+const File = require('./file.js');
 
 const Thread = require('../object/Thread.js');
 const Post = require('../object/Post.js');
 
-const Crypto = require('../helpers/crypto');
-const Tools = require('../helpers/tools');
+const Crypto = require('../helpers/crypto.js');
+const Tools = require('../helpers/tools.js');
+const FS = require('../helpers/fs.js');
 
 const EventBus = require('../core/event.js');
 
 let PostLogic = module.exports = {};
 
 PostLogic.create = async (fields, token) => {
+  let {boardName, threadNumber, sage, subject, text, file, fileMark} = fields;
+  let files = Object.values(file || {});
+
   try {
     await ThreadModel.transactionBegin();
 
     let now = new Date;
-    let {boardName, threadNumber, sage, subject, text, file, fileMark} = fields;
 
     let board = await BoardModel.readByName(boardName);
     if (board.modifiers && board.modifiers.closed) {
@@ -46,17 +50,24 @@ PostLogic.create = async (fields, token) => {
       thread = new Thread().bulk(threadFromDB); // TODO: Create Thread in ThreadModel
     }
 
-    console.log(Object.values(file), fileMark);
-    for (let { mime, name, size, path } of Object.values(file)) {
-      mime = mime.split('/')[0];
-      let F = new File[mime]({ name, size, path });
-      await F.createHash();
-      await F.check();
-      await F.createThumb();
+    try {
+      for (let { mime, name, size, path } of files) {
+        let mimeType = mime.split('/')[0];
+        let F = new File[mimeType]({
+          mime,
+          name,
+          size,
+          path
+        });
+        await F.createHash();
+        await F.check();
+        path = await F.store();
+        await F.createThumb();
+      }
+    } catch (e) {
+      //await Tools.parallel(files, FS.unlink); TODO: unlink files by their real path, not temp!
+      throw e;
     }
-    debugger;
-    // TODO: File
-
 
     if (isThread) {
       thread.boardName = boardName;
@@ -68,7 +79,6 @@ PostLogic.create = async (fields, token) => {
 
     let post = new Post({creative: true});
     let lastNumber = await PostModel.readLastNumberByBoardName(boardName);
-    console.log(thread.toObject());
     // "threadId", "userId", "number", "subject", "text",
     // "sessionKey", "modifiers", "ipAddress", "created", "deleled"
     post.threadId = thread.id;
@@ -91,8 +101,6 @@ PostLogic.create = async (fields, token) => {
 
     await ThreadModel.transactionEnd();
 
-    console.log(post.toObject());
-
     let out = [
       boardName,
       post.threadId,
@@ -103,6 +111,7 @@ PostLogic.create = async (fields, token) => {
     return out;
   } catch (e) {
     await ThreadModel.transactionRollback();
+    await Tools.parallel(files, FS.unlink);
     throw e;
   }
 };

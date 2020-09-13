@@ -29,7 +29,7 @@ class Post extends AppObject {
     if (typeof text !== 'string') {
       throw new Error('Text must be a string');
     }
-    if (text.length < 1 || text.length > 5000) {
+    if (text.length > 5000) {
       throw new Error('Text length is unacceptable');
     }
     return text;
