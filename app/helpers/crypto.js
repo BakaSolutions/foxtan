@@ -5,7 +5,7 @@ let Crypto = module.exports = {};
 
 Crypto.verify = function (data, hash, method = 'sha256') {
   method = method.toLowerCase();
-  if (['sha256', 'crc32'].indexOf(method) === -1) {
+  if (!(['sha256', 'crc32'].includes(method))) {
     return new Error('Wrong cryptographic algo');
   }
   return Crypto[method](data) === hash;

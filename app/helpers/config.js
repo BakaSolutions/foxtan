@@ -26,7 +26,7 @@ let config = {
     postsPerCaptcha: 24,
 
     mime: 'image/jpeg',
-    quality: 0.24, // for 'image/jpeg' [0 ... 1]
+    quality: 0.15, // for 'image/jpeg' [0 ... 1]
     compressionLevel: 4, // for 'image/png' [0 ... 9]
 
     width: 192,
@@ -75,11 +75,10 @@ let config = {
     maxWidth: 10000,
     maxHeight: 10000,
     thumbnail: {
-      extension: 'jpg',
       width: 200,
       height: 200,
       options: {
-        quality: 67,
+        quality: 15,
         progressive: true
       }
     },
@@ -101,12 +100,12 @@ let config = {
     temporary: path.resolve(os.tmpdir(), 'foxtan') + path.sep,
 
     public: path.resolve(__dirname, '../../public') + path.sep,
-    upload: path.resolve(__dirname, '../../public/res') + path.sep,
-    thumb: path.resolve(__dirname, '../../public/res/thumb') + path.sep
+    upload: path.resolve(__dirname, '../../public/src') + path.sep,
+    thumb: path.resolve(__dirname, '../../public/src/thumb') + path.sep
   },
   paths: { // with forward slashes!
-    upload: `http://${HOST}/res/`,
-    thumb: `http://${HOST}/res/thumb/`,
+    upload: `http://${HOST}/src/`,
+    thumb: `http://${HOST}/src/thumb/`,
     ws: `ws://${HOST}/ws`
   },
   token: {
