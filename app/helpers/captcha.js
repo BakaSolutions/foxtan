@@ -1,4 +1,10 @@
-const { createCanvas } = require('canvas');
+let createCanvas;
+try {
+  createCanvas = require('canvas').createCanvas;
+} catch (e) {
+  console.error(`\n\nSomething wrong with "canvas" installation. Run "npm rebuild canvas".\n\n`);
+  process.exit(1);
+}
 
 const ALPHABET_LATIN_C = 'ABEFGHKNPRSTXYZ';
 const ALPHABET_LATIN_S = 'abefghknprstxyz';
