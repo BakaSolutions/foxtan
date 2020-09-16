@@ -19,9 +19,6 @@ class File extends AppObject {
     if (resolution === 0) {
       throw new Error('Width or height should be not equal zero');
     }
-    if (+resolution > 8192) {
-      throw new Error('Width or height should be less than 8192');
-    }
     return +resolution || null;
   }
 

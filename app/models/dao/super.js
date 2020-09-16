@@ -33,17 +33,18 @@ class DAO {
 
   async _executeQuery(template, values, {raw = false} = {}) {
     const start = +new Date;
-    const query = await this._connection.query(template, values);
-
-    const ms = +new Date - start;
-    template = template
-      .replace(/\$([0-9]+)/g, (_, i) => values[--i]) // substitute all $1 with values
-      .replace(/\n/g, ' '); // remove `-template line breaks
-
-    if (config('debug.enable') && config('debug.log.database')) {
-      console.log(`[SQL] [${('' + ms).padStart(3)} ms] "${template}"`);
+    try {
+      const query = await this._connection.query(template, values);
+      return raw ? query : query.rows;
+    } finally {
+      if (config('debug.enable') && config('debug.log.database')) {
+        const ms = +new Date - start;
+        let t = template
+          .replace(/\$([0-9]+)/g, (_, i) => values[--i]) // substitute all $1 with values
+          .replace(/\n/g, ' '); // remove `-template line breaks
+        console.log(`[SQL] [${('' + ms).padStart(3)} ms] "${t}"`);
+      }
     }
-    return raw ? query : query.rows;
   }
 
   _limitOffset(template, values, { count, page } = {}) {

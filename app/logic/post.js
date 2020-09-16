@@ -4,7 +4,8 @@ const BoardModel = require('../models/dao').DAO('board');
 const ThreadModel = require('../models/dao').DAO('thread');
 const PostModel = require('../models/dao').DAO('post');
 
-const File = require('./file.js');
+const FileLogic = require('./file.js');
+const Attachment = require('./attachment.js');
 
 const Thread = require('../object/Thread.js');
 const Post = require('../object/Post.js');
@@ -19,7 +20,7 @@ let PostLogic = module.exports = {};
 
 PostLogic.create = async (fields, token) => {
   let {boardName, threadNumber, sage, subject, text, file, fileMark} = fields;
-  let files = Object.values(file || {});
+  file = Object.values(file || []); // TODO: file and fileMark indexes must be equal
 
   try {
     await ThreadModel.transactionBegin();
@@ -50,25 +51,6 @@ PostLogic.create = async (fields, token) => {
       thread = new Thread().bulk(threadFromDB); // TODO: Create Thread in ThreadModel
     }
 
-    try {
-      for (let { mime, name, size, path } of files) {
-        let mimeType = mime.split('/')[0];
-        let F = new File[mimeType]({
-          mime,
-          name,
-          size,
-          path
-        });
-        await F.createHash();
-        await F.check();
-        path = await F.store();
-        await F.createThumb();
-      }
-    } catch (e) {
-      //await Tools.parallel(files, FS.unlink); TODO: unlink files by their real path, not temp!
-      throw e;
-    }
-
     if (isThread) {
       thread.boardName = boardName;
       thread.created = now;
@@ -79,8 +61,7 @@ PostLogic.create = async (fields, token) => {
 
     let post = new Post({creative: true});
     let lastNumber = await PostModel.readLastNumberByBoardName(boardName);
-    // "threadId", "userId", "number", "subject", "text",
-    // "sessionKey", "modifiers", "ipAddress", "created", "deleled"
+
     post.threadId = thread.id;
     post.number = ++lastNumber;
     if (subject.length) {
@@ -99,6 +80,15 @@ PostLogic.create = async (fields, token) => {
     post = await PostModel.create(post); // Post hook
     post = new Post().bulk(post); // TODO: Create Post in PostModel
 
+    try {
+      for (let fileInfo of file) {
+        await FileLogic.create(fileInfo, post);
+      }
+    } catch (e) {
+      //await Tools.parallel(file, FS.unlink); TODO: unlink files by their real path, not temp!
+      throw e;
+    }
+
     await ThreadModel.transactionEnd();
 
     let out = [
@@ -111,7 +101,7 @@ PostLogic.create = async (fields, token) => {
     return out;
   } catch (e) {
     await ThreadModel.transactionRollback();
-    await Tools.parallel(files, FS.unlink);
+    await Tools.parallel(file, FS.unlink);
     throw e;
   }
 };

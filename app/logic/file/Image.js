@@ -6,7 +6,7 @@ try {
   process.exit(1);
 }
 
-const { FileFromPath } = require('./index.js');
+const FileFromPath = require('./index.js');
 const config = require('../../helpers/config.js');
 const FS = require('../../helpers/fs.js');
 

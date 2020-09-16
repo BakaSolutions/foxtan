@@ -11,7 +11,7 @@ exports.up = knex => {
     .createTable('file', (table) => {
       table.string('hash', fileHashLength).primary();
       table.string('mime', 40);
-      table.string('title', 40);
+      table.string('title', 255);
       table.specificType('width', 'smallint').unsigned();
       table.specificType('height', 'smallint').unsigned();
       table.text('caption');

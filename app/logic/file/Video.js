@@ -1,4 +1,4 @@
-const { FileFromPath } = require('./index.js');
+const FileFromPath = require('./index.js');
 
 const Process = require('../../helpers/process.js');
 const config = require('../../helpers/config.js');
