@@ -9,7 +9,7 @@ let ThreadLogic = module.exports = {};
 
 ThreadLogic.readAllByBoard = async (boardName, {count, page} = {}) => {
   let out = await ThreadModel.readAllByBoard(boardName, {count, page});
-  return Tools.sequence(out, processThread);
+  return Tools.parallel(out, processThread);
 };
 
 ThreadLogic.readOneById = async (id, {count, page} = {}) => {
@@ -270,7 +270,7 @@ async function processThread(thread) {
       code: 404
     };
   }
-  thread.head = await PostModel.readOneByThreadId(thread.id);
+  thread.head = await PostLogic.readOneByThreadId(thread.id);
   thread.posts = await PostModel.countByThreadId(thread.id);
   return thread;
 }

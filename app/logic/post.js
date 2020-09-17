@@ -5,7 +5,7 @@ const ThreadModel = require('../models/dao').DAO('thread');
 const PostModel = require('../models/dao').DAO('post');
 
 const FileLogic = require('./file.js');
-const Attachment = require('./attachment.js');
+const AttachmentLogic = require('./attachment.js');
 
 const Thread = require('../object/Thread.js');
 const Post = require('../object/Post.js');
@@ -84,6 +84,7 @@ PostLogic.create = async (fields, token) => {
       for (let fileInfo of file) {
         await FileLogic.create(fileInfo, post);
       }
+      // TODO: Use batch
     } catch (e) {
       //await Tools.parallel(file, FS.unlink); TODO: unlink files by their real path, not temp!
       throw e;
@@ -143,27 +144,28 @@ PostLogic.readOneByBoardAndPost = async (boardName, number) => {
     };
   }
 
-  if (!out.files || !out.files.length) {
-    return out;
-  }
-
-  return out; // _appendAttachments(out);
+  return _appendAttachments(out);
 };
 
 PostLogic.readOneById = async postId => {
   let post = await PostModel.readOneById(postId);
-  return post; // _appendAttachments(post);
+  return _appendAttachments(post);
 };
 
-PostLogic.readAllByBoardName = async (boardName, { count, page, order }) => {
+PostLogic.readOneByThreadId = async threadId => {
+  let post = await PostModel.readOneByThreadId(threadId);
+  return _appendAttachments(post);
+};
+
+PostLogic.readAllByBoardName = async (boardName, { count, page, order } = {}) => {
   let posts = await PostModel.readAllByBoardName(boardName, { count, page, order });
-  return posts;//Promise.all(posts.map(_appendAttachments));
+  return Tools.parallel(posts, _appendAttachments);
 };
 
 
-PostLogic.readAllByThreadId = async (threadId, { count, page, order }) => {
+PostLogic.readAllByThreadId = async (threadId, { count, page, order } = {}) => {
   let posts = await PostModel.readAllByThreadId(threadId, { count, page, order });
-  return posts;//Promise.all(posts.map(_appendAttachments));
+  return Tools.parallel(posts, _appendAttachments);
 };
 
 PostLogic.delete = async (fields, checkPassword) => {
@@ -306,15 +308,16 @@ async function deleteFile(hash, boardName, postNumber, password, checkPassword) 
 }
 
 async function _appendAttachments(post) {
-  if (!Array.isArray(post.files)) {
+  post.attachments = [];
+  let attachments = await AttachmentLogic.readByPostId(post.id);
+  if (!attachments.length) {
     return post;
   }
-  for (let i = 0; i < post.files.length; i++) {
-    let hash = post.files[i];
-    let attachment = new Attachment.Attachment(null, hash);
-    if (await attachment.exists()) {
-      post.files[i] = attachment.clearEntry();
-    }
+  let uniqueFileHashes = [ ...new Set(attachments.map(i => i.fileHash))];
+  let files = await FileLogic.readByHashes(uniqueFileHashes);
+  for await (let attachment of attachments) {
+    let file = files.find(i => i.hash === attachment.fileHash);
+    post.attachments.push(file);
   }
   return post;
 }

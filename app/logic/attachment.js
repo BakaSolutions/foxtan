@@ -13,3 +13,7 @@ AttachmentLogic.create = async attachment => {
   }
   await AttachmentModel.create(attachment);
 };
+
+AttachmentLogic.readByPostId = async postId => {
+  return AttachmentModel.readByPostId(postId);
+};

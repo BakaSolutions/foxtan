@@ -13,7 +13,7 @@ class FileDAO extends DAO {
       throw new Error('File must be created via FileObject');
     }
     const template = `INSERT INTO ${this._schema}file
-("hash", "mime", "title", "width", "height", "modifiers", "thumbWidth", "thumbHeight")
+("hash", "mime", "title", "width", "height", "thumbWidth", "thumbHeight", "modifiers")
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *`;
     const values = file.toArray();
@@ -28,6 +28,14 @@ RETURNING *`;
     const values = [ hash ];
     const query = await this._executeQuery(template, values);
     return query[0];
+  }
+
+  async readByHashes(hashes) {
+    let template = `SELECT * FROM ${this._schema}file WHERE hash IN ($`;
+    template += hashes.map((_, i) => ++i).join('. $');
+    template += ')';
+    const query = await this._executeQuery(template, hashes);
+    return query || [];
   }
 
   update() {

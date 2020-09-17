@@ -11,14 +11,22 @@ class Post extends AppObject {
     }
 
     super._init('threadId', super.setId);
-    super._init('userId', super.setId);
+    if (creative) {
+      super._init('userId', super.setId);
+    }
     super._init('number', super.setId);
     super._init('subject');
     super._init('text', this.setText);
-    super._init('sessionKey');
-
+    if (creative) {
+      super._init('sessionKey');
+    }
     super._init('modifiers', null, creative ? null : []);
-    super._init('ipAddress');
+    if (creative) {
+      super._init('ipAddress');
+    }
+    if (!creative) {
+      super._init('attachments', null, []);
+    }
     super._init('created', super.setDate, new Date());
     super._init('updated', super.setDate);
     super._init('deleted', super.setDate);

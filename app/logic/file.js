@@ -33,3 +33,7 @@ FileLogic.create = async (fileInfo, post) => {
 FileLogic.readOneByHash = async hash => {
   return FileModel.readOneByHash(hash)
 };
+
+FileLogic.readByHashes = async hashes => {
+  return FileModel.readByHashes(hashes);
+};

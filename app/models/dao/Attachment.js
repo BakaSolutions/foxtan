@@ -24,14 +24,14 @@ RETURNING *`;
 
   async readByPostId(postId) {
     const template = `SELECT * FROM ${this._schema}attachment
-WHERE postId = $1`;
+WHERE "postId" = $1`;
     const values = [ postId ];
     return this._executeQuery(template, values);
   }
 
   async readByFileHash(fileHash) {
     const template = `SELECT * FROM ${this._schema}attachment
-WHERE fileHash = $1`;
+WHERE "fileHash" = $1`;
     const values = [ fileHash ];
     // TODO; Implement limit/offset and order by `attachmentId`
     return this._executeQuery(template, values);
