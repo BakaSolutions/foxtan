@@ -4,13 +4,12 @@ const Attachment = require('../object/Attachment.js');
 
 let AttachmentLogic = module.exports = {};
 
-AttachmentLogic.create = async (attachment) => {
-  try {
-    if (!(attachment instanceof Attachment)) {
-      throw new Error('Cannot create an attachment without Attachment object');
-    }
-    attachment = await AttachmentModel.create(attachment);
-  } catch (e) {
-
+AttachmentLogic.create = async attachment => {
+  if (!(attachment instanceof Attachment)) {
+    let { postId, fileHash } = attachment;
+    attachment = new Attachment({creative: true});
+    attachment.postId = postId;
+    attachment.fileHash = fileHash;
   }
+  await AttachmentModel.create(attachment);
 };

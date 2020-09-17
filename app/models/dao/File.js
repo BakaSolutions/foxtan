@@ -21,6 +21,8 @@ RETURNING *`;
     return query[0];
   }
 
+  //TODO: createMany()
+
   async readOneByHash(hash) {
     const template = `SELECT * FROM ${this._schema}file WHERE hash = $1 LIMIT 1`;
     const values = [ hash ];
@@ -28,11 +30,11 @@ RETURNING *`;
     return query[0];
   }
 
-  update(thread) {
+  update() {
     throw new Error();
   }
 
-  delete(thread) {
+  delete() {
     throw new Error();
   }
 
