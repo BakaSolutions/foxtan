@@ -13,6 +13,9 @@ const FS = require('../../helpers/fs.js');
 module.exports = class Image extends FileFromPath {
   constructor(args) {
     super(args);
+    if (args.modifiers.includes('nsfw')) {
+      this.file.modifiers.push('nsfw');
+    }
     this.readImage();
   }
   async check() {

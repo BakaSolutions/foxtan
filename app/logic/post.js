@@ -20,7 +20,6 @@ let PostLogic = module.exports = {};
 
 PostLogic.create = async (fields, token) => {
   let {boardName, threadNumber, sage, subject, text, file, fileMark} = fields;
-  file = Object.values(file || []); // TODO: file and fileMark indexes must be equal
 
   try {
     await ThreadModel.transactionBegin();
@@ -71,7 +70,6 @@ PostLogic.create = async (fields, token) => {
     post.sessionKey = token.tid;
 
     if (sage) {
-      post.modifiers = [];
       post.modifiers.push('sage');
     }
 
@@ -80,13 +78,23 @@ PostLogic.create = async (fields, token) => {
     post = await PostModel.create(post); // Post hook
     post = new Post().bulk(post); // TODO: Create Post in PostModel
 
+    let files = [];
     try {
-      for (let fileInfo of file) {
+      for (let [key, value] of Object.entries(file)) {
+        value.modifiers = [];
+        if (fileMark[key] && fileMark[key].nsfw) {
+          value.modifiers.push('nsfw');
+        }
+        files.push(value);
+      }
+
+      for (let fileInfo of files) {
         await FileLogic.create(fileInfo, post);
       }
       // TODO: Use batch
     } catch (e) {
-      //await Tools.parallel(file, FS.unlink); TODO: unlink files by their real path, not temp!
+      let paths = files.map(f => f.path);
+      await Tools.parallel(paths, FS.unlink); //TODO: unlink files by their real path, not temp!
       throw e;
     }
 
@@ -102,7 +110,8 @@ PostLogic.create = async (fields, token) => {
     return out;
   } catch (e) {
     await ThreadModel.transactionRollback();
-    await Tools.parallel(file, FS.unlink);
+    let paths = Object.values(file).map(f => f.path);
+    await Tools.parallel(paths, FS.unlink);
     throw e;
   }
 };
@@ -315,7 +324,7 @@ async function _appendAttachments(post) {
   }
   let uniqueFileHashes = [ ...new Set(attachments.map(i => i.fileHash))];
   let files = await FileLogic.readByHashes(uniqueFileHashes);
-  for await (let attachment of attachments) {
+  for (let attachment of attachments) {
     let file = files.find(i => i.hash === attachment.fileHash);
     post.attachments.push(file);
   }

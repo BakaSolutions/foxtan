@@ -7,7 +7,7 @@ const MEBIBYTE = 1048576;
 
 module.exports = class FileFromPath {
   constructor({ mime, name, size, path } = {}) {
-    this.file = new File();
+    this.file = new File({creative: true});
     this.file.mime = mime;
     this.file.title = name;
     //this.file.size = size;
@@ -33,5 +33,8 @@ module.exports = class FileFromPath {
 
   async decideThumbExtension() {
     return 'jpg'; // TODO: decide on-demand, jpg or png
+  }
+  async unlink() {
+    return FS.unlink(this.path);
   }
 };

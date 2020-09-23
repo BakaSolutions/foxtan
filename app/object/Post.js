@@ -20,7 +20,7 @@ class Post extends AppObject {
     if (creative) {
       super._init('sessionKey');
     }
-    super._init('modifiers', null, creative ? null : []);
+    super._init('modifiers', null, []);
     if (creative) {
       super._init('ipAddress');
     }

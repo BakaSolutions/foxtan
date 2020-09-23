@@ -22,6 +22,8 @@ FileLogic.create = async (fileInfo, post) => {
     await fileEntry.store();
     await fileEntry.createThumb();
     await FileModel.create(fileEntry.file);
+  } else {
+    await fileEntry.unlink();
   }
 
   await AttachmentLogic.create({

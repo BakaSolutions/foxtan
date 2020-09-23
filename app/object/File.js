@@ -11,7 +11,7 @@ class File extends AppObject {
     super._init('height', this.setResolution);
     super._init('thumbWidth', this.setResolution);
     super._init('thumbHeight', this.setResolution);
-    super._init('modifiers', null);
+    super._init('modifiers', null, []);
     super._lock();
   }
 
