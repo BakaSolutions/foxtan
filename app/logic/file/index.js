@@ -1,7 +1,7 @@
 const FS = require('../../helpers/fs.js');
 const Crypto = require('../../helpers/crypto.js');
 
-const File = require('../../object/file.js');
+const File = require('../../object/File.js');
 
 const MEBIBYTE = 1048576;
 
