@@ -19,52 +19,60 @@ const EventBus = require('../core/event.js');
 let PostLogic = module.exports = {};
 
 PostLogic.create = async (fields, token) => {
-  let {boardName, threadNumber, sage, subject, text, file, fileMark} = fields;
+  let {boardName, threadNumber, threadId, sage, subject, text, file, fileMark} = fields;
+  let thread;
 
   try {
     await ThreadModel.transactionBegin();
 
     let now = new Date;
-    let {boardName, threadNumber, threadId, sage, subject, text, file, fileMark} = fields;
+    let isThread = false;
 
     if (threadId) {
-      let thread = await ThreadModel.readOneById(threadId)
-      
-      if (thread) {
-        let head = await PostModel.readOneById(thread.headId)
-
-        boardName = thread.boardName
-        threadNumber = head.number
-      } else {
-        throw {
-          status: 404,
-          message: 'There is no such a thread'
-        }
+      // Type 1.1: `threadId` only
+      // It's a post of the thread.
+      thread = await ThreadModel.readOneById(threadId);
+    } else if (boardName && threadNumber) {
+      // Type 1.2: `boardName` and `threadNumber`
+      // It's a post of the thread.
+      threadNumber = +threadNumber; // "1" => 1
+      thread = await ThreadModel.readOneByBoardAndPost(boardName, threadNumber);
+    } else if (boardName) {
+      // Type 2: `boardName` only
+      // It's a new thread!!1
+      thread = new Thread({creative: true});
+      isThread = true;
+    } else {
+      // Type 3: Incorrect request
+      throw {
+        status: 400,
+        message: 'boardName/threadNumber or threadId are missed'
       }
     }
 
-    let board = await BoardModel.readByName(boardName);
+    if (!thread) {
+      throw {
+        status: 404,
+        message: 'There is no such a thread'
+      }
+    }
+    thread = new Thread().bulk(thread); // TODO: Create Thread in ThreadModel
+
+    // `boardName`, `threadNumber` or `threadId` may be not set!
+    // Use only `board`, `thread` and `post` from this place.
+
+    let board = await BoardModel.readByName(thread.boardName);
+    if (!board) {
+      throw {
+        status: 404,
+        message: 'There is no such a board'
+      }
+    }
     if (board.modifiers && board.modifiers.closed) {
       throw {
         status: 403,
         message: 'This board is closed'
       };
-    }
-
-    let isThread = CommonLogic.isEmpty(threadNumber);
-    let thread;
-    if (isThread) {
-      thread = new Thread({creative: true})
-    } else {
-      threadNumber = +threadNumber; // "1" => 1
-      let threadFromDB = await ThreadModel.readOneByBoardAndPost(boardName, threadNumber);
-      if (!threadFromDB) {
-        throw {
-          status: 404,
-          message: 'There is no such a thread'
-        };
-      }
-      thread = new Thread().bulk(threadFromDB); // TODO: Create Thread in ThreadModel
     }
 
     if (isThread) {
@@ -76,7 +84,7 @@ PostLogic.create = async (fields, token) => {
     }
 
     let post = new Post({creative: true});
-    let lastNumber = await PostModel.readLastNumberByBoardName(boardName);
+    let lastNumber = await PostModel.readLastNumberByBoardName(thread.boardName);
 
     post.threadId = thread.id;
     post.number = ++lastNumber;
@@ -96,39 +104,34 @@ PostLogic.create = async (fields, token) => {
     post = new Post().bulk(post); // TODO: Create Post in PostModel
 
     let files = [];
-    try {
-      for (let [key, value] of Object.entries(file)) {
-        value.modifiers = [];
-        if (fileMark[key] && fileMark[key].nsfw) {
-          value.modifiers.push('nsfw');
-        }
-        files.push(value);
+    for (let [key, value] of Object.entries(file || {})) {
+      value.modifiers = [];
+      if (fileMark[key] && fileMark[key]['NSFW']) {
+        value.modifiers.push('NSFW');
       }
-
-      for (let fileInfo of files) {
-        await FileLogic.create(fileInfo, post);
-      }
-      // TODO: Use batch
-    } catch (e) {
-      let paths = files.map(f => f.path);
-      await Tools.parallel(paths, FS.unlink); //TODO: unlink files by their real path, not temp!
-      throw e;
+      files.push(value);
     }
+    for (let fileInfo of files) {
+      await FileLogic.create(fileInfo, post);
+    }
+    // TODO: Use batch
 
     await ThreadModel.transactionEnd();
 
     let out = [
-      boardName,
+      thread.boardName,
       post.threadId,
       post.number
     ];
 
-    EventBus.emit('ws.broadcast', 'RNDR ' + JSON.stringify(out));
+    //EventBus.emit('ws.broadcast', 'RNDR ' + JSON.stringify(out)); // TODO: create event subscriptions
     return out;
   } catch (e) {
     await ThreadModel.transactionRollback();
-    let paths = Object.values(file).map(f => f.path);
-    await Tools.parallel(paths, FS.unlink);
+    if (file) {
+      let paths = Object.values(file).map(f => f.path);
+      await Tools.parallel(paths, FS.unlink);
+    }
     throw e;
   }
 };

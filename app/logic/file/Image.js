@@ -13,8 +13,8 @@ const FS = require('../../helpers/fs.js');
 module.exports = class Image extends FileFromPath {
   constructor(args) {
     super(args);
-    if (args.modifiers.includes('nsfw')) {
-      this.file.modifiers.push('nsfw');
+    if (args.modifiers.includes('NSFW')) {
+      this.file.modifiers.push('NSFW');
     }
     this.readImage();
   }

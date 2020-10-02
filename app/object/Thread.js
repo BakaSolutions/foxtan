@@ -1,4 +1,5 @@
 const AppObject = require('../core/AppObject.js');
+const BoardLogic = require('../logic/board.js');
 
 class Thread extends AppObject {
 
@@ -7,14 +8,14 @@ class Thread extends AppObject {
     if (!creative) {
       super._init('id', this.setId);
     }
-    super._init('boardName', this.setBoardName);
+    super._init('boardName', creative ? this.setBoardName : null);
     super._init('pinned', null, 0);
     super._init('modifiers', null, []);
     super._lock();
   }
 
   setBoardName(boardName) {
-    let board = /*BoardLogic.getByName(*/boardName;
+    let board = BoardLogic.readOne(boardName);
     if (!board) {
       throw new Error('Board doesn\'t exist!');
     }
