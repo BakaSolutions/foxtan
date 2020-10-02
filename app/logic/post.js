@@ -20,7 +20,23 @@ PostLogic.create = async (fields, token) => {
     await ThreadModel.transactionBegin();
 
     let now = new Date;
-    let {boardName, threadNumber, sage, subject, text, file, fileMark} = fields;
+    let {boardName, threadNumber, threadId, sage, subject, text, file, fileMark} = fields;
+
+    if (threadId) {
+      let thread = await ThreadModel.readOneById(threadId)
+      
+      if (thread) {
+        let head = await PostModel.readOneById(thread.headId)
+
+        boardName = thread.boardName
+        threadNumber = head.number
+      } else {
+        throw {
+          status: 404,
+          message: 'There is no such a thread'
+        }
+      }
+    }
 
     let board = await BoardModel.readByName(boardName);
     if (board.modifiers && board.modifiers.closed) {
