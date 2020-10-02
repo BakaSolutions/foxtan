@@ -40,7 +40,6 @@ PostLogic.create = async (fields, token) => {
     } else if (boardName) {
       // Type 2: `boardName` only
       // It's a new thread!!1
-      thread = new Thread({creative: true});
       isThread = true;
     } else {
       // Type 3: Incorrect request
@@ -50,18 +49,18 @@ PostLogic.create = async (fields, token) => {
       }
     }
 
-    if (!thread) {
+    if (!isThread && !thread) {
       throw {
         status: 404,
         message: 'There is no such a thread'
       }
     }
-    thread = new Thread().bulk(thread); // TODO: Create Thread in ThreadModel
+    thread = new Thread({creative: isThread}).bulk(thread); // TODO: Create Thread in ThreadModel
 
     // `boardName`, `threadNumber` or `threadId` may be not set!
     // Use only `board`, `thread` and `post` from this place.
 
-    let board = await BoardModel.readByName(thread.boardName);
+    let board = await BoardModel.readByName(thread.boardName || boardName);
     if (!board) {
       throw {
         status: 404,
