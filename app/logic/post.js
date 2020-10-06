@@ -105,7 +105,7 @@ PostLogic.create = async (fields, token) => {
     let files = [];
     for (let [key, value] of Object.entries(file || {})) {
       value.modifiers = [];
-      if (fileMark[key] && fileMark[key]['NSFW']) {
+      if (fileMark && fileMark[key] && fileMark[key]['NSFW']) {
         value.modifiers.push('NSFW');
       }
       files.push(value);
