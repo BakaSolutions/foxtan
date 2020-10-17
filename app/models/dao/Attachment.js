@@ -37,6 +37,20 @@ WHERE "fileHash" = $1`;
     return this._executeQuery(template, values);
   }
 
+  async readByPostIds(postIds) {
+    let template = `SELECT * FROM ${this._schema}attachment
+WHERE "postId"`;
+    let query = this._in(template, postIds);
+    return this._executeQuery(...query);
+  }
+
+  async readByFileHashes(fileHashes) {
+    let template = `SELECT * FROM ${this._schema}attachment
+WHERE "fileHash"`;
+    let query = this._in(template, fileHashes);
+    return this._executeQuery(...query);
+  }
+
   delete() {
     throw new Error();
   }

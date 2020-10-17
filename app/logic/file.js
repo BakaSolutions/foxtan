@@ -39,3 +39,7 @@ FileLogic.readOneByHash = async hash => {
 FileLogic.readByHashes = async hashes => {
   return FileModel.readByHashes(hashes);
 };
+
+FileLogic.deleteOneByHash = async hash => {
+
+};

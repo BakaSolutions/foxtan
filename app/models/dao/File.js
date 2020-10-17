@@ -31,10 +31,9 @@ RETURNING *`;
   }
 
   async readByHashes(hashes) {
-    let template = `SELECT * FROM ${this._schema}file WHERE hash IN ($`;
-    template += hashes.map((_, i) => ++i).join('. $');
-    template += ')';
-    const query = await this._executeQuery(template, hashes);
+    let template = `SELECT * FROM ${this._schema}file WHERE hash`;
+    let query = this._in(template, hashes);
+    query = await this._executeQuery(...query);
     return query || [];
   }
 

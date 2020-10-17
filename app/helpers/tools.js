@@ -16,6 +16,8 @@ Tools.moduleAvailable = name => {
 
 Tools.arrayify = input => {
   if (!input) {
+    console.log('Tools.arrayify function caught an empty variable. This will emit error in a future.');
+    debugger;
     return input;
   }
   if (!(input instanceof Array)) {
@@ -35,7 +37,7 @@ Tools.sequence = async (items, func) => {
 Tools.parallel = async (items, func) => {
   let promises = items.map(func);
   // wait until all promises are resolved
-  return await Promise.all(promises);
+  return Promise.all(promises);
 };
 
 Tools.readdirRecursive = async (directories, { mask, isFallible }) => {
@@ -108,6 +110,10 @@ Tools.sortObject = (object, order = 'asc') => {
   return out;
 };
 
+/**
+ * @param {String} string
+ * @returns {String}
+ */
 Tools.capitalize = string => string.toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase());
 
 Tools.random = (type = 10, n) => {

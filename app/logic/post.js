@@ -1,9 +1,9 @@
 const CommonLogic = require('./common');
 
-const BoardModel = require('../models/dao').DAO('board');
 const ThreadModel = require('../models/dao').DAO('thread');
 const PostModel = require('../models/dao').DAO('post');
 
+const BoardLogic = require('./board.js');
 const FileLogic = require('./file.js');
 const AttachmentLogic = require('./attachment.js');
 
@@ -60,7 +60,7 @@ PostLogic.create = async (fields, token) => {
     // `boardName`, `threadNumber` or `threadId` may be not set!
     // Use only `board`, `thread` and `post` from this place.
 
-    let board = await BoardModel.readByName(thread.boardName || boardName);
+    let board = await BoardLogic.readOne(thread.boardName || boardName);
     if (!board) {
       throw {
         status: 404,
@@ -190,150 +190,23 @@ PostLogic.readAllByBoardName = async (boardName, { count, page, order } = {}) =>
   return Tools.parallel(posts, _appendAttachments);
 };
 
-
 PostLogic.readAllByThreadId = async (threadId, { count, page, order } = {}) => {
   let posts = await PostModel.readAllByThreadId(threadId, { count, page, order });
   return Tools.parallel(posts, _appendAttachments);
 };
 
-PostLogic.delete = async (fields, checkPassword) => {
-  if (!fields.post) {
+PostLogic.delete = async (fields) => {
+  if (!fields.selectedPost) {
     throw {
       status: 400,
       message: `No posts to delete!`
     };
   }
 
-  if (checkPassword && !fields.password) {
-    throw {
-      status: 400,
-      message: `No password!`
-    };
+  throw {
+    status: 501
   }
-
-  return await deletePosts(fields.post, fields.password, checkPassword);
 };
-
-
-async function deletePosts(posts, password, checkPassword) {
-  if (!Array.isArray(posts)) {
-    posts = [ posts ];
-  }
-
-  let promises = posts.reduce((results, post) => {
-    results.push(
-      new Promise(async resolve => {
-        post = post.split(':');
-
-        let postInput = {
-          boardName: post[0],
-          postNumber: +post[1]
-        };
-
-        if (CommonLogic.hasEmpty(postInput)) {
-          return resolve(0);
-        }
-
-        resolve(await deletePost(postInput, password, checkPassword));
-      }).catch(() => 0)
-    );
-    return results;
-  }, []);
-
-  let deletedPosts = await Promise.all(promises).then(results => results.reduce((a, b) => a + b, 0));
-  return {deleted: deletedPosts};
-}
-
-
-async function deletePost({boardName, threadNumber, postNumber} = {}, password, checkPassword) {
-  let post = await PostModel.readOne({
-    boardName,
-    threadNumber: +threadNumber || null,
-    postNumber: +postNumber || null,
-    clear: false
-  });
-  if (!post) {
-    return 0;
-  }
-  if (checkPassword && !Crypto.verify(password, post.password)) {
-    return 0;
-  }
-
-  let commonResult = 0;
-
-  // Delete thread
-  if (post.number === post.threadNumber && !threadNumber) {
-    let deleteAThread = await ThreadModel.deleteOne({boardName, number: +postNumber});
-    if (!deleteAThread.result) {
-      return 0;
-    }
-    commonResult += await deletePost(post, password, false);
-  }
-
-  let out = [
-    post.boardName,
-    post.threadNumber,
-    post.number
-  ];
-
-  EventBus.emit('ws.broadcast', 'REM ' + JSON.stringify(out)); // TODO: WS API subscriptions
-
-  await deleteFiles(post.files, post.boardName, post.number, password, checkPassword);
-
-  let { result } = await PostModel.deleteOne({boardName, number: +postNumber});
-  if (result) {
-    commonResult += result.n;
-  }
-  return commonResult;
-}
-
-
-async function deleteFiles(hashes, boardName, postNumber, password, checkPassword) {
-  if (!hashes || !hashes.length) {
-    return {deleted: 0};
-  }
-
-  if (!Array.isArray(hashes)) {
-    hashes = [ hashes ];
-  }
-
-  let promises = hashes.reduce((results, hash) => {
-    results.push(deleteFile(hash, boardName, postNumber, password, checkPassword));
-    return results;
-  }, []);
-
-  let deletedFiles = Promise.all(promises).then(results => results.reduce((a, b) => a + b, 0)).catch(() => 0);
-  return {deleted: deletedFiles};
-}
-
-
-async function deleteFile(hash, boardName, postNumber, password, checkPassword) {
-  if (CommonLogic.isEmpty(hash)) {
-    return 0;
-  }
-  if (Tools.isObject(hash)) {
-    if (!hash.path) {
-      throw {
-        status: 500
-      };
-    }
-    hash = hash.path.split('.').shift();
-  }
-
-  let post = await PostModel.readOne({
-    boardName,
-    postNumber,
-    clear: false
-  });
-  if (!post) {
-    return 0;
-  }
-  if (checkPassword && !Crypto.verify(password, post.password)) {
-    return 0;
-  }
-  let attachment = new Attachment.Attachment(null, hash);
-  return await attachment.delete(boardName, postNumber) ? 1 : 0;
-}
 
 async function _appendAttachments(post) {
   post.attachments = [];

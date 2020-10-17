@@ -47,6 +47,13 @@ class DAO {
     }
   }
 
+  _in(template, values) {
+    template += ` IN ($`;
+    template += values.map((_, i) => ++i).join('. $');
+    template += ')';
+    return [ template, values ];
+  }
+
   _limitOffset(template, values, { count, page } = {}) {
     if (count) {
       let i = values.length;

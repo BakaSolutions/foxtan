@@ -47,6 +47,16 @@ LIMIT 1`;
     return query[0];
   }
 
+  readAllByIds(ids, { count, page, order } = {}) {
+    let template = `SELECT p.*
+FROM ${this._schema}post p
+WHERE id`;
+    let query = this._in(template, ids);
+    query = this._orderBy(...query, { orderBy: "p.id", order });
+    query = this._limitOffset(...query, { count, page });
+    return this._executeQuery(...query);
+  }
+
   readAllByBoardName(boardName, { count, page, order } = {}) {
     let template = `SELECT p.*
 FROM ${this._schema}post p, ${this._schema}thread t
