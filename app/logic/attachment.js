@@ -33,14 +33,22 @@ AttachmentLogic.readByFileHashes = async fileHashes => {
   return AttachmentModel.readByFileHashes(fileHashes);
 };
 
-AttachmentLogic.deleteByHashes = async hashes => {
-  hashes = Tools.arrayify(hashes);
-  if (!hashes.length) {
+AttachmentLogic.readOneByPostIdAndFileHash = async (postId, fileHash) => {
+  return AttachmentModel.readOneByPostIdAndFileHash(postId, fileHash);
+};
+
+AttachmentLogic.deleteByFileHashes = async fileHashes => {
+  fileHashes = Tools.arrayify(fileHashes);
+  if (!fileHashes.length) {
     return 0;
   }
 
-  let allExistingItems = await AttachmentModel.readByFileHashes(hashes);
-  let postIds = allExistingItems.map(i => i.postId);
+  let items = await AttachmentModel.readByFileHashes(fileHashes);
+  if (!items.length) {
+    return 0;
+  }
+  let postIds = items.map(i => i.postId);
+  postIds = Tools.unique(postIds);
   let posts = await AttachmentLogic.readByPostIds(postIds);
   console.log(posts);
 
@@ -51,4 +59,15 @@ AttachmentLogic.deleteByHashes = async hashes => {
   });
   let results = await Promise.all(promises);
   return /* deletedFiles = */ results.reduce((a, b) => a + b, 0);
+};
+
+AttachmentLogic.deleteByPostIdAndFileHash = async (postId, fileHash) => {
+  let item = await AttachmentModel.readOneByPostIdAndFileHash(postId, fileHash);
+  if (!item) {
+    return 0;
+  }
+
+  return await AttachmentModel.deleteByPostIdAndFileHash(postId, fileHash)
+    ? 1
+    : 0;
 };

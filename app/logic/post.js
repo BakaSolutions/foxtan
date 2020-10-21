@@ -195,14 +195,7 @@ PostLogic.readAllByThreadId = async (threadId, { count, page, order } = {}) => {
   return Tools.parallel(posts, _appendAttachments);
 };
 
-PostLogic.delete = async (fields) => {
-  if (!fields.selectedPost) {
-    throw {
-      status: 400,
-      message: `No posts to delete!`
-    };
-  }
-
+PostLogic.delete = () => {
   throw {
     status: 501
   }
@@ -214,7 +207,7 @@ async function _appendAttachments(post) {
   if (!attachments.length) {
     return post;
   }
-  let uniqueFileHashes = [ ...new Set(attachments.map(i => i.fileHash))];
+  let uniqueFileHashes = Tools.unique(attachments.map(i => i.fileHash));
   let files = await FileLogic.readByHashes(uniqueFileHashes);
   for (let attachment of attachments) {
     let file = files.find(i => i.hash === attachment.fileHash);

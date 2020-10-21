@@ -16,7 +16,7 @@ FileLogic.create = async (fileInfo, post) => {
   let fileEntry = new FileType[mimeType](fileInfo);
   let hash = await fileEntry.createHash();
 
-  let exists = await FileLogic.readOneByHash(hash);
+  let exists = await FileModel.readOneByHash(hash);
   if (!exists) {
     await fileEntry.check();
     await fileEntry.store();
@@ -32,14 +32,19 @@ FileLogic.create = async (fileInfo, post) => {
   });
 };
 
-FileLogic.readOneByHash = async hash => {
-  return FileModel.readOneByHash(hash)
-};
+FileLogic.readByHashes = FileModel.readByHashes;
 
-FileLogic.readByHashes = async hashes => {
-  return FileModel.readByHashes(hashes);
-};
+FileLogic.deleteByPostIdAndFileHash = async (postId, fileHash, token) => {
+  if (!postId || !fileHash) {
+    return 0;
+  }
 
-FileLogic.deleteOneByHash = async hash => {
+  const PostLogic = require('./post.js');
 
+  let post = await PostLogic.readOneById(postId);
+  if (post.sessionKey !== token.tid) {
+    return 0;
+  }
+
+  return AttachmentLogic.deleteByPostIdAndFileHash(postId, fileHash);
 };

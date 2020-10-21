@@ -53,4 +53,30 @@ router.post('api/createPost', async ctx => {
   }
 });
 
+router.post('api/deletePost', async ctx => {
+  try {
+    let {body: query, token} = ctx.request;
+
+    if (!query || !query.selectedPost) {
+      throw {
+        status: 400,
+        message: `No posts to delete!`
+      };
+    }
+
+    let deleted = await PostLogic.delete(query.selectedPost);
+
+    if (HTTP.isAJAXRequested(ctx)) {
+      const out = {
+        deleted,
+        message: 'Post was successfully deleted!'
+      };
+      return HTTP.success(ctx, out);
+    }
+    return HTTP.success(ctx, 'OK');
+  } catch (e) {
+    return HTTP.fail(ctx, e);
+  }
+});
+
 module.exports = router;

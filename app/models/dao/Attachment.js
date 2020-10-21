@@ -51,8 +51,18 @@ WHERE "fileHash"`;
     return this._executeQuery(...query);
   }
 
-  delete() {
-    throw new Error();
+  async readOneByPostIdAndFileHash(postId, fileHash) {
+    const template = `SELECT * FROM ${this._schema}attachment
+WHERE "postId" = $1 AND "fileHash" = $2 LIMIT 1`;
+    const values = [ postId, fileHash ];
+    return this._executeQuery(template, values);
+  }
+
+  async deleteByPostIdAndFileHash(postId, fileHash) {
+    const template = `DELETE FROM ${this._schema}attachment
+WHERE "postId" = $1 AND "fileHash" = $2 LIMIT 1`;
+    const values = [ postId, fileHash ];
+    return this._executeQuery(template, values);
   }
 
 }

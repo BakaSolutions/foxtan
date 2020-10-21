@@ -140,3 +140,5 @@ Tools.endWith = (string, char) => (''+string).endsWith(char) ? string : string +
 Tools.wrapWith = (string, charStart, charEnd = charStart) => {
   return Tools.endWith(Tools.startWith(string, charEnd), charStart);
 };
+
+Tools.unique = arr => [ ...new Set(arr)];

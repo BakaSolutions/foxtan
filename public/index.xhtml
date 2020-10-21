@@ -95,6 +95,23 @@
   </div>
 </form>
 
+<h1>Delete file</h1>
+<form action="api/deleteFile" method="post" class="create-form" enctype="multipart/form-data">
+  <div>
+    <table>
+      <tr>
+        <td><b>selectedFile:[postId]:[fileHash]</b></td>
+        <td><input type="checkbox" name="selectedFile:1:103ecf46" checked="checked" /></td>
+      </tr>
+      <tr>
+        <td><b>selectedFile:[postId]:[fileHash]</b></td>
+        <td><input type="checkbox" name="selectedFile:2:103ecf46" /></td>
+      </tr>
+    </table>
+    <button>Submit</button>
+  </div>
+</form>
+
 <h1>Captcha frame</h1>
 <iframe src="captcha.xhtml"></iframe>
 
