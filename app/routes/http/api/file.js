@@ -19,28 +19,20 @@ router.post('api/deleteFile', async ctx => {
       }
     }
 
-    let values = Object.entries(query.selectedFile);
-    /*
-    .reduce((fileHashes, [postId, hashObject]) => {
-      let hash = Object.keys(hashObject)[0];
-      if (!fileHashes[hash]) {
-        fileHashes[hash] = [];
-      }
-      fileHashes[hash].push(+postId);
+    let values = Object.entries(query.selectedFile).reduce((fileHashes, [postId, hashObject]) => {
+      fileHashes.push({
+        postId,
+        fileHash: Object.keys(hashObject)[0]
+      });
       return fileHashes;
-    }, {});
-    */
-    debugger;
+    }, []);
 
-    let promises = values.map(([postId, fileHash]) => {
-      return FileLogic.deleteByPostIdAndFileHash(postId, fileHash, token);
-    });
-    let deleted = (await Promise.all(promises)).reduce((a, b) => a + b, 0);
+    let results = await Tools.parallel(FileLogic.deleteByPostIdAndFileHash, values, token);
+    let deleted = results.reduce((a, b) => a + b, 0);
 
     if (HTTP.isAJAXRequested(ctx)) {
       const out = {
-        deleted,
-        message: 'File was successfully deleted!'
+        deleted
       };
       return HTTP.success(ctx, out);
     }

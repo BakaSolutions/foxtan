@@ -9,7 +9,7 @@ let ThreadLogic = module.exports = {};
 
 ThreadLogic.readAllByBoard = async (boardName, {count, page} = {}) => {
   let out = await ThreadModel.readAllByBoard(boardName, {count, page});
-  return Tools.parallel(out, processThread);
+  return Tools.parallel(processThread, out);
 };
 
 ThreadLogic.readOneById = async (id, {count, page} = {}) => {

@@ -47,13 +47,13 @@ async function readChunk(file, filename) {
 
 module.exports = ctx => {
   ctx.request.body = {};
+  ctx.request.originalBody = {};
   if (ctx.request.method !== "POST" || !ctx.request.is('urlencoded', 'multipart')) {
     return;
   }
   let uploadedFiles = [];
   return new Promise((resolve, reject) => {
     let busboy = new Busboy({ headers: ctx.req.headers });
-    let fields = {};
 
     ctx.req.pipe(busboy);
     setTimeout(() => reject('Body parsing timeout'), 30000);
@@ -74,7 +74,7 @@ module.exports = ctx => {
 
         file.on('data', data => size += data.length);
         file.on('end', () => {
-          correctFieldMatching(fields, fieldname, {
+          correctFieldMatching(ctx.request.body, fieldname, {
             mime,
             name: filename,
             size,
@@ -90,12 +90,12 @@ module.exports = ctx => {
       }
     });
 
-    busboy.on('field', (fieldname, val) => correctFieldMatching(fields, fieldname, val));
+    busboy.on('field', (fieldname, val) => {
+      correctFieldMatching(ctx.request.body, fieldname, val);
+      ctx.request.originalBody[fieldname] = val;
+    });
 
     busboy.on('finish', () => {
-      if (Object.keys(fields).length) {
-        ctx.request.body = fields;
-      }
       resolve(ctx.request.body);
     });
 
@@ -105,7 +105,7 @@ module.exports = ctx => {
       reject(err);
     });
   }).catch(e => {
-    Tools.parallel(uploadedFiles, FS.unlink);
+    Tools.parallel(FS.unlink, uploadedFiles);
     throw {
       status: 400,
       message: e.message

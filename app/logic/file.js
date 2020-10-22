@@ -34,7 +34,7 @@ FileLogic.create = async (fileInfo, post) => {
 
 FileLogic.readByHashes = FileModel.readByHashes;
 
-FileLogic.deleteByPostIdAndFileHash = async (postId, fileHash, token) => {
+FileLogic.deleteByPostIdAndFileHash = async ({postId, fileHash} = {}, token) => {
   if (!postId || !fileHash) {
     return 0;
   }

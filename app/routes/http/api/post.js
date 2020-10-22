@@ -1,12 +1,14 @@
-const config = require('../../../helpers/config');
+const config = require('../../../helpers/config.js');
+const Tools = require('../../../helpers/tools.js');
+
 const router = require('koa-router')({
   prefix: config('server.pathPrefix')
 });
 
-const HTTP = require('../index');
-const PostLogic = require('../../../logic/post');
-const UserLogic = require('../../../logic/user');
-const CommonLogic = require('../../../logic/common');
+const HTTP = require('../index.js');
+const PostLogic = require('../../../logic/post.js');
+const UserLogic = require('../../../logic/user.js');
+const CommonLogic = require('../../../logic/common.js');
 
 router.post('api/createPost', async ctx => {
   try {
@@ -55,7 +57,7 @@ router.post('api/createPost', async ctx => {
 
 router.post('api/deletePost', async ctx => {
   try {
-    let {body: query, token} = ctx.request;
+    let { body: query, originalBody, token } = ctx.request;
 
     if (!query || !query.selectedPost) {
       throw {
@@ -63,13 +65,28 @@ router.post('api/deletePost', async ctx => {
         message: `No posts to delete!`
       };
     }
-
-    let deleted = await PostLogic.delete(query.selectedPost);
+    let values = Object.keys(originalBody).reduce((posts, key) => {
+      let postId, boardName, postNumber;
+      let [_0, _1, _2] = key.split(':');
+      if (_1 && _2) {
+        boardName = _1;
+        postNumber = +_2;
+      } else {
+        postId = +_1;
+      }
+      posts.push({
+        postId,
+        boardName,
+        postNumber
+      });
+      return posts;
+    }, []);
+    let results = await Tools.parallel(PostLogic.delete, values, token);
+    let deleted = results.reduce((a, b) => a + b, 0);
 
     if (HTTP.isAJAXRequested(ctx)) {
       const out = {
         deleted,
-        message: 'Post was successfully deleted!'
       };
       return HTTP.success(ctx, out);
     }

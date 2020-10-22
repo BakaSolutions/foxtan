@@ -26,7 +26,7 @@ Tools.arrayify = input => {
   return input;
 };
 
-Tools.sequence = async (items, func) => {
+Tools.sequence = async (func, items) => {
   let out = [];
   for (const promise of items) {
     out.push(await func(promise));
@@ -34,15 +34,15 @@ Tools.sequence = async (items, func) => {
   return out;
 };
 
-Tools.parallel = async (items, func) => {
-  let promises = items.map(func);
-  // wait until all promises are resolved
+Tools.parallel = async (func, items, ...args) => {
+  items = Tools.arrayify(items);
+  let promises = items.map((item => func(item, ...args)));
   return Promise.all(promises);
 };
 
 Tools.readdirRecursive = async (directories, { mask, isFallible }) => {
   directories = Tools.arrayify(directories);
-  let out = await Tools.parallel(directories, async directory => {
+  let out = await Tools.parallel(async directory => {
     try {
       return await FS.readdir(directory, { onlyFiles: true });
     } catch (e) {
@@ -50,7 +50,7 @@ Tools.readdirRecursive = async (directories, { mask, isFallible }) => {
         throw e;
       }
     }
-  });
+  }, directories);
   return out.flat().filter(file => file && file.isFile() && mask.test(file.name));
 };
 

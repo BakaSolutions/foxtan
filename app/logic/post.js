@@ -129,7 +129,7 @@ PostLogic.create = async (fields, token) => {
     await ThreadModel.transactionRollback();
     if (file) {
       let paths = Object.values(file).map(f => f.path);
-      await Tools.parallel(paths, FS.unlink);
+      await Tools.parallel(FS.unlink, paths);
     }
     throw e;
   }
@@ -187,12 +187,12 @@ PostLogic.readOneByThreadId = async threadId => {
 
 PostLogic.readAllByBoardName = async (boardName, { count, page, order } = {}) => {
   let posts = await PostModel.readAllByBoardName(boardName, { count, page, order });
-  return Tools.parallel(posts, _appendAttachments);
+  return Tools.parallel(_appendAttachments, posts);
 };
 
 PostLogic.readAllByThreadId = async (threadId, { count, page, order } = {}) => {
   let posts = await PostModel.readAllByThreadId(threadId, { count, page, order });
-  return Tools.parallel(posts, _appendAttachments);
+  return Tools.parallel(_appendAttachments, posts);
 };
 
 PostLogic.delete = () => {
