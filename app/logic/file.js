@@ -32,7 +32,7 @@ FileLogic.create = async (fileInfo, post) => {
   });
 };
 
-FileLogic.readByHashes = FileModel.readByHashes;
+FileLogic.readByHashes = FileModel.readByHashes.bind(FileModel);
 
 FileLogic.deleteByPostIdAndFileHash = async ({postId, fileHash} = {}, token) => {
   if (!postId || !fileHash) {
