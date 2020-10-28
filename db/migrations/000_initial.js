@@ -84,7 +84,7 @@ exports.up = knex => {
       table.foreign('toId').references('id').inTable(schema + '.post');
     })
     .createTable('attachment', (table) => {
-      table.increments('attachmentId').unsigned().primary();
+      table.increments('id').unsigned().primary();
       table.integer('postId').unsigned();
       table.string('fileHash');
 
