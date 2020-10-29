@@ -5,7 +5,6 @@ const PostModel = require('../models/dao').DAO('post');
 
 const BoardLogic = require('./board.js');
 const FileLogic = require('./file.js');
-const AttachmentLogic = require('./attachment.js');
 
 const Thread = require('../object/Thread.js');
 const Post = require('../object/Post.js');
@@ -157,9 +156,9 @@ PostLogic.readOneByBoardAndPost = async (boardName, number) => {
     };
   }
 
-  let out = await PostModel.readOneByBoardAndPost(boardName, number);
+  let post = await PostModel.readOneByBoardAndPost(boardName, number);
 
-  if (!out) {
+  if (!post) {
     let counter = await PostModel.readLastNumberByBoardName(boardName);
     let wasPosted = (number <= counter);
     let status = wasPosted ? 410 : 404;
@@ -172,27 +171,27 @@ PostLogic.readOneByBoardAndPost = async (boardName, number) => {
     };
   }
 
-  return _appendAttachments(out);
+  return FileLogic.appendAttachments(post);
 };
 
 PostLogic.readOneById = async postId => {
   let post = await PostModel.readOneById(postId);
-  return _appendAttachments(post);
+  return FileLogic.appendAttachments(post);
 };
 
 PostLogic.readOneByThreadId = async threadId => {
   let post = await PostModel.readOneByThreadId(threadId);
-  return _appendAttachments(post);
+  return FileLogic.appendAttachments(post);
 };
 
 PostLogic.readAllByBoardName = async (boardName, { count, page, order } = {}) => {
   let posts = await PostModel.readAllByBoardName(boardName, { count, page, order });
-  return Tools.parallel(_appendAttachments, posts);
+  return Tools.parallel(FileLogic.appendAttachments, posts);
 };
 
 PostLogic.readAllByThreadId = async (threadId, { count, page, order } = {}) => {
   let posts = await PostModel.readAllByThreadId(threadId, { count, page, order });
-  return Tools.parallel(_appendAttachments, posts);
+  return Tools.parallel(FileLogic.appendAttachments, posts);
 };
 
 PostLogic.delete = () => {
@@ -200,18 +199,3 @@ PostLogic.delete = () => {
     status: 501
   }
 };
-
-async function _appendAttachments(post) {
-  post.attachments = [];
-  let attachments = await AttachmentLogic.readByPostId(post.id);
-  if (!attachments.length) {
-    return post;
-  }
-  let uniqueFileHashes = Tools.unique(attachments.map(i => i.fileHash));
-  let files = await FileLogic.readByHashes(uniqueFileHashes);
-  for (let attachment of attachments) {
-    let file = files.find(i => i.hash === attachment.fileHash);
-    post.attachments.push(file);
-  }
-  return post;
-}

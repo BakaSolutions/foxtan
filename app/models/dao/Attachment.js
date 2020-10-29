@@ -58,11 +58,28 @@ WHERE "postId" = $1 AND "fileHash" = $2 LIMIT 1`;
     return this._executeQuery(template, values);
   }
 
-  async deleteByPostIdAndFileHash(postId, fileHash) {
+  async countByPostId(postId) {
+    const template = `SELECT COUNT(id) FROM ${this._schema}attachment
+WHERE "postId" = $1`;
+    const values = [ postId ];
+    const query = await this._executeQuery(template, values);
+    return +query[0].count;
+  }
+
+  async countByFileHash(fileHash) {
+    const template = `SELECT COUNT(id) FROM ${this._schema}attachment
+WHERE "fileHash" = $1`;
+    const values = [ fileHash ];
+    const query = await this._executeQuery(template, values);
+    return +query[0].count;
+  }
+
+  async deleteById(id) {
     const template = `DELETE FROM ${this._schema}attachment
-WHERE "postId" = $1 AND "fileHash" = $2 LIMIT 1`;
-    const values = [ postId, fileHash ];
-    return this._executeQuery(template, values);
+WHERE id = $1 RETURNING COUNT(*)`;
+    const values = [ id ];
+    const query = await this._executeQuery(template, values);
+    return +query[0].count;
   }
 
 }

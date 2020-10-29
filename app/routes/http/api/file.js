@@ -6,11 +6,11 @@ const router = require('koa-router')({
 });
 
 const HTTP = require('../index.js');
-const FileLogic = require('../../../logic/file.js');
+const AttachmentLogic = require('../../../logic/attachment.js');
 
 router.post('api/deleteFile', async ctx => {
   try {
-    let { body: query, token } = ctx.request;
+    let { body: query, originalBody, token } = ctx.request;
 
     if (!query || !query.selectedFile) {
       throw {
@@ -19,15 +19,30 @@ router.post('api/deleteFile', async ctx => {
       }
     }
 
-    let values = Object.entries(query.selectedFile).reduce((fileHashes, [postId, hashObject]) => {
+    let values = Object.keys(originalBody).reduce((fileHashes, key) => {
+      let boardName, postId, postNumber, fileHash;
+      let [_0, _1, _2, _3] = key.split(':');
+      if (_3) { // boardName, postNumber, fileHash
+        boardName = _1;
+        postNumber = +_2;
+        fileHash = _3;
+      } else if (_2) { // postId, fileHash
+        postId = +_1;
+        fileHash = _2;
+      } else { // fileHash
+        fileHash = _1;
+      }
+
       fileHashes.push({
+        boardName,
+        postNumber,
         postId,
-        fileHash: Object.keys(hashObject)[0]
+        fileHash
       });
       return fileHashes;
     }, []);
 
-    let results = await Tools.parallel(FileLogic.deleteByPostIdAndFileHash, values, token);
+    let results = await Tools.parallel(AttachmentLogic.delete, values, token);
     let deleted = results.reduce((a, b) => a + b, 0);
 
     if (HTTP.isAJAXRequested(ctx)) {

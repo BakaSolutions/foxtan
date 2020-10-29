@@ -1,5 +1,5 @@
 const AttachmentModel = require('../models/dao').DAO('attachment');
-const FileModel = require('../models/dao').DAO('file');
+const PostModel = require('../models/dao').DAO('post');
 
 const Attachment = require('../object/Attachment.js');
 
@@ -17,57 +17,46 @@ AttachmentLogic.create = async attachment => {
   await AttachmentModel.create(attachment);
 };
 
-AttachmentLogic.readByPostId = async postId => {
-  return AttachmentModel.readByPostId(postId);
-};
+AttachmentLogic.delete = async ({boardName, postNumber, postId, fileHash} = {}, token) => {
+  // Read a post to catch a token
+  let post;
+  if (boardName && postNumber) {
+    post = await PostModel.readOneByBoardAndPost(boardName, postNumber);
+    postId = post.id;
+  } else if (postId) {
+    post = await PostModel.readOneById(postId);
+    if (!post) {
+      return 0;
+    }
+  }
 
-AttachmentLogic.readByPostIds = async postIds => {
-  return AttachmentModel.readByPostIds(postIds);
-};
-
-AttachmentLogic.readByFileHash = async fileHash => {
-  return AttachmentModel.readByFileHash(fileHash);
-};
-
-AttachmentLogic.readByFileHashes = async fileHashes => {
-  return AttachmentModel.readByFileHashes(fileHashes);
-};
-
-AttachmentLogic.readOneByPostIdAndFileHash = async (postId, fileHash) => {
-  return AttachmentModel.readOneByPostIdAndFileHash(postId, fileHash);
-};
-
-AttachmentLogic.deleteByFileHashes = async fileHashes => {
-  fileHashes = Tools.arrayify(fileHashes);
-  if (!fileHashes.length) {
+  // Compare tokens
+  if (post && post.sessionKey !== token.tid) {
     return 0;
   }
 
-  let items = await AttachmentModel.readByFileHashes(fileHashes);
-  if (!items.length) {
-    return 0;
+  // Guess what's going on
+  // Read all attachments
+  let attachments;
+  if (postId && fileHash) {
+    // remove certain attachment
+    attachments = await AttachmentModel.readOneByPostIdAndFileHash(postId, fileHash);
+  } else if (!postId && fileHash) {
+    // remove certain file with all attachments
+    attachments = await AttachmentModel.readByFileHash(fileHash);
+  } else if (postId && !fileHash) {
+    // remove all post attachments
+    attachments = await AttachmentModel.readByPostId(postId);
   }
-  let postIds = items.map(i => i.postId);
-  postIds = Tools.unique(postIds);
-  let posts = await AttachmentLogic.readByPostIds(postIds);
-  console.log(posts);
 
-  let promises = posts.map(post => {
-    return FileModel.deleteOne(post.id)
-      ? 1
-      : 0;
-  });
-  let results = await Promise.all(promises);
-  return /* deletedFiles = */ results.reduce((a, b) => a + b, 0);
-};
-
-AttachmentLogic.deleteByPostIdAndFileHash = async (postId, fileHash) => {
-  let item = await AttachmentModel.readOneByPostIdAndFileHash(postId, fileHash);
-  if (!item) {
+  if (!attachments) {
     return 0;
   }
 
-  return await AttachmentModel.deleteByPostIdAndFileHash(postId, fileHash)
-    ? 1
-    : 0;
+  attachments = Tools.arrayify(attachments);
+  let attachmentIds = attachments.map(a => a.id);
+  let results = await Tools.parallel(AttachmentModel.deleteById, attachmentIds);
+
+  let deletedAttachments = results.reduce((a, b) => a + b, 0);
+  return deletedAttachments;
 };

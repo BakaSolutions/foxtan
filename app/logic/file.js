@@ -1,4 +1,5 @@
 const FileModel = require('../models/dao').DAO('file');
+const AttachmentModel = require('../models/dao').DAO('attachment');
 
 const AttachmentLogic = require('./attachment.js');
 
@@ -14,9 +15,9 @@ FileLogic.create = async (fileInfo, post) => {
   let [mimeType, _] = fileInfo.mime.split('/');
 
   let fileEntry = new FileType[mimeType](fileInfo);
-  let hash = await fileEntry.createHash();
+  let fileHash = await fileEntry.createHash();
 
-  let exists = await FileModel.readOneByHash(hash);
+  let exists = await FileModel.readOneByHash(fileHash);
   if (!exists) {
     await fileEntry.check();
     await fileEntry.store();
@@ -28,23 +29,29 @@ FileLogic.create = async (fileInfo, post) => {
 
   await AttachmentLogic.create({
     postId: post.id,
-    fileHash: hash
+    fileHash
   });
 };
 
-FileLogic.readByHashes = FileModel.readByHashes.bind(FileModel);
 
-FileLogic.deleteByPostIdAndFileHash = async ({postId, fileHash} = {}, token) => {
-  if (!postId || !fileHash) {
-    return 0;
+FileLogic.appendAttachments = async post => {
+  post.attachments = [];
+  let attachments = await AttachmentModel.readByPostId(post.id);
+  if (!attachments.length) {
+    return post;
   }
-
-  const PostLogic = require('./post.js');
-
-  let post = await PostLogic.readOneById(postId);
-  if (post.sessionKey !== token.tid) {
-    return 0;
+  let uniqueFileHashes = Tools.unique(attachments.map(i => i.fileHash));
+  let files = await FileModel.readByHashes(uniqueFileHashes);
+  for (let attachment of attachments) {
+    let file = files.find(i => i.hash === attachment.fileHash);
+    post.attachments.push(file);
   }
+  return post;
+};
 
-  return AttachmentLogic.deleteByPostIdAndFileHash(postId, fileHash);
+FileLogic.delete = async fileHash => {
+  // TODO: remove file from FS and DB
+  throw {
+    status: 501
+  }
 };
