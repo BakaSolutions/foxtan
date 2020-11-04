@@ -1,8 +1,9 @@
 ## Foxtan
 ##### *Fastest one, beat by none!*
 
-#### Install
-Dependencies:
+#### Installation
+
+##### Prerequisites
 
 - Node.js with npm or npx
 - PostgreSQL (for storing posts, other DBs soon)
@@ -10,13 +11,10 @@ Dependencies:
 - ffmpeg (for processing videos metadata)
 - [NPM] sharp (for processing images and previews)
 - [NPM] canvas (for creating captcha images)
+- [optional] [NPM] node-static (if nginx is not used)
 
-Optional dependencies:
-
-- [NPM] node-static (if nginx is not used)
-
-Commands:
-```shell script
+##### Installation steps
+```
 git clone https://bitbucket.org/bakaso/foxtan
 cd foxtan
 
@@ -27,10 +25,13 @@ npm i pg
 # Install using yarn
 yarn install
 yarn add pg
+```
 
+#### Usage
+```
 # Launch on LTS or "current" version
 node app    # or `npm start` or `yarn start`
 
-# Launch on node 12-
+# Launch on non-LTS
 npx -p node@lts -- node app
 ```
