@@ -1,78 +1,78 @@
 const CommonLogic = require('./common');
 
-const BoardModel = require('../models/dao').DAO('board');
 const ThreadModel = require('../models/dao').DAO('thread');
 const PostModel = require('../models/dao').DAO('post');
-const Attachment = require('./attachment');
+
+const BoardLogic = require('./board.js');
+const FileLogic = require('./file.js');
+const AttachmentLogic = require('./attachment.js');
 
 const Thread = require('../object/Thread.js');
 const Post = require('../object/Post.js');
 
-const Crypto = require('../helpers/crypto');
-const Tools = require('../helpers/tools');
+const Crypto = require('../helpers/crypto.js');
+const Tools = require('../helpers/tools.js');
+const FS = require('../helpers/fs.js');
 
 const EventBus = require('../core/event.js');
 
 let PostLogic = module.exports = {};
 
 PostLogic.create = async (fields, token) => {
+  let {boardName, threadNumber, threadId, sage, subject, text, file, fileMark} = fields;
+  let thread;
+
   try {
     await ThreadModel.transactionBegin();
 
     let now = new Date;
-    let {boardName, threadNumber, threadId, sage, subject, text, file, fileMark} = fields;
+    let isThread = false;
 
     if (threadId) {
-      let thread = await ThreadModel.readOneById(threadId)
-      
-      if (thread) {
-        let head = await PostModel.readOneById(thread.headId)
-
-        boardName = thread.boardName
-        threadNumber = head.number
-      } else {
-        throw {
-          status: 404,
-          message: 'There is no such a thread'
-        }
+      // Type 1.1: `threadId` only
+      // It's a post of the thread.
+      thread = await ThreadModel.readOneById(threadId);
+    } else if (boardName && threadNumber) {
+      // Type 1.2: `boardName` and `threadNumber`
+      // It's a post of the thread.
+      threadNumber = +threadNumber; // "1" => 1
+      thread = await ThreadModel.readOneByBoardAndPost(boardName, threadNumber);
+    } else if (boardName) {
+      // Type 2: `boardName` only
+      // It's a new thread!!1
+      isThread = true;
+    } else {
+      // Type 3: Incorrect request
+      throw {
+        status: 400,
+        message: 'boardName/threadNumber or threadId are missed'
       }
     }
 
-    let board = await BoardModel.readByName(boardName);
+    if (!isThread && !thread) {
+      throw {
+        status: 404,
+        message: 'There is no such a thread'
+      }
+    }
+    thread = new Thread({creative: isThread}).bulk(thread); // TODO: Create Thread in ThreadModel
+
+    // `boardName`, `threadNumber` or `threadId` may be not set!
+    // Use only `board`, `thread` and `post` from this place.
+
+    let board = await BoardLogic.readOne(thread.boardName || boardName);
+    if (!board) {
+      throw {
+        status: 404,
+        message: 'There is no such a board'
+      }
+    }
     if (board.modifiers && board.modifiers.closed) {
       throw {
         status: 403,
         message: 'This board is closed'
       };
     }
-
-    let isThread = CommonLogic.isEmpty(threadNumber);
-    let thread;
-    if (isThread) {
-      thread = new Thread({creative: true})
-    } else {
-      threadNumber = +threadNumber; // "1" => 1
-      let threadFromDB = await ThreadModel.readOneByBoardAndPost(boardName, threadNumber);
-      if (!threadFromDB) {
-        throw {
-          status: 404,
-          message: 'There is no such a thread'
-        };
-      }
-      thread = new Thread().bulk(threadFromDB); // TODO: Create Thread in ThreadModel
-    }
-
-    console.log(Object.values(file), fileMark);
-    for (let { mime, name, size, path } of Object.values(file)) {
-      mime = mime.split('/')[0];
-      let F = new File[mime]({ name, size, path });
-      await F.createHash();
-      await F.check();
-      await F.createThumb();
-    }
-    debugger;
-    // TODO: File
-
 
     if (isThread) {
       thread.boardName = boardName;
@@ -83,10 +83,8 @@ PostLogic.create = async (fields, token) => {
     }
 
     let post = new Post({creative: true});
-    let lastNumber = await PostModel.readLastNumberByBoardName(boardName);
-    console.log(thread.toObject());
-    // "threadId", "userId", "number", "subject", "text",
-    // "sessionKey", "modifiers", "ipAddress", "created", "deleled"
+    let lastNumber = await PostModel.readLastNumberByBoardName(thread.boardName);
+
     post.threadId = thread.id;
     post.number = ++lastNumber;
     if (subject.length) {
@@ -96,7 +94,6 @@ PostLogic.create = async (fields, token) => {
     post.sessionKey = token.tid;
 
     if (sage) {
-      post.modifiers = [];
       post.modifiers.push('sage');
     }
 
@@ -105,20 +102,35 @@ PostLogic.create = async (fields, token) => {
     post = await PostModel.create(post); // Post hook
     post = new Post().bulk(post); // TODO: Create Post in PostModel
 
+    let files = [];
+    for (let [key, value] of Object.entries(file || {})) {
+      value.modifiers = [];
+      if (fileMark && fileMark[key] && fileMark[key]['NSFW']) {
+        value.modifiers.push('NSFW');
+      }
+      files.push(value);
+    }
+    for (let fileInfo of files) {
+      await FileLogic.create(fileInfo, post);
+    }
+    // TODO: Use batch
+
     await ThreadModel.transactionEnd();
 
-    console.log(post.toObject());
-
     let out = [
-      boardName,
+      thread.boardName,
       post.threadId,
       post.number
     ];
 
-    EventBus.emit('ws.broadcast', 'RNDR ' + JSON.stringify(out));
+    //EventBus.emit('ws.broadcast', 'RNDR ' + JSON.stringify(out)); // TODO: create event subscriptions
     return out;
   } catch (e) {
     await ThreadModel.transactionRollback();
+    if (file) {
+      let paths = Object.values(file).map(f => f.path);
+      await Tools.parallel(FS.unlink, paths);
+    }
     throw e;
   }
 };
@@ -145,9 +157,9 @@ PostLogic.readOneByBoardAndPost = async (boardName, number) => {
     };
   }
 
-  let out = await PostModel.readOneByBoardAndPost(boardName, number);
+  let post = await PostModel.readOneByBoardAndPost(boardName, number);
 
-  if (!out) {
+  if (!post) {
     let counter = await PostModel.readLastNumberByBoardName(boardName);
     let wasPosted = (number <= counter);
     let status = wasPosted ? 410 : 404;
@@ -160,178 +172,47 @@ PostLogic.readOneByBoardAndPost = async (boardName, number) => {
     };
   }
 
-  if (!out.files || !out.files.length) {
-    return out;
-  }
-
-  return out; // _appendAttachments(out);
+  return FileLogic.appendAttachments(post);
 };
 
 PostLogic.readOneById = async postId => {
   let post = await PostModel.readOneById(postId);
-  return post; // _appendAttachments(post);
+  return FileLogic.appendAttachments(post);
 };
 
-PostLogic.readAllByBoardName = async (boardName, { count, page, order }) => {
+PostLogic.readOneByThreadId = async threadId => {
+  let post = await PostModel.readOneByThreadId(threadId);
+  return FileLogic.appendAttachments(post);
+};
+
+PostLogic.readAllByBoardName = async (boardName, { count, page, order } = {}) => {
   let posts = await PostModel.readAllByBoardName(boardName, { count, page, order });
-  return posts;//Promise.all(posts.map(_appendAttachments));
+  return Tools.parallel(FileLogic.appendAttachments, posts);
 };
 
-
-PostLogic.readAllByThreadId = async (threadId, { count, page, order }) => {
+PostLogic.readAllByThreadId = async (threadId, { count, page, order } = {}) => {
   let posts = await PostModel.readAllByThreadId(threadId, { count, page, order });
-  return posts;//Promise.all(posts.map(_appendAttachments));
+  return Tools.parallel(FileLogic.appendAttachments, posts);
 };
 
-PostLogic.delete = async (fields, checkPassword) => {
-  if (!fields.post) {
-    throw {
-      status: 400,
-      message: `No posts to delete!`
-    };
+PostLogic.readOne = async ({postId, boardName, postNumber} = {}) => {
+  let post;
+  if (boardName && postNumber) {
+    post = await PostModel.readOneByBoardAndPost(boardName, postNumber);
+  } else if (postId) {
+    post = await PostModel.readOneById(postId);
   }
-
-  if (checkPassword && !fields.password) {
-    throw {
-      status: 400,
-      message: `No password!`
-    };
-  }
-
-  return await deletePosts(fields.post, fields.password, checkPassword);
+  return FileLogic.appendAttachments(post);
 };
 
-
-async function deletePosts(posts, password, checkPassword) {
-  if (!Array.isArray(posts)) {
-    posts = [ posts ];
-  }
-
-  let promises = posts.reduce((results, post) => {
-    results.push(
-      new Promise(async resolve => {
-        post = post.split(':');
-
-        let postInput = {
-          boardName: post[0],
-          postNumber: +post[1]
-        };
-
-        if (CommonLogic.hasEmpty(postInput)) {
-          return resolve(0);
-        }
-
-        resolve(await deletePost(postInput, password, checkPassword));
-      }).catch(() => 0)
-    );
-    return results;
-  }, []);
-
-  let deletedPosts = await Promise.all(promises).then(results => results.reduce((a, b) => a + b, 0));
-  return {deleted: deletedPosts};
-}
-
-
-async function deletePost({boardName, threadNumber, postNumber} = {}, password, checkPassword) {
-  let post = await PostModel.readOne({
-    boardName,
-    threadNumber: +threadNumber || null,
-    postNumber: +postNumber || null,
-    clear: false
-  });
-  if (!post) {
-    return 0;
-  }
-  if (checkPassword && !Crypto.verify(password, post.password)) {
+PostLogic.delete = async (post, token) => {
+  if (!post || post.sessionKey !== token.tid) {
     return 0;
   }
 
-  let commonResult = 0;
-
-  // Delete thread
-  if (post.number === post.threadNumber && !threadNumber) {
-    let deleteAThread = await ThreadModel.deleteOne({boardName, number: +postNumber});
-    if (!deleteAThread.result) {
-      return 0;
-    }
-    commonResult += await deletePost(post, password, false);
+  let deletedPost = await PostModel.deleteById(post.id);
+  if (deletedPost) {
+    await AttachmentLogic.delete({postId: post.id}, token);
   }
-
-  let out = [
-    post.boardName,
-    post.threadNumber,
-    post.number
-  ];
-
-  EventBus.emit('ws.broadcast', 'REM ' + JSON.stringify(out)); // TODO: WS API subscriptions
-
-  await deleteFiles(post.files, post.boardName, post.number, password, checkPassword);
-
-  let { result } = await PostModel.deleteOne({boardName, number: +postNumber});
-  if (result) {
-    commonResult += result.n;
-  }
-  return commonResult;
-}
-
-
-async function deleteFiles(hashes, boardName, postNumber, password, checkPassword) {
-  if (!hashes || !hashes.length) {
-    return {deleted: 0};
-  }
-
-  if (!Array.isArray(hashes)) {
-    hashes = [ hashes ];
-  }
-
-  let promises = hashes.reduce((results, hash) => {
-    results.push(deleteFile(hash, boardName, postNumber, password, checkPassword));
-    return results;
-  }, []);
-
-  let deletedFiles = Promise.all(promises).then(results => results.reduce((a, b) => a + b, 0)).catch(() => 0);
-  return {deleted: deletedFiles};
-}
-
-
-async function deleteFile(hash, boardName, postNumber, password, checkPassword) {
-  if (CommonLogic.isEmpty(hash)) {
-    return 0;
-  }
-  if (Tools.isObject(hash)) {
-    if (!hash.path) {
-      throw {
-        status: 500
-      };
-    }
-    hash = hash.path.split('.').shift();
-  }
-
-  let post = await PostModel.readOne({
-    boardName,
-    postNumber,
-    clear: false
-  });
-  if (!post) {
-    return 0;
-  }
-  if (checkPassword && !Crypto.verify(password, post.password)) {
-    return 0;
-  }
-  let attachment = new Attachment.Attachment(null, hash);
-  return await attachment.delete(boardName, postNumber) ? 1 : 0;
-}
-
-async function _appendAttachments(post) {
-  if (!Array.isArray(post.files)) {
-    return post;
-  }
-  for (let i = 0; i < post.files.length; i++) {
-    let hash = post.files[i];
-    let attachment = new Attachment.Attachment(null, hash);
-    if (await attachment.exists()) {
-      post.files[i] = attachment.clearEntry();
-    }
-  }
-  return post;
-}
+  return deletedPost;
+};

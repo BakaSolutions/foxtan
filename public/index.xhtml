@@ -14,7 +14,7 @@
   </div>
 </form>
 
-<h1>Create post</h1>
+<h1>Create a post</h1>
 <form action="api/createPost" method="post" class="create-form" enctype="multipart/form-data">
   <div>
     <table>
@@ -23,8 +23,12 @@
         <td><input name="boardName" value="test" /></td>
       </tr>
       <tr>
-        <td><b>[Hidden] Reply to thread:</b></td>
+        <td><b>[Hidden] [optional] Reply to thread:</b></td>
         <td><input name="threadNumber" /></td>
+      </tr>
+      <tr>
+        <td><b>[Hidden] Reply to thread id:</b></td>
+        <td><input name="threadId" /></td>
       </tr>
       <tr>
         <td><b>Subject:</b></td>
@@ -39,13 +43,37 @@
       <tr>
         <td><b>File 0:</b></td>
         <td>
-          <input type="file" name="file[]" />
+          <input type="file" name="file:0" />
+        </td>
+        <td>
+          <label>
+            <input type="checkbox" name="fileMark:0:NSFW" />
+            NSFW
+          </label>
         </td>
       </tr>
       <tr>
         <td><b>File 1:</b></td>
         <td>
-          <input type="file" name="file[]" />
+          <input type="file" name="file:1" />
+        </td>
+        <td>
+          <label>
+            <input type="checkbox" name="fileMark:1:NSFW" />
+            NSFW
+          </label>
+        </td>
+      </tr>
+      <tr>
+        <td><b>File 2^10:</b></td>
+        <td>
+          <input type="file" name="file:1024" />
+        </td>
+        <td>
+          <label>
+            <input type="checkbox" name="fileMark:1024:NSFW" />
+            NSFW
+          </label>
         </td>
       </tr>
       <tr>
@@ -61,6 +89,48 @@
             OP-post
           </label>
         </td>
+      </tr>
+    </table>
+    <button>Submit</button>
+  </div>
+</form>
+
+<h1>Delete a file</h1>
+<form action="api/deleteFile" method="post" class="create-form" enctype="multipart/form-data">
+  <div>
+    <table>
+      <tr>
+        <td><b>selectedFile:[postId]:[fileHash]</b></td>
+        <td><input type="checkbox" name="selectedFile:1:103ecf46" checked="checked" /></td>
+      </tr>
+      <tr>
+        <td><b>selectedFile:[postId]:[fileHash]</b></td>
+        <td><input type="checkbox" name="selectedFile:2:103ecf46" /></td>
+      </tr>
+    </table>
+    <button>Submit</button>
+  </div>
+</form>
+
+<h1>Delete a post</h1>
+<form action="api/deletePost" method="post" class="create-form" enctype="multipart/form-data">
+  <div>
+    <table>
+      <tr>
+        <td><b>selectedPost:[postId]</b></td>
+        <td><input type="checkbox" name="selectedPost:1" checked="checked" /></td>
+      </tr>
+      <tr>
+        <td><b>selectedPost:[postId]</b></td>
+        <td><input type="checkbox" name="selectedPost:2" /></td>
+      </tr>
+      <tr>
+        <td><b>selectedPost:[boardName]:[postNumber]</b></td>
+        <td><input type="checkbox" name="selectedPost:test:1" /></td>
+      </tr>
+      <tr>
+        <td><b>selectedPost:[boardName]:[postNumber]</b></td>
+        <td><input type="checkbox" name="selectedPost:test:2" /></td>
       </tr>
     </table>
     <button>Submit</button>

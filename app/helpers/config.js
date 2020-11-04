@@ -78,7 +78,7 @@ let config = {
       width: 200,
       height: 200,
       options: {
-        quality: 15,
+        quality: 50,
         progressive: true
       }
     },

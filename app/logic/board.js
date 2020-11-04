@@ -80,9 +80,9 @@ BoardLogic.delete = async ({board} = {}) => {
 };
 
 BoardLogic.sync = async (boardNames) => {
-  boardNames = Tools.arrayify(boardNames);
   if (!boardNames) {
     return BoardModel.getLastPostNumbers();
   }
+  boardNames = Tools.arrayify(boardNames);
   return BoardModel.getLastPostNumbers(boardNames);
 };

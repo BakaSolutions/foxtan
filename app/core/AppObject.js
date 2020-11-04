@@ -66,13 +66,20 @@ class AppObject {
   toObject() {
     let out = {};
     for (let [key, value] of Object.entries(this)) {
-      out[key] = value;
+      out[key] = (Array.isArray(value) && !value.length)
+        ? null
+        : value;
     }
     return out;
   }
 
   toArray() {
-    return Object.values(this);
+    return Object.values(this).map(value => {
+      if (Array.isArray(value) && !value.length) {
+        return null;
+      }
+      return value;
+    });
   }
 
 }
