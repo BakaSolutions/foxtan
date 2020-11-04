@@ -17,18 +17,7 @@ AttachmentLogic.create = async attachment => {
   await AttachmentModel.create(attachment);
 };
 
-AttachmentLogic.delete = async ({boardName, postNumber, postId, fileHash} = {}, token) => {
-  // Read a post to catch a token
-  let post;
-  if (boardName && postNumber) {
-    post = await PostModel.readOneByBoardAndPost(boardName, postNumber);
-    postId = post.id;
-  } else if (postId) {
-    post = await PostModel.readOneById(postId);
-    if (!post) {
-      return 0;
-    }
-  }
+AttachmentLogic.delete = async ({post, fileHash}, token) => {
 
   // Compare tokens
   if (post && post.sessionKey !== token.tid) {
@@ -38,15 +27,15 @@ AttachmentLogic.delete = async ({boardName, postNumber, postId, fileHash} = {}, 
   // Guess what's going on
   // Read all attachments
   let attachments;
-  if (postId && fileHash) {
-    // remove certain attachment
-    attachments = await AttachmentModel.readOneByPostIdAndFileHash(postId, fileHash);
-  } else if (!postId && fileHash) {
+  if (!post || !post.id && fileHash) {
     // remove certain file with all attachments
     attachments = await AttachmentModel.readByFileHash(fileHash);
-  } else if (postId && !fileHash) {
+  } else if (post.id && fileHash) {
+    // remove certain attachment
+    attachments = await AttachmentModel.readOneByPostIdAndFileHash(post.id, fileHash);
+  } else if (post.id && !fileHash) {
     // remove all post attachments
-    attachments = await AttachmentModel.readByPostId(postId);
+    attachments = await AttachmentModel.readByPostId(post.id);
   }
 
   if (!attachments) {

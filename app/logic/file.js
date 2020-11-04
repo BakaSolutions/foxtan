@@ -3,6 +3,8 @@ const AttachmentModel = require('../models/dao').DAO('attachment');
 
 const AttachmentLogic = require('./attachment.js');
 
+const Tools = require('../helpers/tools.js');
+
 const FileType = {
   audio: require('./file/Audio.js'),
   image: require('./file/Image.js'),

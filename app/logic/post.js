@@ -5,6 +5,7 @@ const PostModel = require('../models/dao').DAO('post');
 
 const BoardLogic = require('./board.js');
 const FileLogic = require('./file.js');
+const AttachmentLogic = require('./attachment.js');
 
 const Thread = require('../object/Thread.js');
 const Post = require('../object/Post.js');
@@ -194,8 +195,24 @@ PostLogic.readAllByThreadId = async (threadId, { count, page, order } = {}) => {
   return Tools.parallel(FileLogic.appendAttachments, posts);
 };
 
-PostLogic.delete = () => {
-  throw {
-    status: 501
+PostLogic.readOne = async ({postId, boardName, postNumber} = {}) => {
+  let post;
+  if (boardName && postNumber) {
+    post = await PostModel.readOneByBoardAndPost(boardName, postNumber);
+  } else if (postId) {
+    post = await PostModel.readOneById(postId);
   }
+  return FileLogic.appendAttachments(post);
+};
+
+PostLogic.delete = async (post, token) => {
+  if (!post || post.sessionKey !== token.tid) {
+    return 0;
+  }
+
+  let deletedPost = await PostModel.deleteById(post.id);
+  if (deletedPost) {
+    await AttachmentLogic.delete({postId: post.id}, token);
+  }
+  return deletedPost;
 };

@@ -22,14 +22,14 @@ RETURNING *`;
   }
 
   async readOneById(id) {
-    const template = `SELECT * FROM ${this._schema}post WHERE id = $1 ORDER BY id LIMIT 1`;
+    const template = `SELECT * FROM ${this._schema}post WHERE id = $1 LIMIT 1`;
     const values = [ id ];
     const query = await this._executeQuery(template, values);
     return query[0];
   }
 
   async readOneByThreadId(threadId) {
-    const template = `SELECT * FROM ${this._schema}post WHERE "threadId" = $1 ORDER BY id LIMIT 1`;
+    const template = `SELECT * FROM ${this._schema}post WHERE "threadId" = $1 LIMIT 1`;
     const values = [ threadId ];
     const query = await this._executeQuery(template, values);
     return query[0];

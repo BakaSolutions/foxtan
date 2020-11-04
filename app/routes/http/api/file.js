@@ -7,6 +7,7 @@ const router = require('koa-router')({
 
 const HTTP = require('../index.js');
 const AttachmentLogic = require('../../../logic/attachment.js');
+const PostLogic = require('../../../logic/post.js');
 
 router.post('api/deleteFile', async ctx => {
   try {
@@ -19,7 +20,7 @@ router.post('api/deleteFile', async ctx => {
       }
     }
 
-    let values = Object.keys(originalBody).reduce((fileHashes, key) => {
+    let values = Object.keys(originalBody).reduce(async (fileHashes, key) => {
       let boardName, postId, postNumber, fileHash;
       let [_0, _1, _2, _3] = key.split(':');
       if (_3) { // boardName, postNumber, fileHash
@@ -33,10 +34,10 @@ router.post('api/deleteFile', async ctx => {
         fileHash = _1;
       }
 
+      let post = await PostLogic.readOne({postId, boardName, postNumber});
+
       fileHashes.push({
-        boardName,
-        postNumber,
-        postId,
+        post,
         fileHash
       });
       return fileHashes;

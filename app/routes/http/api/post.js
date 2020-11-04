@@ -65,7 +65,7 @@ router.post('api/deletePost', async ctx => {
         message: `No posts to delete!`
       };
     }
-    let values = Object.keys(originalBody).reduce((posts, key) => {
+    let values = Object.keys(originalBody).reduce(async (posts, key) => {
       let postId, boardName, postNumber;
       let [_0, _1, _2] = key.split(':');
       if (_1 && _2) {
@@ -74,11 +74,12 @@ router.post('api/deletePost', async ctx => {
       } else {
         postId = +_1;
       }
-      posts.push({
+      let post = await PostLogic.readOne({
         postId,
         boardName,
         postNumber
       });
+      posts.push(post);
       return posts;
     }, []);
     let results = await Tools.parallel(PostLogic.delete, values, token);
