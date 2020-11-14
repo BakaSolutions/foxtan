@@ -1,4 +1,5 @@
 const FS = require('./fs');
+const path = require('path');
 
 let Tools = module.exports = {};
 
@@ -51,7 +52,11 @@ Tools.readdirRecursive = async (directories, { mask, isFallible }) => {
       }
     }
   }, directories);
-  return out.flat().filter(file => file && file.isFile() && mask.test(file.name));
+  out = out.flat();
+  if (!mask) {
+    return out;
+  }
+  return out.filter(file => file && file.isFile() && mask.test(file.name));
 };
 
 Tools.requireRecursive = async (directories, { mask, isFallible }) => {
@@ -69,6 +74,7 @@ Tools.requireRecursive = async (directories, { mask, isFallible }) => {
 Tools.returnPrettyError = e => {
   let { stack } = e;
   stack = stack.replace(Tools.ROOT, '');
+  stack = stack.replace(/\\/g, '/');
   stack = stack.split('\n');
   let title = stack.shift();
   return `[FOXTAN] \x1b[30m${title}\x1b[0m\n${stack.join('\n')}`;
@@ -141,4 +147,4 @@ Tools.wrapWith = (string, charStart, charEnd = charStart) => {
   return Tools.endWith(Tools.startWith(string, charEnd), charStart);
 };
 
-Tools.unique = arr => [ ...new Set(arr)];
+Tools.unique = arr => [ ...new Set(arr) ];
