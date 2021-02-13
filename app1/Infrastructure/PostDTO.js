@@ -1,10 +1,13 @@
-class PostDTO {
+const DTO = require('./DTO.js');
+
+class PostDTO extends DTO {
 
   get closedKeys() {
     return ['userId', 'sessionKey', 'ipAddress'];
   }
 
-  load(data) {
+  constructor(data) {
+    super();
     if (!data) {
       throw new TypeError();
     }
@@ -25,35 +28,6 @@ class PostDTO {
     this.attachments = data.attachments || [];
 
     return this;
-  }
-
-  lock() {
-    Object.preventExtensions(this);
-  }
-
-  toArray() {
-    return Object.values(this).map(value => {
-      if (Array.isArray(value) && !value.length) {
-        return null;
-      }
-      return value;
-    });
-  }
-
-  toObject(hasPrivileges = false) {
-    let out = Object.keys(this);
-    if (!hasPrivileges) {
-      out = out.filter((key) => !this.closedKeys.includes(key));
-    }
-    return out.reduce((obj, key) => {
-      obj[key] = this[key];
-      return obj;
-    }, {});
-  }
-
-  static from(request) {
-    let self = new PostDTO();
-    return self.load(request);
   }
 
 }

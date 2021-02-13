@@ -13,7 +13,11 @@ class DatabaseContext {
 
   async connect() {
     const Connection = require(`./${this.type}/Connection.js`);
-    this.connection = await new Connection();
+    try {
+      this.connection = await new Connection();
+    } catch (e) {
+      throw new Error('Can not connect to database: ' + e.message);
+    }
   }
 
   get context() {
