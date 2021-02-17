@@ -1,4 +1,4 @@
-const { Harness, Suite, SpecReporter, GraphReporter } = require('zunit');
+const { Harness, Suite, SpecReporter } = require('zunit');
 
 const suite = new Suite('foxtan').discover();
 const harness = new Harness(suite);
