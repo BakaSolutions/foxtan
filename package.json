@@ -4,7 +4,8 @@
   "description": "Slyest imageboard engine that was ever made!!1",
   "main": "app1/Application/index.js",
   "scripts": {
-    "start": "node app1/Application"
+    "start": "node app1/Application",
+    "test": "node test"
   },
   "repository": {
     "type": "git",
@@ -34,7 +35,10 @@
   "engines": {
     "node": ">=12.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "nyc": "^15.1.0",
+    "zunit": "^3.0.4"
+  },
   "optionalDependencies": {
     "knex": "^0.20.13",
     "koa-mount": "^4.0.0",

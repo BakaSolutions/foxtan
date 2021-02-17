@@ -1,5 +1,3 @@
-const Post = require('../Domain/Post.js');
-
 class PostService {
 
   /**
@@ -16,12 +14,22 @@ class PostService {
    * @returns {Promise<Number>} id
    */
   async create(postDTO = {}) {
-    let { subject, text } = postDTO;
-    let post = new Post(subject, text);
-
-    await this._postModel.create(post);
+    if (!postDTO.text && !postDTO.attachments.length) {
+      throw new Error('Neither text nor file is present');
+    }
+    let post = await this._postModel.create(postDTO);
 
     return post.id;
+  }
+
+  async readOneById(id) {
+    if (typeof id !== 'number' || isNaN(id)) {
+      throw new Error('id must be a Number');
+    }
+    if (id < 1) {
+      throw new Error('id must be more than 0');
+    }
+    return this._postModel.readOneById(id);
   }
 
   async readMany({ boardName, threadId, count, page} = {}) {
