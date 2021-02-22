@@ -4,6 +4,7 @@
   "description": "Slyest imageboard engine that was ever made!!1",
   "main": "app1/Application/index.js",
   "scripts": {
+    "coverage": "nyc npm test",
     "start": "node app1/Application",
     "test": "node test"
   },
