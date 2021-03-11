@@ -26,10 +26,6 @@ class BoardDTO extends DTO {
     return this;
   }
 
-  setThreads(threads) {
-    this.threads = threads;
-  }
-
 }
 
 module.exports = BoardDTO;

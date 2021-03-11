@@ -23,10 +23,6 @@ class ThreadDTO extends DTO {
     return this;
   }
 
-  setPosts(posts) {
-    this.posts = posts;
-  }
-
 }
 
 module.exports = ThreadDTO;
