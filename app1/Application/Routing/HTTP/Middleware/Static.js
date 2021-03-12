@@ -6,6 +6,13 @@ let middleware = app => {
     return; // not our job!
   }
 
+  app.use(async (ctx, next) => {
+    ctx.set('Access-Control-Allow-Origin', ctx.headers.origin || '*');
+    ctx.set('Access-Control-Allow-Headers', 'X-Requested-With');
+    ctx.set('Access-Control-Allow-Credentials', 'true');
+    await next();
+  });
+
   if (!Tools.moduleAvailable('koa-static')) {
     return console.warn(
       '\x1b[35mЧтобы использовать Foxtan без Nginx, установите модуль koa-static:\x1b[0m\n\n' +

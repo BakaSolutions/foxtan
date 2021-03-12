@@ -39,7 +39,7 @@ class Routing {
       let modules = await Tools.requireRecursive(path, {
         isFallible: false
       });
-      console.log(`Loaded ${modules.length} ${server} ${type}.`);
+      console.log(`Loaded ${modules.length} ${server} ${type}(s).`);
       return modules;
     } catch (e) {
       console.log(`Can't load ${server} ${type}:`);
@@ -61,8 +61,8 @@ class Routing {
         continue;
       }
       Route = new Route(this._router, this._databaseContext);
-      app.use(Route.routes());
-      app.use(Route.allowedMethods());
+      app.use(Route.router.routes());
+      app.use(Route.router.allowedMethods());
     }
   }
 
