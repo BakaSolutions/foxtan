@@ -57,9 +57,8 @@ module.exports = class WS {
 
       let sequence = this.middlewares[params.request];
       if (!sequence) {
-        return this.fail(ws, {}, {code: 404});
+        return this.fail(ws, params, {code: 404});
       }
-
 
       try {
         let data = await WS._solveMiddlewares(sequence.slice(), params, ws);
