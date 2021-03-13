@@ -13,8 +13,17 @@ class BoardBO {
     return this.BoardService.readOneByName(name);
   }
 
-  readMany({ count, page, order }) {
-    return this.BoardService.readMany({ count, page, order });
+  async readMany({ count, page, order, asObject }) {
+    let boards = await this.BoardService.readMany({ count, page, order });
+    if (!asObject) {
+      return boards;
+    }
+
+    let out = {};
+    for (let i = 0; i < boards.length; i++) {
+      out[boards[i].name] = boards[i];
+    }
+    return out;
   }
 
   sync() {

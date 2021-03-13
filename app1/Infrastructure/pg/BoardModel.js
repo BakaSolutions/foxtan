@@ -28,11 +28,15 @@ RETURNING *`;
   }
 
   async readMany({ count, page, order } = {}) {
-    throw new Error();
+    const template = `SELECT * FROM foxtan.board b`;
+    let query = Dialect.limitOffset(template, null, { count, page });
+    query = Dialect.orderBy(...query, { orderBy: 'b.name', order });
+    let boards = await this.dialect.executeQuery(...query);
+    return boards.map(board => BoardDTO.from(board));
   }
 
   async getLastPostNumbers() {
-    let template = `SELECT b.name, MAX(p.number)
+    const template = `SELECT b.name, MAX(p.number)
 FROM foxtan.post p, foxtan.thread t, foxtan.board b
 WHERE p."threadId" = t.id
 AND t."boardName" = b.name
