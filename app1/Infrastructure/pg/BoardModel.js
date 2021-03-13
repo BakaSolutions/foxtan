@@ -44,7 +44,7 @@ GROUP BY b.name`;
     return this.dialect.executeQuery(template);
   }
 
-    async update(board) {
+  async update(board) {
     throw new Error();
   }
 

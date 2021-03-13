@@ -11,7 +11,7 @@ class ThreadService {
   /**
    *
    * @param {ThreadDTO} threadDTO
-   * @returns {Promise<String>} name
+   * @returns {Promise<Number>} id
    */
   async create(threadDTO = {}) {
     if (!threadDTO.boardName) {
@@ -25,10 +25,29 @@ class ThreadService {
   /**
    *
    * @param {Number} id
-   * @returns {Promise<BoardDTO>}
+   * @returns {Promise<ThreadDTO>}
    */
   async readOneById(id) {
     return this._threadModel.readOneById(id);
+  }
+
+  /**
+   *
+   * @param {Number} headId
+   * @returns {Promise<ThreadDTO>}
+   */
+  async readOneByHeadId(headId) {
+    return this._threadModel.readOneByHeadId(headId);
+  }
+
+  /**
+   *
+   * @param {String} boardName
+   * @param {Number} postNumber
+   * @returns {Promise<ThreadDTO>}
+   */
+  async readOneByBoardAndPost(boardName, postNumber) {
+    return this._threadModel.readOneByBoardAndPost(boardName, postNumber);
   }
 
   /**
@@ -40,13 +59,15 @@ class ThreadService {
     return this._threadModel.readMany({ count, page, order });
   }
 
-  async readAllByBoard(boardName) {
-    return this._threadModel.readAllByBoard(boardName);
-  }
-
-  addPosts(thread, posts) {
-    thread.posts = posts;
-    return thread;
+  /**
+   *
+   * @param {String} boardName
+   * @param {Number} count
+   * @param {Number} page
+   * @returns {Promise<Array>} boards
+   */
+  async readAllByBoard(boardName, { count, page } = {}) {
+    return this._threadModel.readAllByBoard(boardName, { count, page });
   }
 
 }
