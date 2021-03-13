@@ -26,6 +26,8 @@ class DatabaseContext {
     }
 
     let out = {
+      board: require(`./${this.type}/BoardModel.js`),
+      thread: require(`./${this.type}/ThreadModel.js`),
       post: require(`./${this.type}/PostModel.js`)
     };
 

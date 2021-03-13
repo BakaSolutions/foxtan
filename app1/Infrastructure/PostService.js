@@ -22,6 +22,10 @@ class PostService {
     return post.id;
   }
 
+  /**
+   * @param {Number} id
+   * @returns {Promise<PostDTO>} post
+   */
   async readOneById(id) {
     if (typeof id !== 'number' || isNaN(id)) {
       throw new Error('id must be a Number');
@@ -32,6 +36,13 @@ class PostService {
     return this._postModel.readOneById(id);
   }
 
+  /**
+   * @param {String} boardName
+   * @param {Number} threadId
+   * @param {Number} count
+   * @param {Number} page
+   * @returns {Promise<Array>} posts
+   */
   async readMany({ boardName, threadId, count, page} = {}) {
     let posts = [];
 
@@ -64,18 +75,43 @@ class PostService {
     return posts.map(post => post.toObject());
   }
 
+  /**
+   * @param {Number} threadId
+   * @param {Number} count
+   * @returns {Promise<Array>} posts
+   */
   async readThreadTail(threadId, { count } = {}) {
     let posts = await this._postModel.readByThreadId(threadId, { count, order: 'desc' });
     posts = posts.reverse();
     return posts;
   }
 
+  /**
+   * @param {Number} threadId
+   * @param {Number} count
+   * @param {Number} page
+   * @returns {Promise<Array>} posts
+   */
   async readThreadPosts(threadId, { count, page } = {}) {
     return this._postModel.readByThreadId(threadId, { count, page });
   }
 
+  /**
+   * @param {String} boardName
+   * @param {Number} count
+   * @param {Number} page
+   * @returns {Promise<Array>} posts
+   */
   async readBoardFeed(boardName, { count, page } = {}) {
     return this._postModel.readByBoardName(boardName, { count, page, order: 'desc' });
+  }
+
+  /**
+   * @param {Number} threadId
+   * @returns {Promise<Number>}
+   */
+  async countByThreadId(threadId) {
+    return this._postModel.countByThreadId(threadId);
   }
 
   /**

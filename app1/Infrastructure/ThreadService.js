@@ -40,6 +40,15 @@ class ThreadService {
     return this._threadModel.readMany({ count, page, order });
   }
 
+  async readAllByBoard(boardName) {
+    return this._threadModel.readAllByBoard(boardName);
+  }
+
+  addPosts(thread, posts) {
+    thread.posts = posts;
+    return thread;
+  }
+
 }
 
 module.exports = ThreadService;

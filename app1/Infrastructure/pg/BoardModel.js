@@ -31,7 +31,16 @@ RETURNING *`;
     throw new Error();
   }
 
-  async update(board) {
+  async getLastPostNumbers() {
+    let template = `SELECT b.name, MAX(p.number)
+FROM foxtan.post p, foxtan.thread t, foxtan.board b
+WHERE p."threadId" = t.id
+AND t."boardName" = b.name
+GROUP BY b.name`;
+    return this.dialect.executeQuery(template);
+  }
+
+    async update(board) {
     throw new Error();
   }
 

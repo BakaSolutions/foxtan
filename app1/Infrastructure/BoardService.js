@@ -42,6 +42,16 @@ class BoardService {
   async readMany({ count, page, order } = {}) {
     return this._boardModel.readMany({ count, page, order });
   }
+
+  async getLastPostNumbers() {
+    let query = await this._boardModel.getLastPostNumbers();
+    let out = {};
+    for (let i = 0; i < query.length; i++) {
+      let [key, value] = Object.values(query[i]);
+      out[key] = value;
+    }
+    return out;
+  }
 }
 
 module.exports = BoardService;

@@ -59,7 +59,7 @@ AND t."boardName" = $1`;
   }
 
   async countByThreadId(threadId) {
-    const template = `SELECT COUNT(id)
+    const template = `SELECT COUNT(p.id)
 FROM foxtan.post p, foxtan.thread t
 WHERE p."threadId" = t.id
 AND p."threadId" = $1`;

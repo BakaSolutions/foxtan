@@ -63,10 +63,10 @@ module.exports = class WS {
 
       try {
         let data = await WS._solveMiddlewares(sequence.slice(), params, ws);
-        return this.success(ws, params, data);
+        return this.success(ws, params, data || null);
       } catch (e) {
         if (e instanceof Error) {
-          //EventBus.emit('error', e);
+          console.error('error', e);
           return this.fail(ws, params, {code: 500});
         }
         return this.fail(ws, params, e);

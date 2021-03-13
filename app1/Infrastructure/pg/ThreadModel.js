@@ -30,6 +30,21 @@ class ThreadModelPostgre extends ThreadModelInterface {
     throw new Error();
   }
 
+  async readAllByBoard(boardName, { count, page } = {}) {
+    let template = `SELECT t.*
+FROM foxtan.thread t, foxtan.post p
+WHERE p."threadId" = t.id
+AND t."boardName" = $1
+AND p.id IN
+(SELECT DISTINCT ON ("threadId") id FROM foxtan.post
+WHERE NOT ('sage' = ANY(COALESCE(modifiers, array[]::varchar[]))))
+GROUP BY t.id, p.id
+ORDER BY MAX(p.id) DESC`;
+    let values = [ boardName ];
+    let query = Dialect.limitOffset(template, values, { count, page });
+    return this.dialect.executeQuery(...query);
+  }
+
   async update(thread) {
     throw new Error();
   }

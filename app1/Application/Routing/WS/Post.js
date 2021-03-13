@@ -1,16 +1,17 @@
+const PostBO = require('../../Business/PostBO.js');
 const PostService = require('../../../Infrastructure/PostService.js');
 
 class PostController {
 
   constructor(DatabaseContext) {
-    this.postService = new PostService(DatabaseContext.post);
+    this.post = new PostBO(new PostService(DatabaseContext.post));
 
     return [
       {
         request: 'posts',
         middleware: async params => {
           let { boardName, threadId, count, page } = params;
-          return this.postService.readMany({ boardName, threadId, count, page });
+          return this.post.readMany({ boardName, threadId, count, page });
         }
       }, {
         request: 'post',
