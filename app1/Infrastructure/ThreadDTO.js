@@ -18,7 +18,8 @@ class ThreadDTO extends DTO {
     this.pinned = data.pinned;
     this.modifiers = data.modifiers || [];
 
-    this.posts = data.posts || [];
+    this.head = data.head || {};
+    this.posts = data.posts || 0;
 
     return this;
   }

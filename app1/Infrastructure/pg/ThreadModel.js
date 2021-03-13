@@ -26,6 +26,14 @@ class ThreadModelPostgre extends ThreadModelInterface {
     return ThreadDTO.from(query[0]);
   }
 
+  async readOneByHeadId(headId) {
+    const template = `SELECT * FROM foxtan.thread t WHERE t.id in 
+(SELECT "threadId" FROM foxtan.post WHERE id = $1) LIMIT 1`;
+    const values = [ headId ];
+    const query = await this.dialect.executeQuery(template, values);
+    return ThreadDTO.from(query[0]);
+  }
+
   async readMany({ count, page, order } = {}) {
     throw new Error();
   }
@@ -42,7 +50,21 @@ GROUP BY t.id, p.id
 ORDER BY MAX(p.id) DESC`;
     let values = [ boardName ];
     let query = Dialect.limitOffset(template, values, { count, page });
-    return this.dialect.executeQuery(...query);
+    let threads = await this.dialect.executeQuery(...query);
+    return threads.map(thread => ThreadDTO.from(thread));
+  }
+
+  async readOneByBoardAndPost(boardName, postNumber) {
+    const template = `SELECT t.*
+FROM foxtan.board b, foxtan.thread t, foxtan.post p
+WHERE t."boardName" = b.name
+AND t.id = p."threadId"
+AND b.name = $1
+AND p.number = $2
+LIMIT 1`;
+    const values = [ boardName, postNumber ];
+    const query = await this.dialect.executeQuery(template, values);
+    return ThreadDTO.from(query[0]);
   }
 
   async update(thread) {

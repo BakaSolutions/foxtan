@@ -35,6 +35,19 @@ class PostService {
     }
     return this._postModel.readOneById(id);
   }
+  /**
+   * @param {Number} threadId
+   * @returns {Promise<PostDTO>} post
+   */
+  async readOneByThreadId(threadId) {
+    if (typeof threadId !== 'number' || isNaN(threadId)) {
+      throw new Error('threadId must be a Number');
+    }
+    if (threadId < 1) {
+      throw new Error('threadId must be more than 0');
+    }
+    return this._postModel.readOneByThreadId(threadId);
+  }
 
   /**
    * @param {String} boardName

@@ -1,3 +1,5 @@
+const Tools = require('../../../app/helpers/tools.js');
+
 class ThreadBO {
 
   constructor(ThreadService, PostService) {
@@ -10,11 +12,28 @@ class ThreadBO {
   }
 
   async readOne(id) {
-    return this.ThreadService.readOneById(id);
+    let thread = await this.ThreadService.readOneById(id);
+    return this.process(thread);
+  }
+
+  async readOneByHeadId(headId) {
+    let thread = await this.ThreadService.readOneByHeadId(headId);
+    return this.process(thread);
+  }
+
+  async readOneByBoardAndPost(boardName, postNumber) {
+    let thread = await this.ThreadService.readOneByBoardAndPost(boardName, postNumber);
+    return this.process(thread);
   }
 
   async readMany({ boardName, threadId, count, page } = {}) {
-    return this.ThreadService.readMany({ boardName, threadId, count, page });
+    let threads = await this.ThreadService.readMany({ boardName, threadId, count, page });
+    return Tools.parallel(this.process.bind(this), threads);
+  }
+
+  async readAllByBoard(boardName, { count, page } = {}) {
+    let threads = await this.ThreadService.readAllByBoard(boardName, { count, page });
+    return Tools.parallel(this.process.bind(this), threads);
   }
 
   async sync(boardName) {
@@ -35,11 +54,27 @@ class ThreadBO {
   async deleteMany(thread) {
     return this.ThreadService.deleteMany(thread);
   }
-
-  addPostsToThread(thread, posts) {
-    return this.ThreadService.addPosts(thread, posts);
-  }
   */
+
+  async process(thread, posts, head) {
+    if (!thread) {
+      throw {
+        code: 404
+      };
+    }
+    thread.head = head || await this.PostService.readOneByThreadId(thread.id);
+    thread.posts = posts || await this.PostService.countByThreadId(thread.id);
+    return thread;
+  }
+
+  cleanOutput(thread, hasPrivileges) {
+    if (Array.isArray(thread)) {
+      return thread.map(t => this.cleanOutput(t, hasPrivileges));
+    }
+    thread.head = thread.head.toObject(hasPrivileges);
+    return thread.toObject(hasPrivileges);
+  }
+
 
 }
 
