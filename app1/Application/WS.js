@@ -52,8 +52,9 @@ module.exports = class WS {
   }
 
   async onMessage (message, ws) {
+    let params = {};
     try {
-      let params = JSON.parse(message);
+      params = JSON.parse(message);
 
       let sequence = this.middlewares[params.request];
       if (!sequence) {
@@ -71,7 +72,7 @@ module.exports = class WS {
         return this.fail(ws, params, e);
       }
     } catch (e) {
-      return this.fail(ws, {}, {code: 400});
+      return this.fail(ws, params, {code: 400});
     }
   }
 
