@@ -34,6 +34,18 @@ RETURNING *`;
     return PostDTO.from(query[0]);
   }
 
+  async readOneByBoardAndPost(boardName, number) {
+    const template = `SELECT p.*
+FROM foxtan.post p, foxtan.thread t
+WHERE p."threadId" = t.id
+AND t."boardName" = $1
+AND p.number = $2
+LIMIT 1`;
+    const values = [ boardName, number ];
+    const query = await this.dialect.executeQuery(template, values);
+    return PostDTO.from(query[0]);
+  }
+
   async readByThreadId(threadId, { count, page, order } = {}) {
     const template = `SELECT p.*
 FROM foxtan.post p, foxtan.thread t

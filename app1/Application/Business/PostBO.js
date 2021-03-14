@@ -1,3 +1,5 @@
+const Tools = require('../../../app/helpers/tools.js');
+
 class PostBO {
 
   constructor(PostService) {
@@ -9,11 +11,28 @@ class PostBO {
   }
 
   async readOne(id) {
-    return this.PostService.readOneById(id);
+    let post = await this.PostService.readOneById(id);
+    return this.process(post);
   }
 
-  async readMany({ boardName, threadId, count, page } = {}) {
-    return this.PostService.readMany({ boardName, threadId, count, page });
+  async readOneByBoardAndPost(boardName, postNumber) {
+    let post = await this.PostService.readOneByBoardAndPost(boardName, postNumber);
+    return this.process(post);
+  }
+
+  async readThreadTail(threadId, { count } = {}) {
+    let posts = await this.PostService.readThreadTail(threadId, { count });
+    return Tools.parallel(this.process.bind(this), posts);
+  }
+
+  async readThreadPosts(threadId, { count, page } = {}) {
+    let posts = await this.PostService.readThreadPosts(threadId, { count, page });
+    return Tools.parallel(this.process.bind(this), posts);
+  }
+
+  async readBoardFeed(boardName, { count, page } = {}) {
+    let posts = await this.PostService.readBoardFeed(boardName, { count, page });
+    return Tools.parallel(this.process.bind(this), posts);
   }
 
   /*
@@ -25,6 +44,21 @@ class PostBO {
     return this.PostService.deleteMany(posts);
   }
   */
+
+  process(post, attachments) {
+    if (!post) {
+      return;
+    }
+    post.attachments = attachments || [];// TODO: Add attachments
+    return post;
+  }
+
+  cleanOutput(post, hasPrivileges) {
+    if (Array.isArray(post)) {
+      return post.map(p => this.cleanOutput(p, hasPrivileges));
+    }
+    return post.toObject(hasPrivileges);
+  }
 
 }
 

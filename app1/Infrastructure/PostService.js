@@ -51,41 +51,20 @@ class PostService {
 
   /**
    * @param {String} boardName
-   * @param {Number} threadId
-   * @param {Number} count
-   * @param {Number} page
-   * @returns {Promise<Array>} posts
+   * @param {Number} number
+   * @returns {Promise<PostDTO>} post
    */
-  async readMany({ boardName, threadId, count, page} = {}) {
-    let posts = [];
-
-    switch (true) {
-      case !!(threadId && page && page.toLowerCase() === 'tail'):
-        // tail (last posts in the thread)
-        posts = await this.readThreadTail(threadId, {count});
-        break;
-      case !!(threadId && !boardName):
-        // just posts in a thread
-        posts = await this.readThreadPosts(threadId, {count, page});
-        break;
-      case !!(!threadId && boardName):
-        // feed (last posts on the board)
-        posts = await this.readBoardFeed(boardName, {count, page});
-        break;
-      default:
-        throw {
-          message: "MISSING_PARAM",
-          description: "threadId or boardName is missing",
-          code: 400
-        };
+  async readOneByBoardAndPost(boardName, number) {
+    if (!boardName) {
+      throw new Error('boardName is required');
     }
-
-    if (!posts.length) {
-      throw {
-        code: 404
-      }
+    if (typeof number !== 'number' || isNaN(number)) {
+      throw new Error('number must be a Number');
     }
-    return posts.map(post => post.toObject());
+    if (number < 1) {
+      throw new Error('number must be more than 0');
+    }
+    return this._postModel.readOneByBoardAndPost(boardName, number);
   }
 
   /**

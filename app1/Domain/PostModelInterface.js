@@ -3,6 +3,7 @@ class PostModelInterface {
   async create(post) {}
   async readOneById(id) {}
   async readOneByThreadId(threadId) {}
+  async readOneByBoardAndPost(boardName, number) {}
   async readByThreadId(threadId, { count, page, order } = {}) {}
   async readByBoardName(boardName, { count, page, order } = {}) {}
   async countByThreadId(threadId) {}
