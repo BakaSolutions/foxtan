@@ -1,7 +1,7 @@
 const BoardBO = require('../../Business/BoardBO.js');
 const BoardService = require('../../../Infrastructure/BoardService.js');
 
-class SyncController {
+class BoardController {
 
   constructor(DatabaseContext) {
     let boardService = new BoardService(DatabaseContext.board);
@@ -66,4 +66,4 @@ class SyncController {
 
 }
 
-module.exports = SyncController;
+module.exports = BoardController;

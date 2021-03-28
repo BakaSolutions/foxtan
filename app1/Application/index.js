@@ -13,12 +13,12 @@ require('canvas');
 
 class Foxtan {
 
-  constructor(logger = console) {
+  constructor({ logger = console } = {}) {
     this.logger = logger;
   }
 
   async init() {
-    this.logUnexpectedErrors();
+    this.logUnexpectedErrors(this.logError.bind(this));
     try {
       await this.initDatabaseContext(config('db.type'));
       await this.launchServer();
@@ -58,7 +58,7 @@ class Foxtan {
     return this.routing.listenPort(host, port);
   }
 
-  logUnexpectedErrors(output = this.logError) {
+  logUnexpectedErrors(output) {
     process.on('uncaughtException', output);
     process.on('unhandledRejection', output);
     process.on('warning', output);
@@ -66,9 +66,15 @@ class Foxtan {
   }
 
   logError(e) {
+    if (this === process) {
+      console.warn('Missed binding for logger. It may cause process exit!');
+      return console.log(e);
+    }
     this.logger.error(Tools.returnPrettyError(e));
   }
 
 }
 
-new Foxtan().init();
+new Foxtan({
+  logger: console
+}).init();

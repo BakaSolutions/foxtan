@@ -14,7 +14,7 @@ class PostService {
    * @returns {Promise<Number>} id
    */
   async create(postDTO = {}) {
-    if (!postDTO.text && !postDTO.attachments.length) {
+    if (!postDTO.text && (!postDTO.attachments || !postDTO.attachments.length)) {
       throw new Error('Neither text nor file is present');
     }
     let post = await this._postModel.create(postDTO);
@@ -35,6 +35,7 @@ class PostService {
     }
     return this._postModel.readOneById(id);
   }
+
   /**
    * @param {Number} threadId
    * @returns {Promise<PostDTO>} post
