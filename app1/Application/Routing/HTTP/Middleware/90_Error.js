@@ -18,9 +18,9 @@ let middleware = app => {
     } catch (err) {
       err.status = err.statusCode || err.status || 500;
       err.expose = true;
-      // return (err instanceof Error)
-      //   ? ctx.app.emit('error', err, ctx)
-      //   : errorHandler(err, ctx, false);
+      return (err instanceof Error)
+         ? ctx.app.emit('error', err, ctx)
+         : errorHandler(err, ctx, false);
       return ctx.app.emit('error', err, ctx);
     }
   });
@@ -29,7 +29,6 @@ let middleware = app => {
 };
 
 function errorHandler(err, ctx, isError = true) {
-  console.log('isError', isError);
   if (err.code && /^E(PIPE|CONNRESET)$/.test(err.code)) {
     return;
   }
@@ -37,7 +36,7 @@ function errorHandler(err, ctx, isError = true) {
   let { message, stack, status } = err;
   err = { message, stack, status };
 
-  if (config('debug.enable')) {
+  if (err.stack && config('debug.enable')) {
     err.stack = err.stack.replace(ROOT, '') || err;
   } else {
     delete err.stack;

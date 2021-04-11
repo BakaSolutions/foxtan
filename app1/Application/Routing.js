@@ -61,8 +61,8 @@ class Routing {
         continue;
       }
       Route = new Route(this._router, this._databaseContext);
-      app.use(Route.router.routes());
-      app.use(Route.router.allowedMethods());
+      app.use(Route.Router.routes());
+      app.use(Route.Router.allowedMethods());
     }
   }
 

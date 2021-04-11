@@ -2,7 +2,9 @@ const http = require('http');
 
 class MainController {
 
-  constructor() {}
+  constructor(Router) {
+    this.Router = Router;
+  }
 
   success(ctx, out) {
     if (out === null || typeof out === 'undefined') {
