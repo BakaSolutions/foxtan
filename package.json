@@ -2,10 +2,10 @@
   "name": "foxtan",
   "version": "0.2.1",
   "description": "Slyest imageboard engine that was ever made!!1",
-  "main": "app1/Application/index.js",
+  "main": "app/Application/index.js",
   "scripts": {
     "coverage": "nyc npm test",
-    "start": "node app1/Application",
+    "start": "node app/Application",
     "test": "node test"
   },
   "repository": {

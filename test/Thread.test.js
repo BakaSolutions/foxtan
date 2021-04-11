@@ -2,8 +2,8 @@ const { describe, it, beforeEach } = require('zunit');
 const assert = require('assert');
 
 const ThreadModelMock = require('./mocks/ThreadModel.js');
-const ThreadService = require('../app1/Infrastructure/ThreadService.js');
-const ThreadDTO = require('../app1/Infrastructure/ThreadDTO.js');
+const ThreadService = require('../app/Infrastructure/ThreadService.js');
+const ThreadDTO = require('../app/Infrastructure/ThreadDTO.js');
 
 const validThread = {
   boardName: 'test',

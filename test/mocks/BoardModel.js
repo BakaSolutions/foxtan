@@ -1,5 +1,5 @@
-const BoardModelInterface = require('../../app1/Domain/BoardModelInterface.js');
-const BoardDTO = require('../../app1/Infrastructure/BoardDTO.js');
+const BoardModelInterface = require('../../app/Domain/BoardModelInterface.js');
+const BoardDTO = require('../../app/Infrastructure/BoardDTO.js');
 
 class BoardModelMock extends BoardModelInterface {
 
