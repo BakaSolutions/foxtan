@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const { access, readdir, copyFile, readFile, writeFile, mkdir, rename, unlink } = fs.promises;
 
-const config = require('./config.js');
+const config = require('./Config.js');
 
 let FS = module.exports = {};
 
