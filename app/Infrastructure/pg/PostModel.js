@@ -28,7 +28,7 @@ RETURNING *`;
   }
 
   async readOneByThreadId(threadId) {
-    const template = `SELECT * FROM foxtan.post WHERE "threadId" = $1 LIMIT 1`;
+    const template = `SELECT * FROM foxtan.post WHERE "threadId" = $1 ORDER BY id LIMIT 1`;
     const values = [ threadId ];
     const query = await this.dialect.executeQuery(template, values);
     return PostDTO.from(query[0]);

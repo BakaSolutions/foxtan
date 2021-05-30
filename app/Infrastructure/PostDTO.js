@@ -6,6 +6,10 @@ class PostDTO extends DTO {
     return ['userId', 'sessionKey', 'ipAddress'];
   }
 
+  get protectedKeys() {
+    return ['id', 'attachments'];
+  }
+
   constructor(data) {
     super();
     if (!data) {

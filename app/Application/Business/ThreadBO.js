@@ -4,6 +4,9 @@ class ThreadBO {
 
   constructor(ThreadService, PostService) {
     this.ThreadService = ThreadService;
+    if (!PostService) {
+      throw new Error('No PostService');
+    }
     this.PostService = PostService;
   }
 

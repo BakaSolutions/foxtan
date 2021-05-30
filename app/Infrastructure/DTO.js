@@ -5,6 +5,10 @@ class DTO {
     return [];
   }
 
+  get protectedKeys() {
+    return [];
+  }
+
   constructor(data) {
     // this = data || ''
 
@@ -15,21 +19,27 @@ class DTO {
     Object.preventExtensions(this);
   }
 
-  toArray() {
-    return Object.values(this).map(value => {
+  toArray(hasPrivileges = false) {
+    let keys = Object.keys(this);
+    if (!hasPrivileges) {
+      keys = keys.filter(key => !this.protectedKeys.includes(key));
+    }
+    return keys.reduce((obj, key) => {
+      let value = this[key];
       if (Array.isArray(value) && !value.length) {
-        return null;
+        value = null;
       }
-      return value;
-    });
+      obj.push(value);
+      return obj;
+    }, []);
   }
 
   toObject(hasPrivileges = false) {
-    let out = Object.keys(this);
+    let keys = Object.keys(this);
     if (!hasPrivileges) {
-      out = out.filter((key) => !this.closedKeys.includes(key));
+      keys = keys.filter(key => !this.closedKeys.includes(key));
     }
-    return out.reduce((obj, key) => {
+    return keys.reduce((obj, key) => {
       obj[key] = this[key];
       return obj;
     }, {});

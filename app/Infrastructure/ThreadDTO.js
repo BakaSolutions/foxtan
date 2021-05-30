@@ -6,6 +6,10 @@ class ThreadDTO extends DTO {
     return [];
   }
 
+  get protectedKeys() {
+    return ['id', 'head', 'posts'];
+  }
+
   constructor(data) {
     super();
     if (!data) {

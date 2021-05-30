@@ -30,7 +30,7 @@ class BoardService {
    * @param {String} name
    * @returns {Promise<BoardDTO>}
    */
-  async readOneByName(name) {
+  readOneByName(name) {
     return this._boardModel.readOneByName(name);
   }
 
@@ -39,7 +39,7 @@ class BoardService {
    * @param {Object}
    * @returns {Promise<Array>}
    */
-  async readMany({ count, page, order } = {}) {
+  readMany({ count, page, order } = {}) {
     return this._boardModel.readMany({ count, page, order });
   }
 
@@ -51,6 +51,11 @@ class BoardService {
       out[key] = value;
     }
     return out;
+  }
+
+  async getLastPostNumber(name) {
+    let { max } = await this._boardModel.getLastPostNumber(name);
+    return max;
   }
 }
 

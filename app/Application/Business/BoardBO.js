@@ -30,6 +30,13 @@ class BoardBO {
     return this.BoardService.getLastPostNumbers();
   }
 
+  getLastPostNumber(name) {
+    if (!name) {
+      throw new Error('No board name to select last post number!');
+    }
+    return this.BoardService.getLastPostNumber(name);
+  }
+
   /*
   close(boardName, closed) {
     this.BoardService.close(closed);

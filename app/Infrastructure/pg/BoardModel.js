@@ -44,6 +44,17 @@ GROUP BY b.name`;
     return this.dialect.executeQuery(template);
   }
 
+  async getLastPostNumber(name) {
+    const template = `SELECT MAX(p.number)
+FROM foxtan.post p, foxtan.thread t, foxtan.board b
+WHERE p."threadId" = t.id
+AND t."boardName" = $1
+GROUP BY b.name`;
+    const values = [ name ];
+    const query = await this.dialect.executeQuery(template, values);
+    return query[0];
+  }
+
   async update(board) {
     throw new Error();
   }
