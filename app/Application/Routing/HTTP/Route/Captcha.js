@@ -23,7 +23,7 @@ class CaptchaController extends MainController {
 
       /*
       if (!id) {
-        id = ctx.cookies.get('captcha', {signed: config('cookie.signed')});
+        id = ctx.cookies.get('captcha', {signed: config.get('cookie.signed')});
       }
       ctx.cookies.set('captcha', undefined);
 
@@ -39,7 +39,7 @@ class CaptchaController extends MainController {
       });
 
       if (passed) {
-        token.trustedPostCount += config('captcha.postsPerCaptcha');
+        token.trustedPostCount += config.get('captcha.postsPerCaptcha');
         token = this.token.createToken(token);
         this.token.setToken(ctx, token);
       }

@@ -4,10 +4,10 @@ const jwt = require('jwt-simple');
 class TokenService {
 
   constructor(config) {
-    this.algo = config('token.algo');
-    this.secret = config('token.secret');
-    this.expires = config('token.expires.access');
-    this.debug = config('debug.enable') && config('debug.log.tokens');
+    this.algo = config.get('token.algo');
+    this.secret = config.get('token.secret');
+    this.expires = config.get('token.expires.access');
+    this.debug = config.get('debug.enable') && config.get('debug.log.tokens');
   }
 
   createToken(info) {
@@ -19,10 +19,10 @@ class TokenService {
 
   setToken(ctx, { accessToken, expires } = {}) {
     let options = {
-      signed: config('cookie.signed'),
+      signed: config.get('cookie.signed'),
       overwrite: true
     };
-    options.maxAge = options.expires = config('token.expires.refresh') * 1000;
+    options.maxAge = options.expires = config.get('token.expires.refresh') * 1000;
 
     ctx.cookies.set('accessToken', accessToken, options);
 

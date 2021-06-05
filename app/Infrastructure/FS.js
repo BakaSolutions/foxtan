@@ -6,7 +6,7 @@ const config = require('./Config.js');
 
 let FS = module.exports = {};
 
-FS.ROOT = config('directories')['root'];
+FS.ROOT = config.get('directories.root');
 
 class FSError extends Error {
   constructor() {
@@ -33,7 +33,7 @@ FS.normalize = (filePath, rootType = 'root') => {
   let rooted = FS.check(filePath);
   return path.normalize(rooted
     ? filePath
-    : path.join(config('directories')[rootType], filePath));
+    : path.join(config.get('directories')[rootType], filePath));
 };
 
 /**
@@ -41,7 +41,7 @@ FS.normalize = (filePath, rootType = 'root') => {
  * @param {String} filePath
  * @returns {boolean}
  */
-FS.check = filePath => Object.values(config('directories')).some(dir => filePath.startsWith(dir));
+FS.check = filePath => Object.values(config.get('directories')).some(dir => filePath.startsWith(dir));
 
 /**
  * Delete file asynchronously with checking the filePath

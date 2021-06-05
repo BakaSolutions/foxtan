@@ -19,11 +19,11 @@
   "license": "MIT",
   "homepage": "https://bitbucket.org/bakaso/foxtan#readme",
   "dependencies": {
+    "@rngnrs/figurecon": "^1.1.0",
     "busboy": "^0.3.1",
     "canvas": "^2.6.1",
     "crc": "^3.8.0",
     "dot": "^1.1.3",
-    "figurecon": "github:rngnrs/figurecon",
     "file-type": "^16.5.0",
     "ioredis": "^4.27.3",
     "jwt-simple": "^0.5.6",

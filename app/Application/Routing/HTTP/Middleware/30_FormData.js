@@ -76,7 +76,7 @@ function parseForm(ctx) {
         let {ext, mime} = await readChunk(file, filename);
 
         let size = 0;
-        let tmpPath = path.join(config('directories.temporary'), timestamp() + '.' + ext);
+        let tmpPath = path.join(config.get('directories.temporary'), timestamp() + '.' + ext);
         uploadedFiles.push(tmpPath);
 
         file.on('data', data => size += data.length);

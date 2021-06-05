@@ -2,7 +2,7 @@ const config = require('../../../../Infrastructure/Config.js');
 const Tools = require('../../../../Infrastructure/Tools.js');
 
 let middleware = app => {
-  if (config('server.static.external')) {
+  if (config.get('server.static.external')) {
     return; // not our job!
   }
 
@@ -23,7 +23,7 @@ let middleware = app => {
   const Static = require('koa-static');
   let middleware = Static(__dirname + '/../../../../../public');
 
-  if (config('server.pathPrefix') === '/') {
+  if (config.get('server.pathPrefix') === '/') {
     return app.use(middleware); // just do what they want: "/"
   }
 
@@ -35,7 +35,7 @@ let middleware = app => {
   }
 
   const mount = require('koa-mount');
-  return app.use(mount(config('server.pathPrefix'), middleware)); // advanced job with "/prefix/"!
+  return app.use(mount(config.get('server.pathPrefix'), middleware)); // advanced job with "/prefix/"!
 };
 
 module.exports = {

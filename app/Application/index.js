@@ -20,7 +20,7 @@ class Foxtan {
   async init() {
     this.logUnexpectedErrors(this.logError.bind(this));
     try {
-      await this.initDatabaseContext(config('db.type'));
+      await this.initDatabaseContext(config.get('db.type'));
       await this.launchServer();
     } catch (e) {
       this.logError(e);
@@ -35,7 +35,7 @@ class Foxtan {
   }
 
   async launchServer() {
-    let { output, socket, host, port, pathPrefix } = config('server');
+    let { output, socket, host, port, pathPrefix } = config.get('server');
 
     this.routing = new Routing(this.database.context);
 

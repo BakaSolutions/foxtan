@@ -3,7 +3,7 @@ const MainController = require('../MainController.js');
 
 const Controller = new MainController();
 
-const ROOT = new RegExp(config('directories.root').replace(/\\/g, '\\\\'), 'g');
+const ROOT = new RegExp(config.get('directories.root').replace(/\\/g, '\\\\'), 'g');
 
 let middleware = app => {
   app.use(async (ctx, next) => {
@@ -36,7 +36,7 @@ function errorHandler(err, ctx, isError = true) {
   let { message, stack, status } = err;
   err = { message, stack, status };
 
-  if (err.stack && config('debug.enable')) {
+  if (err.stack && config.get('debug.enable')) {
     err.stack = err.stack.replace(ROOT, '') || err;
   } else {
     delete err.stack;

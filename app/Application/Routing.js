@@ -9,12 +9,12 @@ const WS = require('./WS.js');
 class Routing {
 
   constructor(DatabaseContext) {
-    let websocketPath = `${config('server.pathPrefix')}ws`;
+    let websocketPath = `${config.get('server.pathPrefix')}ws`;
 
     this._http = http.createServer();
     this._framework = new Koa();
     this._router = KoaRouter({
-      prefix: config('server.pathPrefix')
+      prefix: config.get('server.pathPrefix')
     });
     this._websocket = new WS(this._http, websocketPath);
     this._databaseContext = DatabaseContext;

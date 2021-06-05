@@ -7,7 +7,7 @@ class Connection {
   constructor(credentials = {}) {
     return (async () => {
       credentials = Object.assign({
-        connectionString: config('db.pg.url')
+        connectionString: config.get('db.pg.url')
       }, credentials);
 
       const client = new Client(credentials);

@@ -1,6 +1,6 @@
 const config = require('../../../../Infrastructure/Config.js');
 
-const debug = config('debug.enable') && config('debug.log.requests');
+const debug = config.get('debug.enable') && config.get('debug.log.requests');
 
 let middleware = app => {
   app.use(async (ctx, next) => {
