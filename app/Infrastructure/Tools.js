@@ -76,7 +76,7 @@ Tools.returnPrettyError = e => {
   stack = stack.replace(/\\/g, '/');
   stack = stack.split('\n');
   let title = stack.shift();
-  return `[FOXTAN] \x1b[30m${title}\x1b[0m\n${stack.join('\n')}`;
+  return `[FOXTAN] \x1b[1m${title}\x1b[0m\n${stack.join('\n')}`;
 };
 
 /**
