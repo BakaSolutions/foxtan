@@ -21,7 +21,7 @@
     "canvas": "^2.6.1",
     "crc": "^3.5.0",
     "dot": "^1.1.2",
-    "figurecon": "github:rngnrs/figurecon",
+    "figurecon": "github:rngnrs/figurecon#0.4.0",
     "ioredis": "^3.2.2",
     "jwt-simple": "^0.5.1",
     "koa": "^2.3.0",
