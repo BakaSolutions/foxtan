@@ -10,9 +10,9 @@ class PostModelPostgre extends PostModelInterface {
   }
 
   async create(post) {
-    const template = `INSERT INTO foxtan.post 
-("threadId", "userId", "number", "subject", "text", "sessionKey", 
-"modifiers", "ipAddress", "created", "updated", "deleled") 
+    const template = `INSERT INTO foxtan.post
+("threadId", "userId", "number", "subject", "text", "sessionKey",
+"modifiers", "ipAddress", "created", "updated", "deleled")
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 RETURNING *`;
     const values = post.toArray();
@@ -52,6 +52,23 @@ FROM foxtan.post p, foxtan.thread t
 WHERE p."threadId" = t.id
 AND p."threadId" = $1`;
     const values = [ threadId ];
+    let query = Dialect.orderBy(template, values, { orderBy: "p.id", order });
+    query = Dialect.limitOffset(...query, { count, page });
+    let posts = await this.dialect.executeQuery(...query);
+    return posts.map(post => PostDTO.from(post));
+  }
+
+  async readByBoardNameAndThreadNumber(boardName, threadNumber, { count, page, order } = {}) {
+    const template = `SELECT p.*
+FROM foxtan.post p
+WHERE p."threadId" = (
+  SELECT p."threadId"
+  FROM foxtan.post p
+  INNER JOIN foxtan.thread t ON p."threadId" = t.id
+  WHERE t."boardName" = $1 AND p.number = $2
+  LIMIT 1
+)`;
+    const values = [ boardName, threadNumber ];
     let query = Dialect.orderBy(template, values, { orderBy: "p.id", order });
     query = Dialect.limitOffset(...query, { count, page });
     let posts = await this.dialect.executeQuery(...query);
