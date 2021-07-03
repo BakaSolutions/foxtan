@@ -10,9 +10,9 @@ class BoardModelPostgre extends BoardModelInterface {
   }
 
   async create(board) {
-    const template = `INSERT INTO foxtan.board 
+    const template = `INSERT INTO foxtan.board
 ("name", "limitsId", "title", "defaultSubject", "description",
-"modifiers", "created", "deleled") 
+"modifiers", "created", "deleled")
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *`;
     const values = board.toArray();
@@ -37,19 +37,18 @@ RETURNING *`;
 
   async getLastPostNumbers() {
     const template = `SELECT b.name, MAX(p.number)
-FROM foxtan.post p, foxtan.thread t, foxtan.board b
-WHERE p."threadId" = t.id
-AND t."boardName" = b.name
+FROM foxtan.board b
+INNER JOIN foxtan.thread t ON t."boardName" = b.name
+INNER JOIN foxtan.post p ON p."threadId" = t.id
 GROUP BY b.name`;
     return this.dialect.executeQuery(template);
   }
 
   async getLastPostNumber(name) {
     const template = `SELECT MAX(p.number)
-FROM foxtan.post p, foxtan.thread t, foxtan.board b
-WHERE p."threadId" = t.id
-AND t."boardName" = $1
-GROUP BY b.name`;
+FROM foxtan.thread t
+INNER JOIN foxtan.post p ON p."threadId" = t.id
+WHERE t."boardName" = $1`;
     const values = [ name ];
     const query = await this.dialect.executeQuery(template, values);
     return query[0];
