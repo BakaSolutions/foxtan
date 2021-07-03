@@ -36,9 +36,9 @@ RETURNING *`;
 
   async readOneByBoardAndPost(boardName, number) {
     const template = `SELECT p.*
-FROM foxtan.post p, foxtan.thread t
-WHERE p."threadId" = t.id
-AND t."boardName" = $1
+FROM foxtan.post p
+INNER JOIN foxtan.thread t ON p."threadId" = t.id
+WHERE t."boardName" = $1
 AND p.number = $2
 LIMIT 1`;
     const values = [ boardName, number ];
@@ -47,10 +47,7 @@ LIMIT 1`;
   }
 
   async readByThreadId(threadId, { count, page, order } = {}) {
-    const template = `SELECT p.*
-FROM foxtan.post p, foxtan.thread t
-WHERE p."threadId" = t.id
-AND p."threadId" = $1`;
+    const template = `SELECT * FROM foxtan.post WHERE "threadId" = $1`;
     const values = [ threadId ];
     let query = Dialect.orderBy(template, values, { orderBy: "p.id", order });
     query = Dialect.limitOffset(...query, { count, page });
@@ -59,9 +56,9 @@ AND p."threadId" = $1`;
   }
 
   async readByBoardNameAndThreadNumber(boardName, threadNumber, { count, page, order } = {}) {
-    const template = `SELECT p.*
-FROM foxtan.post p
-WHERE p."threadId" = (
+    const template = `SELECT *
+FROM foxtan.post
+WHERE "threadId" = (
   SELECT p."threadId"
   FROM foxtan.post p
   INNER JOIN foxtan.thread t ON p."threadId" = t.id
@@ -77,9 +74,9 @@ WHERE p."threadId" = (
 
   async readByBoardName(boardName, { count, page, order } = {}) {
     let template = `SELECT p.*
-FROM foxtan.post p, foxtan.thread t
-WHERE p."threadId" = t.id
-AND t."boardName" = $1`;
+FROM foxtan.post p
+INNER JOIN foxtan.thread t ON p."threadId" = t.id
+WHERE t."boardName" = $1`;
     let values = [ boardName ];
     let query = Dialect.orderBy(template, values, { orderBy: "p.id", order });
     query = Dialect.limitOffset(...query, { count, page });
@@ -88,10 +85,7 @@ AND t."boardName" = $1`;
   }
 
   async countByThreadId(threadId) {
-    const template = `SELECT COUNT(p.id)
-FROM foxtan.post p, foxtan.thread t
-WHERE p."threadId" = t.id
-AND p."threadId" = $1`;
+    const template = `SELECT COUNT(id) FROM foxtan.post WHERE "threadId" = $1`;
     const values = [ threadId ];
     const query = await this.dialect.executeQuery(template, values);
     return +query[0].count;
