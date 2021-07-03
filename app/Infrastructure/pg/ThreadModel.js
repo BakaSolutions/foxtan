@@ -10,8 +10,8 @@ class ThreadModelPostgre extends ThreadModelInterface {
   }
 
   async create(thread) {
-    const template = `INSERT INTO foxtan.thread 
-  ("boardName", "limitsId", "pinned", "modifiers") 
+    const template = `INSERT INTO foxtan.thread
+  ("boardName", "limitsId", "pinned", "modifiers")
   VALUES ($1, $2, $3, $4)
   RETURNING *`;
     const values = thread.toArray();
@@ -27,8 +27,14 @@ class ThreadModelPostgre extends ThreadModelInterface {
   }
 
   async readOneByHeadId(headId) {
-    const template = `SELECT * FROM foxtan.thread t WHERE t.id in 
-(SELECT "threadId" FROM foxtan.post WHERE id = $1) LIMIT 1`;
+    const template = `SELECT *
+FROM foxtan.thread
+WHERE id in (
+  SELECT "threadId"
+  FROM foxtan.post
+  WHERE id = $1
+)
+LIMIT 1`;
     const values = [ headId ];
     const query = await this.dialect.executeQuery(template, values);
     return ThreadDTO.from(query[0]);
@@ -40,12 +46,14 @@ class ThreadModelPostgre extends ThreadModelInterface {
 
   async readAllByBoard(boardName, { count, page } = {}) {
     let template = `SELECT t.*
-FROM foxtan.thread t, foxtan.post p
-WHERE p."threadId" = t.id
-AND t."boardName" = $1
-AND p.id IN
-(SELECT DISTINCT ON ("threadId") id FROM foxtan.post
-WHERE NOT ('sage' = ANY(COALESCE(modifiers, array[]::varchar[]))))
+FROM foxtan.thread t
+INNER JOIN foxtan.post p ON p."threadId" = t.id
+WHERE t."boardName" = $1
+AND p.id IN (
+  SELECT DISTINCT ON ("threadId") id
+  FROM foxtan.post
+  WHERE NOT ('sage' = ANY(COALESCE(modifiers, array[]::varchar[])))
+)
 GROUP BY t.id, p.id
 ORDER BY MAX(p.id) DESC`;
     let values = [ boardName ];
@@ -56,10 +64,9 @@ ORDER BY MAX(p.id) DESC`;
 
   async readOneByBoardAndPost(boardName, postNumber) {
     const template = `SELECT t.*
-FROM foxtan.board b, foxtan.thread t, foxtan.post p
-WHERE t."boardName" = b.name
-AND t.id = p."threadId"
-AND b.name = $1
+FROM foxtan.thread t
+INNER JOIN foxtan.post p ON t.id = p."threadId"
+WHERE t."boardName" = $1
 AND p.number = $2
 LIMIT 1`;
     const values = [ boardName, postNumber ];
