@@ -1,5 +1,6 @@
 const PostBO = require('../../Business/PostBO.js');
 const PostService = require('../../../Infrastructure/PostService.js');
+const Tools = require('../../../Infrastructure/Tools.js');
 
 class PostController {
 
@@ -46,33 +47,46 @@ class PostController {
       }, {
         request: 'post',
         middleware: async (params) => {
-          let { boardName, id, number } = params;
+          try {
+            let {
+              boardName,
+              id,
+              number
+            } = params;
 
-          let hasPrivileges = false;
-          let post;
+            id = +id;
+            number = +number;
 
-          switch (true) {
-            case !!(id):
-              post = await this.post.readOne(id);
-              break;
-            case !!(boardName && number):
-              post = await this.post.readOneByBoardAndPost(boardName, number);
-              break;
-            default:
-              throw {
-                message: "MISSING_PARAM",
-                description: `postId or boardName/number is missing`,
-                code: 400
-              };
-          }
+            let hasPrivileges = false;
+            let post;
 
-          if (!post) {
+            switch (true) {
+              case !!(Tools.isNumber(id) && id > 0):
+                post = await this.post.readOne(id);
+                break;
+              case !!(boardName && Tools.isNumber(number) && number > 0):
+                post = await this.post.readOneByBoardAndPost(boardName, number);
+                break;
+              default:
+                throw {
+                  message: "MISSING_PARAM",
+                  description: `postId or boardName/number is missing`,
+                  code: 400
+                };
+            }
+
+            if (!post) {
+              throw new Error("POST_NOT_FOUND");
+            }
+
+            return this.post.cleanOutput(post, hasPrivileges);
+          } catch (e) {
             throw {
+              message: "POST_NOT_FOUND",
+              description: "There is no such a post",
               code: 404
             }
           }
-
-          return this.post.cleanOutput(post, hasPrivileges);
         }
       }
     ];

@@ -26,39 +26,61 @@ class ThreadController {
             };
           }
 
-          let threads = await this.thread.readAllByBoard(boardName, {
-            count,
-            page
-          });
+          try {
+            let threads = await this.thread.readAllByBoard(boardName, {
+              count,
+              page
+            });
+            if (!threads || !threads.length) {
+              throw new Error("THREADS_NOT_FOUND"); // TODO: This job is for ThreadEntity but we have not got one yet
+            }
 
-          return this.thread.cleanOutput(threads, hasPrivileges);
+            return this.thread.cleanOutput(threads, hasPrivileges);
+          } catch (e) {
+            throw {
+              message: "THREADS_NOT_FOUND",
+              description: "There is no threads on such page of a board",
+              code: 404
+            };
+          }
         }
      }, {
         request: 'thread',
         middleware: async params => {
-          let { id, headId, boardName, postNumber } = params;
-          let hasPrivileges = false;
-          let thread;
+          try {
+            let { id, headId, boardName, postNumber } = params;
+            let hasPrivileges = false;
+            let thread;
 
-          switch (true) {
-            case !!id:
-              thread = await this.thread.readOne(id);
-              break;
-            case !!headId:
-              thread = await this.thread.readOneByHeadId(headId);
-              break;
-            case !!(boardName && postNumber):
-              thread = await this.thread.readOneByBoardAndPost(boardName, postNumber);
-              break;
-            default:
-              throw {
-                message: "MISSING_PARAM",
-                description: "id or headId or boardName/postNumber is missing",
-                code: 400
-              };
+            switch (true) {
+              case !!id:
+                thread = await this.thread.readOne(id);
+                break;
+              case !!headId:
+                thread = await this.thread.readOneByHeadId(headId);
+                break;
+              case !!(boardName && postNumber):
+                thread = await this.thread.readOneByBoardAndPost(boardName, postNumber);
+                break;
+              default:
+                throw {
+                  message: "MISSING_PARAM",
+                  description: "id or headId or boardName/postNumber is missing",
+                  code: 400
+                };
+            }
+
+            if (!thread) {
+              throw new Error("THREAD_NOT_FOUND"); // TODO: This job is for ThreadEntity but we have not got one yet
+            }
+            return this.thread.cleanOutput(thread, hasPrivileges);
+          } catch (e) {
+            throw {
+              message: "THREAD_NOT_FOUND",
+              description: "There is no such a thread",
+              code: 404
+            };
           }
-
-          return this.thread.cleanOutput(thread, hasPrivileges);
         }
       }
     ];

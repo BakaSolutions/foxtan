@@ -61,9 +61,7 @@ class ThreadBO {
 
   async process(thread, posts, head) {
     if (!thread) {
-      throw {
-        code: 404
-      };
+      return null;
     }
     thread.head = head || await this.PostService.readOneByThreadId(thread.id);
     thread.posts = posts || await this.PostService.countByThreadId(thread.id);

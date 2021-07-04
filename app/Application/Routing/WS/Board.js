@@ -37,10 +37,18 @@ class BoardController {
               code: 400
             };
           }
-          let board = await this.board.readOne(name);
-          let limits = {}; // TODO: Limits
+          try {
+            let board = await this.board.readOne(name);
+            let limits = {}; // TODO: Limits
 
-          return this.shape(board, limits);
+            return this.shape(board, limits);
+          } catch (e) {
+            throw {
+              message: "BOARD_NOT_FOUND",
+              description: "There is no such a board",
+              code: 404
+            }
+          }
         }
       }
     ];
