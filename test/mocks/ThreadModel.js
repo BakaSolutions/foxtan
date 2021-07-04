@@ -1,5 +1,5 @@
-const ThreadModelInterface = require('../../app/Domain/ThreadModelInterface.js');
-const ThreadDTO = require('../../app/Infrastructure/ThreadDTO.js');
+const ThreadModelInterface = require('../../app/Adapter/Interface/ThreadModelInterface.js');
+const ThreadDTO = require('../../app/Domain/DTO/ThreadDTO.js');
 
 class ThreadModelMock extends ThreadModelInterface {
 

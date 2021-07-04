@@ -1,6 +1,6 @@
-const BoardModelInterface = require('../../Domain/BoardModelInterface.js');
+const BoardModelInterface = require('../../Adapter/Interface/BoardModelInterface.js');
 const Dialect = require('./Dialect.js');
-const BoardDTO = require('../BoardDTO.js');
+const BoardDTO = require('../../Domain/DTO/BoardDTO.js');
 
 class BoardModelPostgre extends BoardModelInterface {
 

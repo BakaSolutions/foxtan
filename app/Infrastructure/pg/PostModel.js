@@ -1,6 +1,6 @@
-const PostModelInterface = require('../../Domain/PostModelInterface.js');
+const PostModelInterface = require('../../Adapter/Interface/PostModelInterface.js');
 const Dialect = require('./Dialect.js');
-const PostDTO = require('../PostDTO.js');
+const PostDTO = require('../../Domain/DTO/PostDTO.js');
 
 class PostModelPostgre extends PostModelInterface {
 

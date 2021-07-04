@@ -2,8 +2,8 @@ const { describe, it, beforeEach } = require('zunit');
 const assert = require('assert');
 
 const PostModelMock = require('./mocks/PostModel.js');
-const PostService = require('../app/Infrastructure/PostService.js');
-const PostDTO = require('../app/Infrastructure/PostDTO.js');
+const PostService = require('../app/Application/Service/PostService.js');
+const PostDTO = require('../app/Domain/DTO/PostDTO.js');
 
 const validPost = {
   subject: "Fox",

@@ -1,6 +1,6 @@
-const ThreadModelInterface = require('../../Domain/ThreadModelInterface.js');
+const ThreadModelInterface = require('../../Adapter/Interface/ThreadModelInterface.js');
 const Dialect = require('./Dialect.js');
-const ThreadDTO = require('../ThreadDTO.js');
+const ThreadDTO = require('../../Domain/DTO/ThreadDTO.js');
 
 class ThreadModelPostgre extends ThreadModelInterface {
 

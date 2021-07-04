@@ -1,5 +1,5 @@
-const Tools = require('../Infrastructure/Tools.js');
-const config = require('../Infrastructure/Config.js');
+const Tools = require('./Tools.js');
+const config = require('./Config.js');
 
 const http = require('http');
 const Koa = require('koa');
@@ -30,7 +30,7 @@ class Routing {
    */
   static async load(server, type) {
     try {
-      let path = `app/Application/Routing/${server}`;
+      let path = `app/Adapter/Routing/${server}`;
       if (type) {
         path += `/${type}`;
       } else {

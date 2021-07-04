@@ -1,9 +1,9 @@
-const BoardBO = require('../../Business/BoardBO.js');
-const BoardService = require('../../../Infrastructure/BoardService.js');
-const ThreadBO = require('../../Business/ThreadBO.js');
-const ThreadService = require('../../../Infrastructure/ThreadService.js');
-const PostBO = require('../../Business/PostBO.js');
-const PostService = require('../../../Infrastructure/PostService.js');
+const BoardBO = require('../../../Application/Business/BoardBO.js');
+const BoardService = require('../../../Application/Service/BoardService.js');
+const ThreadBO = require('../../../Application/Business/ThreadBO.js');
+const ThreadService = require('../../../Application/Service/ThreadService.js');
+const PostBO = require('../../../Application/Business/PostBO.js');
+const PostService = require('../../../Application/Service/PostService.js');
 
 class SyncController {
 

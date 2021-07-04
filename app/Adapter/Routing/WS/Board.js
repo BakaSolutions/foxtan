@@ -1,5 +1,5 @@
-const BoardBO = require('../../Business/BoardBO.js');
-const BoardService = require('../../../Infrastructure/BoardService.js');
+const BoardBO = require('../../../Application/Business/BoardBO.js');
+const BoardService = require('../../../Application/Service/BoardService.js');
 
 class BoardController {
 

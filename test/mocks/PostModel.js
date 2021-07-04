@@ -1,5 +1,5 @@
-const PostModelInterface = require('../../app/Domain/PostModelInterface.js');
-const PostDTO = require('../../app/Infrastructure/PostDTO.js');
+const PostModelInterface = require('../../app/Adapter/Interface/PostModelInterface.js');
+const PostDTO = require('../../app/Domain/DTO/PostDTO.js');
 
 class PostModelMock extends PostModelInterface {
 

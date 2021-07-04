@@ -1,4 +1,4 @@
-const Tools = require('../Infrastructure/Tools.js');
+const Tools = require('../../Infrastructure/Tools.js');
 const jwt = require('jwt-simple');
 
 class TokenService {

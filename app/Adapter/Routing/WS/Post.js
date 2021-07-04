@@ -1,5 +1,5 @@
-const PostBO = require('../../Business/PostBO.js');
-const PostService = require('../../../Infrastructure/PostService.js');
+const PostBO = require('../../../Application/Business/PostBO.js');
+const PostService = require('../../../Application/Service/PostService.js');
 const Tools = require('../../../Infrastructure/Tools.js');
 
 class PostController {

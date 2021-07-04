@@ -1,5 +1,5 @@
 const config = require('../../../../Infrastructure/Config.js');
-const TokenService = require('../../../../Infrastructure/TokenService.js');
+const TokenService = require('../../../../Application/Service/TokenService.js');
 const MainController = require('../MainController.js');
 
 class CaptchaController extends MainController {

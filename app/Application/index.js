@@ -2,7 +2,7 @@ const config = require('../Infrastructure/Config.js');
 const Tools = require('../Infrastructure/Tools.js');
 
 // Web server
-const Routing = require('./Routing.js');
+const Routing = require('../Infrastructure/Routing.js');
 
 // Databases
 const DatabaseContext = require('../Infrastructure/DatabaseContext.js');

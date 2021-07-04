@@ -2,8 +2,8 @@ const { describe, it, beforeEach } = require('zunit');
 const assert = require('assert');
 
 const BoardModelMock = require('./mocks/BoardModel.js');
-const BoardService = require('../app/Infrastructure/BoardService.js');
-const BoardDTO = require('../app/Infrastructure/BoardDTO.js');
+const BoardService = require('../app/Application/Service/BoardService.js');
+const BoardDTO = require('../app/Domain/DTO/BoardDTO.js');
 
 const validBoard = {
   name: 'test',
