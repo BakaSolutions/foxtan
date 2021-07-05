@@ -49,7 +49,7 @@ LIMIT 1`;
   async readByThreadId(threadId, { count, page, order } = {}) {
     const template = `SELECT * FROM foxtan.post WHERE "threadId" = $1`;
     const values = [ threadId ];
-    let query = Dialect.orderBy(template, values, { orderBy: "p.id", order });
+    let query = Dialect.orderBy(template, values, { orderBy: "id", order });
     query = Dialect.limitOffset(...query, { count, page });
     let posts = await this.dialect.executeQuery(...query);
     return posts.map(post => PostDTO.from(post));
@@ -66,7 +66,7 @@ WHERE "threadId" = (
   LIMIT 1
 )`;
     const values = [ boardName, threadNumber ];
-    let query = Dialect.orderBy(template, values, { orderBy: "p.id", order });
+    let query = Dialect.orderBy(template, values, { orderBy: "id", order });
     query = Dialect.limitOffset(...query, { count, page });
     let posts = await this.dialect.executeQuery(...query);
     return posts.map(post => PostDTO.from(post));

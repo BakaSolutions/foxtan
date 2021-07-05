@@ -28,9 +28,9 @@ RETURNING *`;
   }
 
   async readMany({ count, page, order } = {}) {
-    const template = `SELECT * FROM foxtan.board b`;
+    const template = `SELECT * FROM foxtan.board`;
     let query = Dialect.limitOffset(template, null, { count, page });
-    query = Dialect.orderBy(...query, { orderBy: 'b.name', order });
+    query = Dialect.orderBy(...query, { orderBy: 'name', order });
     let boards = await this.dialect.executeQuery(...query);
     return boards.map(board => BoardDTO.from(board));
   }
