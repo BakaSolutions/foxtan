@@ -10,7 +10,7 @@ class PostModelPostgre extends PostModelInterface {
   }
 
   async create(post) {
-    const template = `INSERT INTO foxtan.post
+    const template = `INSERT INTO post
 ("threadId", "userId", "number", "subject", "text", "sessionKey",
 "modifiers", "ipAddress", "created", "updated", "deleled")
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
@@ -21,14 +21,14 @@ RETURNING *`;
   }
 
   async readOneById(id) {
-    const template = `SELECT * FROM foxtan.post WHERE id = $1 LIMIT 1`;
+    const template = `SELECT * FROM post WHERE id = $1 LIMIT 1`;
     const values = [ id ];
     const query = await this.dialect.executeQuery(template, values);
     return PostDTO.from(query[0]);
   }
 
   async readOneByThreadId(threadId) {
-    const template = `SELECT * FROM foxtan.post WHERE "threadId" = $1 ORDER BY id LIMIT 1`;
+    const template = `SELECT * FROM post WHERE "threadId" = $1 ORDER BY id LIMIT 1`;
     const values = [ threadId ];
     const query = await this.dialect.executeQuery(template, values);
     return PostDTO.from(query[0]);
@@ -36,8 +36,8 @@ RETURNING *`;
 
   async readOneByBoardAndPost(boardName, number) {
     const template = `SELECT p.*
-FROM foxtan.post p
-INNER JOIN foxtan.thread t ON p."threadId" = t.id
+FROM post p
+INNER JOIN thread t ON p."threadId" = t.id
 WHERE t."boardName" = $1
 AND p.number = $2
 LIMIT 1`;
@@ -47,7 +47,7 @@ LIMIT 1`;
   }
 
   async readByThreadId(threadId, { count, page, order } = {}) {
-    const template = `SELECT * FROM foxtan.post WHERE "threadId" = $1`;
+    const template = `SELECT * FROM post WHERE "threadId" = $1`;
     const values = [ threadId ];
     let query = Dialect.orderBy(template, values, { orderBy: "id", order });
     query = Dialect.limitOffset(...query, { count, page });
@@ -57,11 +57,11 @@ LIMIT 1`;
 
   async readByBoardNameAndThreadNumber(boardName, threadNumber, { count, page, order } = {}) {
     const template = `SELECT *
-FROM foxtan.post
+FROM post
 WHERE "threadId" = (
   SELECT p."threadId"
-  FROM foxtan.post p
-  INNER JOIN foxtan.thread t ON p."threadId" = t.id
+  FROM post p
+  INNER JOIN thread t ON p."threadId" = t.id
   WHERE t."boardName" = $1 AND p.number = $2
   LIMIT 1
 )`;
@@ -74,8 +74,8 @@ WHERE "threadId" = (
 
   async readByBoardName(boardName, { count, page, order } = {}) {
     let template = `SELECT p.*
-FROM foxtan.post p
-INNER JOIN foxtan.thread t ON p."threadId" = t.id
+FROM post p
+INNER JOIN thread t ON p."threadId" = t.id
 WHERE t."boardName" = $1`;
     let values = [ boardName ];
     let query = Dialect.orderBy(template, values, { orderBy: "p.id", order });
@@ -85,7 +85,7 @@ WHERE t."boardName" = $1`;
   }
 
   async countByThreadId(threadId) {
-    const template = `SELECT COUNT(id) FROM foxtan.post WHERE "threadId" = $1`;
+    const template = `SELECT COUNT(id) FROM post WHERE "threadId" = $1`;
     const values = [ threadId ];
     const query = await this.dialect.executeQuery(template, values);
     return +query[0].count;

@@ -10,7 +10,7 @@ class BoardModelPostgre extends BoardModelInterface {
   }
 
   async create(board) {
-    const template = `INSERT INTO foxtan.board
+    const template = `INSERT INTO board
 ("name", "limitsId", "title", "defaultSubject", "description",
 "modifiers", "created", "deleled")
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -21,14 +21,14 @@ RETURNING *`;
   }
 
   async readOneByName(name) {
-    const template = `SELECT * FROM foxtan.board WHERE name = $1 LIMIT 1`;
+    const template = `SELECT * FROM board WHERE name = $1 LIMIT 1`;
     const values = [ name ];
     const query = await this.dialect.executeQuery(template, values);
     return BoardDTO.from(query[0]);
   }
 
   async readMany({ count, page, order } = {}) {
-    const template = `SELECT * FROM foxtan.board`;
+    const template = `SELECT * FROM board`;
     let query = Dialect.limitOffset(template, null, { count, page });
     query = Dialect.orderBy(...query, { orderBy: 'name', order });
     let boards = await this.dialect.executeQuery(...query);
@@ -37,17 +37,17 @@ RETURNING *`;
 
   async getLastPostNumbers() {
     const template = `SELECT b.name, MAX(p.number)
-FROM foxtan.board b
-INNER JOIN foxtan.thread t ON t."boardName" = b.name
-INNER JOIN foxtan.post p ON p."threadId" = t.id
+FROM board b
+INNER JOIN thread t ON t."boardName" = b.name
+INNER JOIN post p ON p."threadId" = t.id
 GROUP BY b.name`;
     return this.dialect.executeQuery(template);
   }
 
   async getLastPostNumber(name) {
     const template = `SELECT MAX(p.number)
-FROM foxtan.thread t
-INNER JOIN foxtan.post p ON p."threadId" = t.id
+FROM thread t
+INNER JOIN post p ON p."threadId" = t.id
 WHERE t."boardName" = $1`;
     const values = [ name ];
     const query = await this.dialect.executeQuery(template, values);
