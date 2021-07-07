@@ -1,8 +1,8 @@
-### Node template
 # Logs
 /logs
 *.log
 npm-debug.log*
+/.nyc_output
 
 /yarn.lock
 /package-lock.json
@@ -16,4 +16,4 @@ npm-debug.log*
 # Engine's output
 /public/**/*.json
 /public/res/**/*
-/.tmp
+/public/src/**/*

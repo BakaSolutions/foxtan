@@ -1,13 +1,13 @@
-<!DOCTYPE html>
-<html>
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<meta charset='utf-8'>
-		<link rel="stylesheet" href="/css/captcha.css" />
+		<link rel="stylesheet" href="{{!it.server.pathPrefix}}css/captcha.css" />
 		<title>Captcha</title>
 	</head>
 	<body>
-    <form action="/api/v1/captcha.check" method="POST">
-      <iframe src="/api/v1/captcha.frame" width="{{!it.width}}" height="{{!it.height}}" frameborder="0"></iframe>
+    <form action="{{!it.server.pathPrefix}}api/checkCaptcha" method="POST">
+      <iframe src="{{!it.server.pathPrefix}}api/captcha?frame" width="{{!it.width}}" height="{{!it.height}}" frameborder="0"></iframe>
       <br />
       <input name="code" required autocomplete="off" autofocus />
       <button>Submit</button>

@@ -9,6 +9,7 @@ a { display: flex }
   height: 4px;
   background: #62becb;
   z-index: 1;
+  animation: captcha-indicator steps(60);
 }
 .wrapper {
   width: 1%;
