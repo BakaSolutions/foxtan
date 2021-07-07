@@ -1,7 +1,7 @@
-const config = require('./app/helpers/config.js');
+const config = require('./app/Infrastructure/Config.js');
 
-const dbType = config('db.type');
-const { url } = config(`db.${dbType}`);
+const dbType = config.get('db.type');
+const { url } = config.get(`db.${dbType}`);
 
 module.exports = {
 
