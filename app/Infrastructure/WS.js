@@ -1,5 +1,5 @@
 const WebSocket = require('ws');
-
+const { CustomError } = require('../Domain/Error/index.js');
 //const EventBus = require('./event.js');
 
 module.exports = class WS {
@@ -65,11 +65,11 @@ module.exports = class WS {
         let data = await WS._solveMiddlewares(sequence.slice(), params, ws);
         return this.success(ws, params, data || null);
       } catch (e) {
-        if (e instanceof Error) {
-          console.error('error', e);
-          return this.fail(ws, params, {code: 500});
+        if (e instanceof CustomError) {
+          console.error(`[WS] [ERR] [${e.code}] [${e.status}] ${e.message}`);
+          return this.fail(ws, params, e.display());
         }
-        return this.fail(ws, params, e);
+        return this.fail(ws, params, {code: 500});
       }
     } catch (e) {
       return this.fail(ws, params, {code: 400});

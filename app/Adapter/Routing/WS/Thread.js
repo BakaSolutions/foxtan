@@ -2,6 +2,7 @@ const ThreadBO = require('../../../Application/Business/ThreadBO.js');
 const ThreadService = require('../../../Application/Service/ThreadService.js');
 const PostBO = require('../../../Application/Business/PostBO.js');
 const PostService = require('../../../Application/Service/PostService.js');
+const { MissingParamError, ThreadsNotFoundError, ThreadNotFoundError } = require('../../../Domain/Error/index.js');
 
 class ThreadController {
   constructor(DatabaseContext) {
@@ -19,68 +20,44 @@ class ThreadController {
           let hasPrivileges = false;
 
           if (!params.boardName) {
-            throw {
-              message: "MISSING_PARAM",
-              description: "boardName is missing",
-              code: 400
-            };
+            throw new MissingParamError("boardName is missing");
           }
 
-          try {
-            let threads = await this.thread.readAllByBoard(boardName, {
-              count,
-              page
-            });
-            if (!threads || !threads.length) {
-              throw new Error("THREADS_NOT_FOUND"); // TODO: This job is for ThreadEntity but we have not got one yet
-            }
-
-            return this.thread.cleanOutput(threads, hasPrivileges);
-          } catch (e) {
-            throw {
-              message: "THREADS_NOT_FOUND",
-              description: "There is no threads on such page of a board",
-              code: 404
-            };
+          let threads = await this.thread.readAllByBoard(boardName, {
+            count,
+            page
+          });
+          if (!threads || !threads.length) {
+            throw new ThreadsNotFoundError(); // TODO: This job is for ThreadEntity but we have not got one yet
           }
+
+          return this.thread.cleanOutput(threads, hasPrivileges);
         }
      }, {
         request: 'thread',
         middleware: async params => {
-          try {
-            let { id, headId, boardName, postNumber } = params;
-            let hasPrivileges = false;
-            let thread;
+          let { id, headId, boardName, postNumber } = params;
+          let hasPrivileges = false;
+          let thread;
 
-            switch (true) {
-              case !!id:
-                thread = await this.thread.readOne(id);
-                break;
-              case !!headId:
-                thread = await this.thread.readOneByHeadId(headId);
-                break;
-              case !!(boardName && postNumber):
-                thread = await this.thread.readOneByBoardAndPost(boardName, postNumber);
-                break;
-              default:
-                throw {
-                  message: "MISSING_PARAM",
-                  description: "id or headId or boardName/postNumber is missing",
-                  code: 400
-                };
-            }
-
-            if (!thread) {
-              throw new Error("THREAD_NOT_FOUND"); // TODO: This job is for ThreadEntity but we have not got one yet
-            }
-            return this.thread.cleanOutput(thread, hasPrivileges);
-          } catch (e) {
-            throw {
-              message: "THREAD_NOT_FOUND",
-              description: "There is no such a thread",
-              code: 404
-            };
+          switch (true) {
+            case !!id:
+              thread = await this.thread.readOne(id);
+              break;
+            case !!headId:
+              thread = await this.thread.readOneByHeadId(headId);
+              break;
+            case !!(boardName && postNumber):
+              thread = await this.thread.readOneByBoardAndPost(boardName, postNumber);
+              break;
+            default:
+              throw new MissingParamError("id or headId or boardName/postNumber is missing");
           }
+
+          if (!thread) {
+            throw new ThreadNotFoundError(); // TODO: This job is for ThreadEntity but we have not got one yet
+          }
+          return this.thread.cleanOutput(thread, hasPrivileges);
         }
       }
     ];

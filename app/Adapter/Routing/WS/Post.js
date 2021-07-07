@@ -1,6 +1,8 @@
 const PostBO = require('../../../Application/Business/PostBO.js');
 const PostService = require('../../../Application/Service/PostService.js');
 const Tools = require('../../../Infrastructure/Tools.js');
+const { MissingParamError, PostNotFoundError } = require('../../../Domain/Error/index.js');
+
 
 class PostController {
 
@@ -30,63 +32,46 @@ class PostController {
               posts = await this.post.readBoardFeed(boardName, {count, page});
               break;
             default:
-              throw {
-                message: "MISSING_PARAM",
-                description: "threadId or boardName is missing",
-                code: 400
-              };
+              throw new MissingParamError("threadId or boardName is missing");
           }
 
           if (!posts.length) {
-            throw {
-              code: 404
-            }
+            throw new PostNotFoundError();
           }
+
           return this.post.cleanOutput(posts, hasPrivileges);
         }
       }, {
         request: 'post',
         middleware: async (params) => {
-          try {
-            let {
-              boardName,
-              id,
-              number
-            } = params;
+          let {
+            boardName,
+            id,
+            number
+          } = params;
 
-            id = +id;
-            number = +number;
+          id = +id;
+          number = +number;
 
-            let hasPrivileges = false;
-            let post;
+          let hasPrivileges = false;
+          let post;
 
-            switch (true) {
-              case !!(Tools.isNumber(id) && id > 0):
-                post = await this.post.readOne(id);
-                break;
-              case !!(boardName && Tools.isNumber(number) && number > 0):
-                post = await this.post.readOneByBoardAndPost(boardName, number);
-                break;
-              default:
-                throw {
-                  message: "MISSING_PARAM",
-                  description: `postId or boardName/number is missing`,
-                  code: 400
-                };
-            }
-
-            if (!post) {
-              throw new Error("POST_NOT_FOUND");
-            }
-
-            return this.post.cleanOutput(post, hasPrivileges);
-          } catch (e) {
-            throw {
-              message: "POST_NOT_FOUND",
-              description: "There is no such a post",
-              code: 404
-            }
+          switch (true) {
+            case !!(Tools.isNumber(id) && id > 0):
+              post = await this.post.readOne(id);
+              break;
+            case !!(boardName && Tools.isNumber(number) && number > 0):
+              post = await this.post.readOneByBoardAndPost(boardName, number);
+              break;
+            default:
+              throw new MissingParamError("postId or boardName/number is missing");
           }
+
+          if (!post) {
+            throw new PostNotFoundError();
+          }
+
+          return this.post.cleanOutput(post, hasPrivileges);
         }
       }
     ];

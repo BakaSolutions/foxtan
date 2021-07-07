@@ -1,5 +1,6 @@
 const BoardBO = require('../../../Application/Business/BoardBO.js');
 const BoardService = require('../../../Application/Service/BoardService.js');
+const { MissingParamError, BoardNotFoundError } = require('../../../Domain/Error/index.js');
 
 class BoardController {
 
@@ -31,11 +32,7 @@ class BoardController {
         middleware: async params => {
           let { name } = params;
           if (!name) {
-            throw {
-              message: "MISSING_PARAM",
-              description: "name is missing",
-              code: 400
-            };
+            throw new MissingParamError("name is missing");
           }
           try {
             let board = await this.board.readOne(name);
@@ -43,11 +40,7 @@ class BoardController {
 
             return this.shape(board, limits);
           } catch (e) {
-            throw {
-              message: "BOARD_NOT_FOUND",
-              description: "There is no such a board",
-              code: 404
-            }
+            throw new BoardNotFoundError();
           }
         }
       }

@@ -7,6 +7,8 @@ const ThreadDTO = require('../../../../Domain/DTO/ThreadDTO.js');
 const BoardBO = require('../../../../Application/Business/BoardBO.js');
 const BoardService = require('../../../../Application/Service/BoardService.js');
 
+const { ThreadNotFoundError } = require('../../../../Domain/Error/index.js');
+
 const MainController = require('../MainController.js');
 
 class PostController extends MainController {
@@ -42,7 +44,7 @@ class PostController extends MainController {
       } else {
         let thread = await this.thread.readOne(query.threadId);
         if (!thread) {
-          throw new Error('Thread does not exist!');
+          throw new ThreadNotFoundError('Thread does not exist!');
         }
         query.boardName = thread.boardName;
       }

@@ -4,6 +4,7 @@ const ThreadBO = require('../../../Application/Business/ThreadBO.js');
 const ThreadService = require('../../../Application/Service/ThreadService.js');
 const PostBO = require('../../../Application/Business/PostBO.js');
 const PostService = require('../../../Application/Service/PostService.js');
+const { MissingParamError } = require('../../../Domain/Error/index.js');
 
 class SyncController {
 
@@ -26,19 +27,11 @@ class SyncController {
             case "thread":
               let { boardName } = params;
               if (!boardName) {
-                throw {
-                  message: "MISSING_PARAM",
-                  description: "boardName is missing",
-                  code: 400
-                };
+                throw new MissingParamError("boardName is missing");
               }
               return this.thread.sync(boardName);
             default:
-              throw {
-                message: "MISSING_PARAM",
-                description: "Define a type for syncing-syncing~",
-                code: 400
-              };
+              throw new MissingParamError("Define a type for syncing-syncing~");
           }
         }
       }
