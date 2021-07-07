@@ -12,6 +12,7 @@ class Connection {
 
       const client = new Client(credentials);
       await client.connect();
+      await client.query(`SET search_path TO foxtan, public`);
 
       return client;
     })();

@@ -10,7 +10,7 @@ class ThreadModelPostgre extends ThreadModelInterface {
   }
 
   async create(thread) {
-    const template = `INSERT INTO foxtan.thread
+    const template = `INSERT INTO thread
   ("boardName", "limitsId", "pinned", "modifiers")
   VALUES ($1, $2, $3, $4)
   RETURNING *`;
@@ -20,7 +20,7 @@ class ThreadModelPostgre extends ThreadModelInterface {
   }
 
   async readOneById(id) {
-    const template = `SELECT * FROM foxtan.thread WHERE id = $1 LIMIT 1`;
+    const template = `SELECT * FROM thread WHERE id = $1 LIMIT 1`;
     const values = [ id ];
     const query = await this.dialect.executeQuery(template, values);
     return ThreadDTO.from(query[0]);
@@ -28,10 +28,10 @@ class ThreadModelPostgre extends ThreadModelInterface {
 
   async readOneByHeadId(headId) {
     const template = `SELECT *
-FROM foxtan.thread
+FROM thread
 WHERE id in (
   SELECT "threadId"
-  FROM foxtan.post
+  FROM post
   WHERE id = $1
 )
 LIMIT 1`;
@@ -46,12 +46,12 @@ LIMIT 1`;
 
   async readAllByBoard(boardName, { count, page } = {}) {
     let template = `SELECT t.*
-FROM foxtan.thread t
-INNER JOIN foxtan.post p ON p."threadId" = t.id
+FROM thread t
+INNER JOIN post p ON p."threadId" = t.id
 WHERE t."boardName" = $1
 AND p.id IN (
   SELECT DISTINCT ON ("threadId") id
-  FROM foxtan.post
+  FROM post
   WHERE NOT ('sage' = ANY(COALESCE(modifiers, array[]::varchar[])))
 )
 GROUP BY t.id, p.id
@@ -64,8 +64,8 @@ ORDER BY MAX(p.id) DESC`;
 
   async readOneByBoardAndPost(boardName, postNumber) {
     const template = `SELECT t.*
-FROM foxtan.thread t
-INNER JOIN foxtan.post p ON t.id = p."threadId"
+FROM thread t
+INNER JOIN post p ON t.id = p."threadId"
 WHERE t."boardName" = $1
 AND p.number = $2
 LIMIT 1`;
