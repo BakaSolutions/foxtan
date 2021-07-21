@@ -13,7 +13,7 @@ class ThreadDTO extends DTO {
   constructor(data) {
     super();
     if (!data) {
-      throw new TypeError();
+      throw new this.DtoError();
     }
 
     this.id = data.id;

@@ -1,5 +1,9 @@
+const { DtoError } = require('../Error/index.js');
+
 
 class DTO {
+
+  DtoError = DtoError;
 
   get closedKeys() {
     return [];

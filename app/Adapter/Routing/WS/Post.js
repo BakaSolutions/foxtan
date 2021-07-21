@@ -1,7 +1,7 @@
 const PostBO = require('../../../Application/Business/PostBO.js');
 const PostService = require('../../../Application/Service/PostService.js');
 const Tools = require('../../../Infrastructure/Tools.js');
-const { MissingParamError, PostNotFoundError } = require('../../../Domain/Error/index.js');
+const { MissingParamError, PostNotFoundError, DtoError } = require('../../../Domain/Error/index.js');
 
 
 class PostController {
@@ -56,21 +56,23 @@ class PostController {
           let hasPrivileges = false;
           let post;
 
-          switch (true) {
-            case !!(Tools.isNumber(id) && id > 0):
-              post = await this.post.readOne(id);
-              break;
-            case !!(boardName && Tools.isNumber(number) && number > 0):
-              post = await this.post.readOneByBoardAndPost(boardName, number);
-              break;
-            default:
-              throw new MissingParamError("postId or boardName/number is missing");
+          try {
+            switch (true) {
+              case !!(Tools.isNumber(id) && id > 0):
+                post = await this.post.readOne(id);
+                break;
+              case !!(boardName && Tools.isNumber(number) && number > 0):
+                post = await this.post.readOneByBoardAndPost(boardName, number);
+                break;
+              default:
+                throw new MissingParamError("postId or boardName/number is missing");
+            }
+          } catch (e) {
+            if (e instanceof DtoError) {
+              throw new PostNotFoundError();
+            }
+            throw e;
           }
-
-          if (!post) {
-            throw new PostNotFoundError();
-          }
-
           return this.post.cleanOutput(post, hasPrivileges);
         }
       }

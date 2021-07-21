@@ -2,7 +2,7 @@ const ThreadBO = require('../../../Application/Business/ThreadBO.js');
 const ThreadService = require('../../../Application/Service/ThreadService.js');
 const PostBO = require('../../../Application/Business/PostBO.js');
 const PostService = require('../../../Application/Service/PostService.js');
-const { MissingParamError, ThreadsNotFoundError, ThreadNotFoundError } = require('../../../Domain/Error/index.js');
+const { MissingParamError, ThreadsNotFoundError, ThreadNotFoundError, DtoError } = require('../../../Domain/Error/index.js');
 
 class ThreadController {
   constructor(DatabaseContext) {
@@ -40,22 +40,25 @@ class ThreadController {
           let hasPrivileges = false;
           let thread;
 
-          switch (true) {
-            case !!id:
-              thread = await this.thread.readOne(id);
-              break;
-            case !!headId:
-              thread = await this.thread.readOneByHeadId(headId);
-              break;
-            case !!(boardName && postNumber):
-              thread = await this.thread.readOneByBoardAndPost(boardName, postNumber);
-              break;
-            default:
-              throw new MissingParamError("id or headId or boardName/postNumber is missing");
-          }
-
-          if (!thread) {
-            throw new ThreadNotFoundError(); // TODO: This job is for ThreadEntity but we have not got one yet
+          try {
+            switch (true) {
+              case !!id:
+                thread = await this.thread.readOne(id);
+                break;
+              case !!headId:
+                thread = await this.thread.readOneByHeadId(headId);
+                break;
+              case !!(boardName && postNumber):
+                thread = await this.thread.readOneByBoardAndPost(boardName, postNumber);
+                break;
+              default:
+                throw new MissingParamError("id or headId or boardName/postNumber is missing");
+            }
+          } catch (e) {
+            if (e instanceof DtoError) {
+              throw new ThreadNotFoundError(); // TODO: This job is for ThreadEntity but we have not got one yet
+            }
+            throw e;
           }
           return this.thread.cleanOutput(thread, hasPrivileges);
         }

@@ -68,6 +68,12 @@ class PostNotFoundError extends CustomError {
   }
 }*/
 
+class DtoError extends CustomError {
+  constructor(description) {
+    super("DTO_ERROR", description);
+  }
+}
+
 
 module.exports = {
   CustomError,
@@ -80,5 +86,6 @@ module.exports = {
   ThreadNotFoundError,
   ThreadsNotFoundError,
 
-  PostNotFoundError
+  PostNotFoundError,
+  DtoError
 };

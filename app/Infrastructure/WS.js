@@ -69,6 +69,7 @@ module.exports = class WS {
           console.error(`[WS] [ERR] [${e.code}] [${e.status}] ${e.message}`);
           return this.fail(ws, params, e.display());
         }
+        console.error(`[WS] [ERR] [500] [${e.code}] ${e.message}`);
         return this.fail(ws, params, {code: 500});
       }
     } catch (e) {
