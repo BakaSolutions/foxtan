@@ -2,7 +2,7 @@ const ThreadBO = require('../../../Application/Business/ThreadBO.js');
 const ThreadService = require('../../../Application/Service/ThreadService.js');
 const PostBO = require('../../../Application/Business/PostBO.js');
 const PostService = require('../../../Application/Service/PostService.js');
-const { MissingParamError, ThreadsNotFoundError, ThreadNotFoundError, DtoError } = require('../../../Domain/Error/index.js');
+const { MissingParamError, ThreadsNotFoundError, ThreadNotFoundError, DtoError, BadRequestError } = require('../../../Domain/Error/index.js');
 
 class ThreadController {
   constructor(DatabaseContext) {
@@ -19,8 +19,15 @@ class ThreadController {
           let { boardName, count, page } = params;
           let hasPrivileges = false;
 
-          if (!params.boardName) {
+          if (!boardName) {
             throw new MissingParamError("boardName is missing");
+          }
+
+          count = +count;
+          page = +page;
+
+          if (count < 1 || page < 0) {
+            throw new BadRequestError();
           }
 
           let threads = await this.thread.readAllByBoard(boardName, {
@@ -43,12 +50,24 @@ class ThreadController {
           try {
             switch (true) {
               case !!id:
+                id = +id;
+                if (id < 1) {
+                  throw new BadRequestError("Id must not be lower than 1");
+                }
                 thread = await this.thread.readOne(id);
                 break;
               case !!headId:
+                headId = +headId;
+                if (headId < 1) {
+                  throw new BadRequestError("headId must not be lower than 1");
+                }
                 thread = await this.thread.readOneByHeadId(headId);
                 break;
               case !!(boardName && postNumber):
+                postNumber = +postNumber;
+                if (postNumber < 1) {
+                  throw new BadRequestError("Post number not be lower than 1");
+                }
                 thread = await this.thread.readOneByBoardAndPost(boardName, postNumber);
                 break;
               default:

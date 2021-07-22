@@ -1,6 +1,6 @@
 const BoardBO = require('../../../Application/Business/BoardBO.js');
 const BoardService = require('../../../Application/Service/BoardService.js');
-const { MissingParamError, BoardNotFoundError } = require('../../../Domain/Error/index.js');
+const { MissingParamError, BoardNotFoundError, BadRequestError } = require('../../../Domain/Error/index.js');
 
 class BoardController {
 
@@ -14,6 +14,14 @@ class BoardController {
         request: 'boards',
         middleware: async params => {
           let { count, page } = params;
+
+          count = +count;
+          page = +page;
+
+          if (count < 1 || page < 0) {
+            throw new BadRequestError();
+          }
+
           let out = await this.board.readMany({
             count,
             page,

@@ -14,11 +14,7 @@ class CustomError extends Error {
     };
   }
 
-  toString() {
-    return ""
-  }
-
-  displayWiithStack() {
+  displayWithStack() {
     let out = this.display();
     out.stack = this.stack;
     return out;
@@ -75,6 +71,13 @@ class DtoError extends CustomError {
 }
 
 
+class BadRequestError extends ValidationError {
+  constructor(description) {
+    super("BAD_REQUEST", description || "Bad request");
+  }
+}
+
+
 module.exports = {
   CustomError,
   ValidationError,
@@ -87,5 +90,6 @@ module.exports = {
   ThreadsNotFoundError,
 
   PostNotFoundError,
-  DtoError
+  DtoError,
+  BadRequestError
 };

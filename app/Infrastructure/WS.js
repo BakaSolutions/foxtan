@@ -65,11 +65,12 @@ module.exports = class WS {
         let data = await WS._solveMiddlewares(sequence.slice(), params, ws);
         return this.success(ws, params, data || null);
       } catch (e) {
+        message = JSON.stringify(params);
         if (e instanceof CustomError) {
-          console.error(`[WS] [ERR] [${e.code}] [${e.status}] ${e.message}`);
+          console.error(`[WS] [ERR] [${e.status}] ${message} ([${e.code}] ${e.message})`);
           return this.fail(ws, params, e.display());
         }
-        console.error(`[WS] [ERR] [500] [${e.code}] ${e.message}`);
+        console.error(`[WS] [ERR] [500] ${message} ([${e.code}] ${e.message})`);
         return this.fail(ws, params, {code: 500});
       }
     } catch (e) {

@@ -1,7 +1,7 @@
 const PostBO = require('../../../Application/Business/PostBO.js');
 const PostService = require('../../../Application/Service/PostService.js');
 const Tools = require('../../../Infrastructure/Tools.js');
-const { MissingParamError, PostNotFoundError, DtoError } = require('../../../Domain/Error/index.js');
+const { MissingParamError, PostNotFoundError, DtoError, BadRequestError } = require('../../../Domain/Error/index.js');
 
 
 class PostController {
@@ -18,6 +18,11 @@ class PostController {
           let hasPrivileges = false;
           let posts = [];
 
+          count = +count;
+          if (count < 1) {
+            throw new BadRequestError("Count must not be lower than 1");
+          }
+
           switch (true) {
             case !!(threadId && page && page.toLowerCase() === 'tail'):
               // tail (last posts in the thread)
@@ -25,10 +30,18 @@ class PostController {
               break;
             case !!(threadId && !boardName):
               // just posts in a thread
+              page = +page;
+              if (page < 0) {
+                throw new BadRequestError("Page must not be lower than 0");
+              }
               posts = await this.post.readThreadPosts(threadId, {count, page});
               break;
             case !!(!threadId && boardName):
               // feed (last posts on the board)
+              page = +page;
+              if (page < 0) {
+                throw new BadRequestError("Page must not be lower than 0");
+              }
               posts = await this.post.readBoardFeed(boardName, {count, page});
               break;
             default:
@@ -58,10 +71,16 @@ class PostController {
 
           try {
             switch (true) {
-              case !!(Tools.isNumber(id) && id > 0):
+              case !!(Tools.isNumber(id)):
+                if (id < 1) {
+                  throw new BadRequestError("id must not be lower than 1");
+                }
                 post = await this.post.readOne(id);
                 break;
-              case !!(boardName && Tools.isNumber(number) && number > 0):
+              case !!(boardName && Tools.isNumber(number)):
+                if (number < 1) {
+                  throw new BadRequestError("Post number must not be lower than 1");
+                }
                 post = await this.post.readOneByBoardAndPost(boardName, number);
                 break;
               default:
