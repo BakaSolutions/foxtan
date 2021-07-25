@@ -11,7 +11,7 @@ let config = {
     postsPerCaptcha: 24,
 
     mime: 'image/jpeg',
-    quality: 0.15, // for 'image/jpeg' [0 ... 1]
+    quality: 0.24, // for 'image/jpeg' [0 ... 1]
     compressionLevel: 4, // for 'image/png' [0 ... 9]
 
     width: 192,

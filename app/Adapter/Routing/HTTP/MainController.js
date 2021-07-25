@@ -11,7 +11,7 @@ class MainController {
       return ctx.throw(404);
     }
     ctx.body = out;
-  };
+  }
 
   fail(ctx, out) {
     ctx.status = out
@@ -30,7 +30,9 @@ class MainController {
     delete out.status;
 
     ctx.body = out;
-  };
+  }
+
+  isAJAXRequested = ctx => ctx.headers["x-requested-with"] === "XMLHttpRequest";
 
 }
 
