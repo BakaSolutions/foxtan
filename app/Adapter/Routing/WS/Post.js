@@ -24,16 +24,9 @@ class PostController {
           }
 
           switch (true) {
-            case !!(threadId && page && page.toLowerCase() === 'tail'):
-              // tail (last posts in the thread)
-              posts = await this.post.readThreadTail(threadId, {count});
-              break;
             case !!(threadId && !boardName):
               // just posts in a thread
               page = +page;
-              if (page < 0) {
-                throw new BadRequestError("Page must not be lower than 0");
-              }
               posts = await this.post.readThreadPosts(threadId, {count, page});
               break;
             case !!(!threadId && boardName):
