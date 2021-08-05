@@ -15,7 +15,7 @@ class PostModelPostgre extends PostModelInterface {
 "modifiers", "ipAddress", "created", "updated", "deleled")
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 RETURNING *`;
-    const values = post.toArray().slice(1);
+    const values = post.toArray();
     const query = await this.dialect.executeQuery(template, values);
     return PostDTO.from(query[0]);
   }
