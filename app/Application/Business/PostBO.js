@@ -20,13 +20,10 @@ class PostBO {
     return this.process(post);
   }
 
-  async readThreadTail(threadId, { count } = {}) {
-    let posts = await this.PostService.readThreadTail(threadId, { count });
-    return Tools.parallel(this.process.bind(this), posts);
-  }
-
   async readThreadPosts(threadId, { count, page } = {}) {
-    let posts = await this.PostService.readThreadPosts(threadId, { count, page });
+    let posts = page >= 0
+      ? await this.PostService.readThreadPosts(threadId, { count, page })
+      : await this.PostService.readThreadTail(threadId, { count });
     return Tools.parallel(this.process.bind(this), posts);
   }
 
