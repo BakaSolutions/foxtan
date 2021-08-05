@@ -3,7 +3,12 @@ const { DtoError } = require('../Error/index.js');
 
 class DTO {
 
-  DtoError = DtoError;
+  constructor() {
+    Object.defineProperty(this, "DtoError", {
+      value: DtoError,
+      enumerable: false
+    });
+  }
 
   get closedKeys() {
     return [];
@@ -11,12 +16,6 @@ class DTO {
 
   get protectedKeys() {
     return [];
-  }
-
-  constructor(data) {
-    // this = data || ''
-
-    return this;
   }
 
   lock() {
