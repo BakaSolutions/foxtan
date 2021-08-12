@@ -11,7 +11,11 @@ let middleware = app => {
       const ms = +new Date - start;
       ctx.set('X-Response-Time', `${ms} ms`);
       if (debug) {
-        console.log(`[HTTP] [${(''+ms).padStart(3)} ms] [${ctx.method}] [${ctx.status}] ${ctx.url}`);
+        let string = `[HTTP] [${(''+ms).padStart(3)} ms] [${ctx.method}] [${ctx.status}] ${ctx.url}`;
+        if (ctx.message) {
+          string += ` (${ctx.message})`;
+        }
+        console.log(string);
       }
     }
   });

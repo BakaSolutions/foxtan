@@ -1,9 +1,8 @@
 const config = require('../../../../Infrastructure/Config.js');
+const Tools = require('../../../../Infrastructure/Tools.js');
 const MainController = require('../MainController.js');
 
 const Controller = new MainController();
-
-const ROOT = new RegExp(config.get('directories.root').replace(/\\/g, '\\\\'), 'g');
 
 let middleware = app => {
   app.use(async (ctx, next) => {
@@ -21,7 +20,6 @@ let middleware = app => {
       return (err instanceof Error)
          ? ctx.app.emit('error', err, ctx)
          : errorHandler(err, ctx, false);
-      return ctx.app.emit('error', err, ctx);
     }
   });
 
@@ -37,7 +35,7 @@ function errorHandler(err, ctx, isError = true) {
   err = { message, stack, status };
 
   if (err.stack && config.get('debug.enable')) {
-    err.stack = err.stack.replace(ROOT, '') || err;
+    err.stack = err.stack.replace(Tools.ROOT, '') || err;
   } else {
     delete err.stack;
   }

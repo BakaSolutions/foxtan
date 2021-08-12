@@ -1,4 +1,5 @@
 const http = require('http');
+const { CustomError } = require("../../../Domain/Error/index.js");
 
 class MainController {
 
@@ -17,19 +18,26 @@ class MainController {
     ctx.status = out
       ? out.status || 500
       : 500;
+    delete out.status;
 
     if (ctx.status >= 500) {
       Promise.reject(out); // will catch in Application/index.js:logUnexpectedErrors()
       // TODO: Make a separated centralized logging system
     }
 
-    if (!out.error) {
-      out.error = http.STATUS_CODES[ctx.status];
+    ctx.message = out.message; // goes to log
+
+    if (out instanceof CustomError) {
+      return ctx.body = {
+        error: out.display()
+      };
     }
 
-    delete out.status;
-
-    ctx.body = out;
+    ctx.body = {
+      error: {
+        description: http.STATUS_CODES[ctx.status]
+      }
+    };
   }
 
   isAJAXRequested = ctx => ctx.headers["x-requested-with"] === "XMLHttpRequest";
