@@ -25,9 +25,9 @@ describe('ThreadService', async () => {
     it('creates a thread with a right values', async () => {
       let input = ThreadDTO.from(validThread);
 
-      let threadId = await threadService.create(input);
+      let thread = await threadService.create(input);
 
-      assert.strictEqual(threadId, 1);
+      assert.strictEqual(thread.id, 1);
     });
 
     it('does not create a thread without a board name', async () => {
@@ -47,8 +47,8 @@ describe('ThreadService', async () => {
     it('reads a thread by valid id', async () => {
       let input = ThreadDTO.from(validThread);
 
-      let threadId = await threadService.create(input);
-      let thread = await threadService.readOneById(threadId);
+      let thread0 = await threadService.create(input);
+      let thread = await threadService.readOneById(thread0.id);
 
       assert(thread instanceof ThreadDTO);
       assert.strictEqual(thread.boardName, input.boardName);
@@ -57,13 +57,13 @@ describe('ThreadService', async () => {
     it('does not read a thread by invalid name (undefined)', async () => {
       let promise = threadService.readOneById();
 
-      await assert.rejects(promise, /TypeError/);
+      await assert.rejects(promise, /Error/);
     });
 
     it('does not read a thread by invalid id (number)', async () => {
       let promise = threadService.readOneById(-24);
 
-      await assert.rejects(promise, /TypeError/);
+      await assert.rejects(promise, /Error/);
     });
 
   });

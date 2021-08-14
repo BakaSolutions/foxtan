@@ -1,3 +1,9 @@
+const {
+  MissingParamError,
+  ThreadNotFoundError,
+  ThreadsNotFoundError
+} = require('../../Domain/Error/index.js');
+
 class ThreadService {
 
   /**
@@ -11,15 +17,13 @@ class ThreadService {
   /**
    *
    * @param {ThreadDTO} threadDTO
-   * @returns {Promise<Number>} id
+   * @returns {Promise<ThreadDTO>}
    */
-  async create(threadDTO = {}) {
+  async create(threadDTO) {
     if (!threadDTO.boardName) {
-      throw new Error('Board name is not present');
+      throw new MissingParamError('Board name is not present');
     }
-    let thread = await this._threadModel.create(threadDTO);
-
-    return thread.id;
+    return await this._threadModel.create(threadDTO);
   }
 
   /**
@@ -28,7 +32,11 @@ class ThreadService {
    * @returns {Promise<ThreadDTO>}
    */
   async readOneById(id) {
-    return this._threadModel.readOneById(id);
+    try {
+      return this._threadModel.readOneById(id);
+    } catch (e) {
+      throw new ThreadNotFoundError();
+    }
   }
 
   /**
@@ -37,7 +45,11 @@ class ThreadService {
    * @returns {Promise<ThreadDTO>}
    */
   async readOneByHeadId(headId) {
-    return this._threadModel.readOneByHeadId(headId);
+    try {
+      return this._threadModel.readOneByHeadId(headId);
+    } catch (e) {
+      throw new ThreadNotFoundError();
+    }
   }
 
   /**
@@ -47,7 +59,11 @@ class ThreadService {
    * @returns {Promise<ThreadDTO>}
    */
   async readOneByBoardAndPost(boardName, postNumber) {
-    return this._threadModel.readOneByBoardAndPost(boardName, postNumber);
+    try {
+      return this._threadModel.readOneByBoardAndPost(boardName, postNumber);
+    } catch (e) {
+      throw new ThreadNotFoundError();
+    }
   }
 
   /**
@@ -56,7 +72,11 @@ class ThreadService {
    * @returns {Promise<Array>}
    */
   async readMany({ count, page, order } = {}) {
-    return this._threadModel.readMany({ count, page, order });
+    try {
+      return this._threadModel.readMany({ count, page, order });
+    } catch (e) {
+      throw new ThreadsNotFoundError();
+    }
   }
 
   /**
@@ -67,7 +87,11 @@ class ThreadService {
    * @returns {Promise<Array>} boards
    */
   async readAllByBoard(boardName, { count, page } = {}) {
-    return this._threadModel.readAllByBoard(boardName, { count, page });
+    try {
+      return this._threadModel.readAllByBoard(boardName, { count, page });
+    } catch (e) {
+      throw new ThreadsNotFoundError();
+    }
   }
 
 }

@@ -2,11 +2,28 @@ const Tools = require('../../Infrastructure/Tools.js');
 
 class PostBO {
 
-  constructor(PostService) {
+  /**
+   *
+   * @param {PostService} PostService
+   * @param {ThreadService} ThreadService
+   */
+  constructor(PostService, ThreadService) {
+    if (!PostService) {
+      throw new Error('No PostService');
+    }
     this.PostService = PostService;
+    this.ThreadService = ThreadService;
   }
 
-  async create(postDTO) {
+  /**
+   * @param {PostDTO} postDTO
+   * @param {ThreadDTO} threadDTO
+   */
+  async create(postDTO, threadDTO) {
+    if (threadDTO) {
+      let thread = await this.ThreadService.create(threadDTO);
+      postDTO.threadId = thread.id;
+    }
     return this.PostService.create(postDTO);
   }
 

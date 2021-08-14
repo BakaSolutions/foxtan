@@ -3,15 +3,14 @@ const Tools = require('../../Infrastructure/Tools.js');
 class ThreadBO {
 
   constructor(ThreadService, PostService) {
+    if (!ThreadService) {
+      throw new Error('No ThreadService');
+    }
     this.ThreadService = ThreadService;
     if (!PostService) {
       throw new Error('No PostService');
     }
     this.PostService = PostService;
-  }
-
-  async create(thread) {
-    return this.ThreadService.create(thread);
   }
 
   async readOne(id) {

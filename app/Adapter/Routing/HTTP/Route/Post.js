@@ -7,8 +7,6 @@ const ThreadDTO = require('../../../../Domain/DTO/ThreadDTO.js');
 const BoardBO = require('../../../../Application/Business/BoardBO.js');
 const BoardService = require('../../../../Application/Service/BoardService.js');
 
-const { ThreadNotFoundError } = require('../../../../Domain/Error/index.js');
-
 const MainController = require('../MainController.js');
 
 class PostController extends MainController {
@@ -16,9 +14,11 @@ class PostController extends MainController {
   constructor(Router, DatabaseContext) {
     super(Router);
     let postService = new PostService(DatabaseContext.post);
-    this.post = new PostBO(postService);
-    this.thread = new ThreadBO(new ThreadService(DatabaseContext.thread), postService);
-    this.board = new BoardBO(new BoardService(DatabaseContext.board));
+    let threadService = new ThreadService(DatabaseContext.thread);
+    let boardService = new BoardService(DatabaseContext.board);
+    this.post = new PostBO(postService, threadService);
+    this.thread = new ThreadBO(threadService, postService);
+    this.board = new BoardBO(boardService);
 
     // Setting up POST methods
     Router.post('api/createPost', this.createPost.bind(this));
@@ -29,32 +29,35 @@ class PostController extends MainController {
   async createPost(ctx) {
     let { body: query, token } = ctx.request; // TODO: Token check
 
-    let isANewThread = !(query.threadId);
-
     try {
+      let isANewThread = !(query.threadId),
+        threadDTO = new ThreadDTO(query),
+        postDTO = new PostDTO(query);
+
       /*if (isANewThread) {
         await this.thread.validate();
       }
-      await this.post.validate();*/
+      await this.post.validate();*/ // TODO: Input validation
 
-      if (isANewThread) {
-        // Create a new thread first
-        let dto = new ThreadDTO(query);
-        query.threadId = await this.thread.create(dto);
-      } else {
-        let thread = await this.thread.readOne(query.threadId);
-        if (!thread) {
-          throw new ThreadNotFoundError('Thread does not exist!');
-        }
-        query.boardName = thread.boardName;
+      if (!isANewThread) {
+        threadDTO = await this.thread.readOne(postDTO.threadId);
       }
-      query.created = new Date();
-      let lastPostNumber = await this.board.getLastPostNumber(query.boardName);
-      query.number = ++lastPostNumber;
-      let dto = new PostDTO(query);
-      let post = await this.post.create(dto);
 
-      this.success(ctx, post);
+      let lastPostNumber = await this.board.getLastPostNumber(threadDTO.boardName);
+      postDTO.number = ++lastPostNumber;
+
+      if (!isANewThread) {
+        threadDTO = null;
+      }
+
+      let post = await this.post.create(postDTO, threadDTO);
+
+      let out = {
+        id: post.id,
+        threadId: post.threadId,
+        number: post.number
+      };
+      this.success(ctx, out);
     } catch (e) {
       this.fail(ctx, e);
     }

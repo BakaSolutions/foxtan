@@ -25,9 +25,9 @@ describe('PostService', async () => {
     it('creates a post with a right values', async () => {
       let input = PostDTO.from(validPost);
 
-      let postId = await postService.create(input);
+      let post = await postService.create(input);
 
-      assert.strictEqual(postId, 1);
+      assert.strictEqual(post.id, 1);
     });
 
     it('does not create a post without any text', async () => {
@@ -46,10 +46,10 @@ describe('PostService', async () => {
     it('reads a post by valid id', async () => {
       let input = PostDTO.from(validPost);
 
-      let postId = await postService.create(input);
-      let post = await postService.readOneById(postId);
+      let post0 = await postService.create(input);
+      let post = await postService.readOneById(post0.id);
 
-      assert.strictEqual(postId, 1);
+      assert.strictEqual(post0.id, 1);
       assert(post instanceof PostDTO);
       assert.strictEqual(post.subject, input.subject);
       assert.strictEqual(post.text, input.text);

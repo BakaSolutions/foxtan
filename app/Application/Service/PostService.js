@@ -1,3 +1,10 @@
+const {
+  MissingParamError,
+  PostNotFoundError,
+  BadRequestError
+} = require('../../Domain/Error/index.js');
+
+
 class PostService {
 
   /**
@@ -11,15 +18,14 @@ class PostService {
   /**
    *
    * @param {PostDTO} postDTO
-   * @returns {Promise<Number>} id
+   * @returns {Promise<PostDTO>}
    */
-  async create(postDTO = {}) {
+  async create(postDTO) {
     if (!postDTO.text && (!postDTO.attachments || !postDTO.attachments.length)) {
-      throw new Error('Neither text nor file is present');
+      throw new MissingParamError('Neither text nor file is present');
     }
-    let post = await this._postModel.create(postDTO);
-
-    return post.id;
+    postDTO.created = new Date();
+    return this._postModel.create(postDTO);
   }
 
   /**
@@ -28,12 +34,16 @@ class PostService {
    */
   async readOneById(id) {
     if (typeof id !== 'number' || isNaN(id)) {
-      throw new Error('id must be a Number');
+      throw new BadRequestError('id must be a Number');
     }
     if (id < 1) {
-      throw new Error('id must be more than 0');
+      throw new BadRequestError('id must be more than 0');
     }
-    return this._postModel.readOneById(id);
+    try {
+      return this._postModel.readOneById(id);
+    } catch (e) {
+      throw new PostNotFoundError();
+    }
   }
 
   /**
@@ -42,12 +52,16 @@ class PostService {
    */
   async readOneByThreadId(threadId) {
     if (typeof threadId !== 'number' || isNaN(threadId)) {
-      throw new Error('threadId must be a Number');
+      throw new BadRequestError('threadId must be a Number');
     }
     if (threadId < 1) {
-      throw new Error('threadId must be more than 0');
+      throw new BadRequestError('threadId must be more than 0');
     }
-    return this._postModel.readOneByThreadId(threadId);
+    try {
+      return this._postModel.readOneByThreadId(threadId);
+    } catch (e) {
+      throw new PostNotFoundError();
+    }
   }
 
   /**
@@ -57,15 +71,19 @@ class PostService {
    */
   async readOneByBoardAndPost(boardName, number) {
     if (!boardName) {
-      throw new Error('boardName is required');
+      throw new BadRequestError('boardName is required');
     }
     if (typeof number !== 'number' || isNaN(number)) {
-      throw new Error('number must be a Number');
+      throw new BadRequestError('number must be a Number');
     }
     if (number < 1) {
-      throw new Error('number must be more than 0');
+      throw new BadRequestError('number must be more than 0');
     }
-    return this._postModel.readOneByBoardAndPost(boardName, number);
+    try {
+      return this._postModel.readOneByBoardAndPost(boardName, number);
+    } catch (e) {
+      throw new PostNotFoundError();
+    }
   }
 
   /**
@@ -74,9 +92,13 @@ class PostService {
    * @returns {Promise<Array>} posts
    */
   async readThreadTail(threadId, { count } = {}) {
-    let posts = await this._postModel.readByThreadId(threadId, { count, order: 'desc' });
-    posts = posts.reverse();
-    return posts;
+    try {
+      let posts = await this._postModel.readByThreadId(threadId, { count, order: 'desc' });
+      posts = posts.reverse();
+      return posts;
+    } catch (e) {
+      throw new PostNotFoundError();
+    }
   }
 
   /**
@@ -86,7 +108,11 @@ class PostService {
    * @returns {Promise<Array>} posts
    */
   async readThreadPosts(threadId, { count, page } = {}) {
-    return this._postModel.readByThreadId(threadId, { count, page });
+    try {
+      return this._postModel.readByThreadId(threadId, { count, page });
+    } catch (e) {
+      throw new PostNotFoundError();
+    }
   }
 
   /**
@@ -96,7 +122,11 @@ class PostService {
    * @returns {Promise<Array>} posts
    */
   async readBoardFeed(boardName, { count, page } = {}) {
-    return this._postModel.readByBoardName(boardName, { count, page, order: 'desc' });
+    try {
+      return this._postModel.readByBoardName(boardName, { count, page, order: 'desc' });
+    } catch (e) {
+      throw new PostNotFoundError();
+    }
   }
 
   /**

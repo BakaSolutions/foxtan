@@ -1,3 +1,4 @@
+const { BoardNotFoundError } = require('../../Domain/Error/index.js');
 
 class BoardBO {
 
@@ -32,7 +33,7 @@ class BoardBO {
 
   getLastPostNumber(name) {
     if (!name) {
-      throw new Error('No board name to select last post number!');
+      throw new BoardNotFoundError('No board name to select last post number!');
     }
     return this.BoardService.getLastPostNumber(name);
   }
