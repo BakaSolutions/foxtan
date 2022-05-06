@@ -5,6 +5,7 @@
   "main": "app/Application/index.js",
   "scripts": {
     "coverage": "nyc npm test",
+    "postinstall": "node scripts/postinstall.js",
     "start": "node app/Application",
     "test": "node test"
   },

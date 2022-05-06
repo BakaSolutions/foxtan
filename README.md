@@ -27,6 +27,9 @@ yarn install
 yarn add pg
 ```
 
+#### Configuration
+After you have installed the dependencies, `config.js` file will get automatically created for you. Edit it to set up the engine.
+
 #### Usage
 ```
 # Launch on LTS or "current" version
