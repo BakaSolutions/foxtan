@@ -147,3 +147,13 @@ Tools.wrapWith = (string, charStart, charEnd = charStart) => {
 };
 
 Tools.unique = arr => [ ...new Set(arr) ];
+
+Tools.mimeToFormat = (mime) => {
+  switch (mime) {
+    case 'image/jpeg':
+      return 'jpg';
+
+    default:
+      return mime.split('/')[1];
+  }
+}

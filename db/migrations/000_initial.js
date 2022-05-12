@@ -1,6 +1,6 @@
 const boardNameMaxLength = 10;
 const passwordHashLength = 64;
-const fileHashLength = 8;
+const fileHashLength = 16;
 const saltLength = 3;
 const schema = 'foxtan';
 
@@ -11,13 +11,11 @@ exports.up = knex => {
     .createTable('file', (table) => {
       table.string('hash', fileHashLength).primary();
       table.string('mime', 40);
-      table.string('title', 255);
+      table.string('name', 255);
       table.specificType('width', 'smallint').unsigned();
       table.specificType('height', 'smallint').unsigned();
-      table.text('caption');
+      table.integer('size').unsigned();
       table.specificType('modifiers', 'varchar[]');
-      table.specificType('thumbWidth', 'smallint').unsigned();
-      table.specificType('thumbHeight', 'smallint').unsigned();
     })
     .createTable('limits', (table) => {
       table.increments('id').unsigned().primary();
@@ -65,6 +63,7 @@ exports.up = knex => {
       table.text('text');
       table.string('sessionKey');
       table.specificType('modifiers', 'varchar[]');
+      table.specificType('attachments', 'varchar[]');
       table.specificType('ipAddress', 'inet');
       table.timestamp('created').defaultTo(knex.fn.now());
       table.timestamp('updated');
@@ -82,14 +81,6 @@ exports.up = knex => {
 
       table.foreign('fromId').references('id').inTable(schema + '.post');
       table.foreign('toId').references('id').inTable(schema + '.post');
-    })
-    .createTable('attachment', (table) => {
-      table.increments('id').unsigned().primary();
-      table.integer('postId').unsigned();
-      table.string('fileHash');
-
-      table.foreign('postId').references('id').inTable(schema + '.post');
-      table.foreign('fileHash').references('hash').inTable(schema + '.file');
     })
     .createTable('ban', (table) => {
       table.increments('id').unsigned().primary();

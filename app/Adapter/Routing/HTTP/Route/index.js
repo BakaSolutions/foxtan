@@ -12,8 +12,15 @@ class IndexController extends MainController {
   getMeta(ctx) {
     this.success(ctx, {
       engine: 'Foxtan/' + config.get('server.version'),
-      res: config.get('paths.upload'),
-      thumb: config.get('paths.thumb'),
+      res: {
+        path: config.get('paths.upload'),
+      },
+      thumb: {
+        path: config.get('paths.thumb'),
+        format: config.get('files.thumbnail.format'),
+        width: config.get('files.thumbnail.width'),
+        height: config.get('files.thumbnail.height'),
+      },
       ws: config.get('paths.ws')
     });
   }

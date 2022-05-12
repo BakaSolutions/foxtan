@@ -7,9 +7,7 @@ const Routing = require('../Infrastructure/Routing.js');
 // Databases
 const DatabaseContext = require('../Infrastructure/DatabaseContext.js');
 
-// Workaround for proper work
-require('sharp');
-require('canvas');
+const fs = require('fs').promises;
 
 class Foxtan {
 
@@ -20,6 +18,16 @@ class Foxtan {
   async init() {
     this.logUnexpectedErrors(this.logError.bind(this));
     try {
+      await fs.mkdir(config.get('directories.temporary'))
+        .catch((err) => {
+          switch (err.code) {
+            case 'EEXIST':
+              return;
+
+            default:
+              throw err;
+          }
+        });
       await this.initDatabaseContext(config.get('db.type'));
       await this.launchServer();
     } catch (e) {

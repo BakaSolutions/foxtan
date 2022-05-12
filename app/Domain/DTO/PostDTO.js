@@ -7,7 +7,7 @@ class PostDTO extends DTO {
   }
 
   get protectedKeys() {
-    return ['id', 'attachments'];
+    return ['id'];
   }
 
   constructor(data) {
@@ -28,7 +28,6 @@ class PostDTO extends DTO {
     this.created = data.created;
     this.updated = data.updated;
     this.deleted = data.deleted;
-
     this.attachments = data.attachments || [];
 
     return this;

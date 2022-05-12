@@ -12,8 +12,8 @@ class PostModelPostgre extends PostModelInterface {
   async create(post) {
     const template = `INSERT INTO post
 ("threadId", "userId", "number", "subject", "text", "sessionKey",
-"modifiers", "ipAddress", "created", "updated", "deleled")
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+"modifiers", "ipAddress", "created", "updated", "deleled", "attachments")
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 RETURNING *`;
     const values = post.toArray();
     const query = await this.dialect.executeQuery(template, values);

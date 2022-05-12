@@ -1,11 +1,13 @@
-const PostBO = require('../../../../Application/Business/PostBO.js');
-const PostService = require('../../../../Application/Service/PostService.js');
-const PostDTO = require('../../../../Domain/DTO/PostDTO.js');
-const ThreadBO = require('../../../../Application/Business/ThreadBO.js');
-const ThreadService = require('../../../../Application/Service/ThreadService.js');
-const ThreadDTO = require('../../../../Domain/DTO/ThreadDTO.js');
 const BoardBO = require('../../../../Application/Business/BoardBO.js');
+const FileBO = require('../../../../Application/Business/FileBO.js');
+const PostBO = require('../../../../Application/Business/PostBO.js');
+const ThreadBO = require('../../../../Application/Business/ThreadBO.js');
 const BoardService = require('../../../../Application/Service/BoardService.js');
+const FileService = require('../../../../Application/Service/FileService.js');
+const PostService = require('../../../../Application/Service/PostService.js');
+const ThreadService = require('../../../../Application/Service/ThreadService.js');
+const PostDTO = require('../../../../Domain/DTO/PostDTO.js');
+const ThreadDTO = require('../../../../Domain/DTO/ThreadDTO.js');
 
 const MainController = require('../MainController.js');
 
@@ -13,12 +15,14 @@ class PostController extends MainController {
 
   constructor(Router, DatabaseContext) {
     super(Router);
+    let boardService = new BoardService(DatabaseContext.board);
+    let fileService = new FileService(DatabaseContext.file);
     let postService = new PostService(DatabaseContext.post);
     let threadService = new ThreadService(DatabaseContext.thread);
-    let boardService = new BoardService(DatabaseContext.board);
-    this.post = new PostBO(postService, threadService);
-    this.thread = new ThreadBO(threadService, postService);
     this.board = new BoardBO(boardService);
+    this.file = new FileBO(fileService);
+    this.post = new PostBO(postService, threadService, fileService);
+    this.thread = new ThreadBO(threadService, postService);
 
     // Setting up POST methods
     Router.post('api/createPost', this.createPost.bind(this));
@@ -33,6 +37,9 @@ class PostController extends MainController {
       let isANewThread = !(query.threadId),
         threadDTO = new ThreadDTO(query),
         postDTO = new PostDTO(query);
+
+      const files = await Promise.all(Object.values(query.file).map(f => this.file.create(f)))
+      postDTO.attachments = files.map(f => f.hash)
 
       /*if (isANewThread) {
         await this.thread.validate();

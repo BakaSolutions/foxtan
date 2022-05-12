@@ -17,3 +17,5 @@ npm-debug.log*
 /public/**/*.json
 /public/res/**/*
 /public/src/**/*
+
+!.gitkeep

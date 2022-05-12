@@ -6,13 +6,15 @@ class PostBO {
    *
    * @param {PostService} PostService
    * @param {ThreadService} ThreadService
+   * @param {FileService} FileService
    */
-  constructor(PostService, ThreadService) {
+  constructor(PostService, ThreadService, FileService) {
     if (!PostService) {
       throw new Error('No PostService');
     }
     this.PostService = PostService;
     this.ThreadService = ThreadService;
+    this.FileService = FileService;
   }
 
   /**
@@ -59,11 +61,15 @@ class PostBO {
   }
   */
 
-  process(post, attachments) {
+  async process(post) {
     if (!post) {
       return;
     }
-    post.attachments = attachments || [];// TODO: Add attachments
+
+    if (post.attachments?.length > 0) {
+      post.attachments = await this.FileService.read(post.attachments);
+    }
+
     return post;
   }
 
