@@ -38,8 +38,10 @@ class PostController extends MainController {
         threadDTO = new ThreadDTO(query),
         postDTO = new PostDTO(query);
 
-      const files = await Promise.all(Object.values(query.file).map(f => this.file.create(f)))
-      postDTO.attachments = files.map(f => f.hash)
+      if ("file" in query) {
+        const files = await Promise.all(Object.values(query.file).map(f => this.file.create(f)))
+        postDTO.attachments = files.map(f => f.hash)
+      }
 
       /*if (isANewThread) {
         await this.thread.validate();
