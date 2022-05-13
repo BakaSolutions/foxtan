@@ -20,9 +20,8 @@ class FileBO {
   }
 
   async create({ path, name, mime, size }) {
-    const hash = await fs.readFile(path)
+    const [hash, width, height] = await fs.readFile(path)
       // TODO: validation
-      // TODO: detect image height and width
       .then((file) => {
         // Generate hash
         const hash = XXHash.hash64(file, 0xCAFEBABE).readBigUInt64BE().toString(16);
@@ -31,24 +30,33 @@ class FileBO {
         const dst = config.get('directories.upload') + hash + '.' + Tools.mimeToFormat(mime);
         fs.writeFile(dst, file);
 
-        // Generate thumbnail
         if ('image' === mime.split('/')[0]) {
           const thumbCfg = config.get('files.thumbnail');
           const thumbDst = config.get('directories.thumb') + hash + '.' + thumbCfg.format;
+          const image = sharp(file);
 
-          sharp(file)
-            .resize(thumbCfg.width, thumbCfg.height)
-            .toFile(thumbDst, (err) => {
-              if (null !== err) {
-                console.error(err)
-              }
-            });
+          // Detect image width and height
+          return image.metadata()
+            .then((metadata) => {
+              const [width, height] = [metadata.width, metadata.height];
+
+              // Generate image thumbnail
+              image
+                .resize(thumbCfg.width, thumbCfg.height)
+                .toFile(thumbDst, (err) => {
+                  if (null !== err) {
+                    console.error(err)
+                  }
+                });
+
+              return [hash, width, height]
+            })
         }
 
-        return hash;
+        return [hash, null, null];
       })
 
-    const fileDTO = new FileDTO({ hash, mime, name, size });
+    const fileDTO = new FileDTO({ hash, mime, name, size, width, height });
     await this.FileService.create(fileDTO)
       .catch((err) => {
         // Ignore duplicate errors

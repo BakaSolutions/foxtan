@@ -11,10 +11,11 @@ class FileModelPostgre extends FileModelInterface {
 
   async create(file) {
     const template = `INSERT INTO file
-("hash", "mime", "name", "size")
-VALUES ($1, $2, $3, $4)
+("hash", "mime", "name", "size", "width", "height")
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *`;
-    const values = ['hash', 'mime', 'name', 'size'].map(attr => file[attr]);
+    const values = ['hash', 'mime', 'name', 'size', 'width', 'height']
+      .map(attr => file[attr]);
     const query = await this.dialect.executeQuery(template, values);
     return FileDTO.from(query[0]);
   }
