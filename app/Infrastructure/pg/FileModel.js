@@ -22,11 +22,11 @@ RETURNING *`;
 
   async read(hashArray) {
     const template = `
-SELECT f.*
-FROM UNNEST(ARRAY[$1]) file_hash
-LEFT JOIN file f on f.hash=file_hash
-    `;
-    const query = await this.dialect.executeQuery(template, hashArray);
+      SELECT *
+      FROM file
+      WHERE hash = ANY ($1)
+    `
+    const query = await this.dialect.executeQuery(template, [hashArray]);
     return query.map(file => FileDTO.from(file));
   }
 
