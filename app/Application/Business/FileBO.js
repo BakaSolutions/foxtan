@@ -19,7 +19,7 @@ class FileBO {
     this.FileService = FileService;
   }
 
-  async create({ path, name, mime, size }) {
+  async create({ path, name, mime, size }, modifiers) {
     const [hash, width, height] = await fs.readFile(path)
       // TODO: validation
       .then((file) => {
@@ -56,7 +56,7 @@ class FileBO {
         return [hash, null, null];
       })
 
-    const fileDTO = new FileDTO({ hash, mime, name, size, width, height });
+    const fileDTO = new FileDTO({ hash, mime, name, size, width, height, modifiers });
     await this.FileService.create(fileDTO)
       .catch((err) => {
         // Ignore duplicate errors

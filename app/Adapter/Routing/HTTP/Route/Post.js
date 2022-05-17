@@ -38,9 +38,28 @@ class PostController extends MainController {
         threadDTO = new ThreadDTO(query),
         postDTO = new PostDTO(query);
 
+      function getModifierList(i) {
+        const strI = String(i);
+
+        if (!('fileMark' in query) || !(strI in query.fileMark)) {
+          return [];
+        }
+
+        return Object.entries(query.fileMark[strI])
+          .map(([key, value]) => {
+            if ('true' === value) {
+              return key;
+            }
+          })
+      }
+
       if ("file" in query) {
-        const files = await Promise.all(Object.values(query.file).map(f => this.file.create(f)))
-        postDTO.attachments = files.map(f => f.hash)
+        const files = await Promise.all(Object.values(query.file)
+          .map((f, i) => (
+            this.file.create(f, getModifierList(i))
+          ))
+        );
+        postDTO.attachments = files.map(f => f.hash);
       }
 
       /*if (isANewThread) {

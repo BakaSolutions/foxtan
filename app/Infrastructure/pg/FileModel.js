@@ -10,12 +10,14 @@ class FileModelPostgre extends FileModelInterface {
   }
 
   async create(file) {
-    const template = `INSERT INTO file
-("hash", "mime", "name", "size", "width", "height")
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING *`;
-    const values = ['hash', 'mime', 'name', 'size', 'width', 'height']
-      .map(attr => file[attr]);
+    const columns = ['hash', 'mime', 'name', 'size', 'width', 'height', 'modifiers'];
+    const template = `
+      INSERT INTO file
+      (${columns.map(c => '"' + c + '"').join(', ')})
+      VALUES (${columns.map((c, i) => '$' + (i + 1))})
+      RETURNING *
+    `;
+    const values = columns.map(attr => file[attr]);
     const query = await this.dialect.executeQuery(template, values);
     return FileDTO.from(query[0]);
   }
@@ -25,7 +27,7 @@ RETURNING *`;
       SELECT *
       FROM file
       WHERE hash = ANY ($1)
-    `
+    `;
     const query = await this.dialect.executeQuery(template, [hashArray]);
     return query.map(file => FileDTO.from(file));
   }
