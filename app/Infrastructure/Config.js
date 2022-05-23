@@ -59,7 +59,7 @@ let config = {
     maxWidth: 10000,
     maxHeight: 10000,
     thumbnail: {
-      format: 'webp', // Any format supported by sharp
+      format: 'webp', // Any format supported by both sharp and ffmpeg
       width: 200,
       height: 200,
       options: {

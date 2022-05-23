@@ -4,6 +4,7 @@ const Tools = require('../../Infrastructure/Tools.js')
 
 const fs = require('fs').promises;
 const sharp = require('sharp');
+const thumbler = require('video-thumb');
 const XXHash = require('xxhash');
 
 class FileBO {
@@ -30,30 +31,43 @@ class FileBO {
         const dst = config.get('directories.upload') + hash + '.' + Tools.mimeToFormat(mime);
         fs.writeFile(dst, file);
 
-        if ('image' === mime.split('/')[0]) {
-          const thumbCfg = config.get('files.thumbnail');
-          const thumbDst = config.get('directories.thumb') + hash + '.' + thumbCfg.format;
-          const image = sharp(file);
+        switch (mime.split('/')[0]) {
+          case 'image': {
+            const thumbCfg = config.get('files.thumbnail');
+            const thumbDst = config.get('directories.thumb') + hash + '.' + thumbCfg.format;
+            const image = sharp(file);
 
-          // Detect image width and height
-          return image.metadata()
-            .then((metadata) => {
-              const [width, height] = [metadata.width, metadata.height];
+            // Detect image width and height
+            return image.metadata()
+              .then((metadata) => {
+                const [width, height] = [metadata.width, metadata.height];
 
-              // Generate image thumbnail
-              image
-                .resize(thumbCfg.width, thumbCfg.height)
-                .toFile(thumbDst, (err) => {
-                  if (null !== err) {
-                    console.error(err)
-                  }
-                });
+                // Generate image thumbnail
+                image
+                  .resize(thumbCfg.width, thumbCfg.height)
+                  .toFile(thumbDst, (err) => {
+                    if (null !== err) {
+                      console.error(err)
+                    }
+                  });
 
-              return [hash, width, height]
-            })
+                return [hash, width, height]
+              })
+          }
+
+          case 'video': {
+            const thumbCfg = config.get('files.thumbnail');
+            const thumbDst = config.get('directories.thumb') + hash + '.' + thumbCfg.format;
+            thumbler.extract(path, thumbDst, '00:00:00', [thumbCfg.width, thumbCfg.height].join('x'), (err) => {
+              if (null !== err) {
+                console.error(err);
+              }
+            });
+          }
+
+          default:
+            return [hash, null, null];
         }
-
-        return [hash, null, null];
       })
 
     const fileDTO = new FileDTO({ hash, mime, name, size, width, height, modifiers });
