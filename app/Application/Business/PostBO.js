@@ -67,7 +67,8 @@ class PostBO {
     }
 
     if (post.attachments?.length > 0) {
-      post.attachments = await this.FileService.read(post.attachments);
+      const attachments = await this.FileService.read(post.attachments);
+      post.attachments = post.attachments.map(hash => attachments.find(a => hash === a.hash));
     }
 
     return post;
