@@ -1,3 +1,5 @@
+const mimeType = require('mime-types');
+
 const FS = require('./FS.js');
 
 let Tools = module.exports = {};
@@ -148,12 +150,10 @@ Tools.wrapWith = (string, charStart, charEnd = charStart) => {
 
 Tools.unique = arr => [ ...new Set(arr) ];
 
-Tools.mimeToFormat = (mime) => {
-  switch (mime) {
-    case 'image/jpeg':
-      return 'jpg';
-
-    default:
-      return mime.split('/')[1];
+Tools.mimeToFormat = mime => {
+  let extension = mimeType.extension(mime);
+  if (extension) {
+    return extension;
   }
+  return mime.split('/')[1];
 }
