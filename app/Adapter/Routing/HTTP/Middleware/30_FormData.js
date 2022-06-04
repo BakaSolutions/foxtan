@@ -7,6 +7,8 @@ const config = require('../../../../Infrastructure/Config.js');
 const FS = require('../../../../Infrastructure/FS.js');
 const Tools = require('../../../../Infrastructure/Tools.js');
 
+const DEBUG = config.get('debug.enable') && config.get('debug.log.files');
+
 let middleware = app => {
   app.use(async (ctx, next) => {
     await parseForm(ctx);
@@ -56,17 +58,24 @@ function parseForm(ctx) {
   ctx.request.body = {};
   ctx.request.originalBody = {};
   if (ctx.request.method !== "POST" || !ctx.request.is('urlencoded', 'multipart')) {
+    // TODO: Path validation (/api/createPost...)
     return;
   }
   let uploadedFiles = [];
   return new Promise((resolve, reject) => {
-    let busboy = new Busboy({ headers: ctx.req.headers });
+    let busboy = Busboy({ headers: ctx.req.headers });
 
     ctx.req.pipe(busboy);
     setTimeout(() => reject('Body parsing timeout'), 30000);
 
-    busboy.on('file', async (fieldname, file, filename) => {
+    busboy.on('file', async (fieldname, file, { filename }) => {
+      // NOTE: We won't use { encoding, mimeType} values because
+      // these values are based on the headers that the browser sends.
+      // User could potentially spoof them.
       try {
+        if (DEBUG) {
+          console.log(`[FILE] [${ctx.url}] ${fieldname}: ${filename}`);
+        }
         if (!(fieldname.startsWith('file'))) {
           throw new Error('Files must be in appropriate form fields');
         }
@@ -78,9 +87,15 @@ function parseForm(ctx) {
         let size = 0;
         let tmpPath = path.join(config.get('directories.temporary'), timestamp() + '.' + ext);
         uploadedFiles.push(tmpPath);
+        if (DEBUG) {
+          console.log(`[FILE] [${ctx.url}] ${filename} => ${tmpPath} (${mime})`);
+        }
 
         file.on('data', data => size += data.length);
-        file.on('end', () => {
+        file.on('close', () => {
+          if (DEBUG) {
+            console.log(`[FILE] [${ctx.url}] ${filename} uploaded`);
+          }
           correctFieldMatching(ctx.request.body, fieldname, {
             mime,
             name: filename,
@@ -102,7 +117,10 @@ function parseForm(ctx) {
       ctx.request.originalBody[fieldname] = val;
     });
 
-    busboy.on('finish', () => {
+    busboy.on('close', () => {
+      if (DEBUG) {
+        console.log(`[FORM] Form has been parsed: ${JSON.stringify(ctx.request.body)}`);
+      }
       resolve(ctx.request.body);
     });
 

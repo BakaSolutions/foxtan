@@ -153,6 +153,9 @@ Tools.unique = arr => [ ...new Set(arr) ];
 Tools.mimeToFormat = mime => {
   let extension = mimeType.extension(mime);
   if (extension) {
+    if (extension === 'jpeg') {
+      return 'jpg'; // TODO: detect via `file-type`?
+    }
     return extension;
   }
   return mime.split('/')[1];
