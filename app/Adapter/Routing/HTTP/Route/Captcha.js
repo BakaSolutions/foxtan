@@ -1,13 +1,13 @@
 const config = require('../../../../Infrastructure/Config.js');
 const CaptchaService = require('../../../../Application/Service/CaptchaService.js');
-const TokenService = require('../../../../Application/Service/TokenService.js');
+//const TokenService = require('../../../../Application/Service/TokenService.js');
 const MainController = require('../MainController.js');
 
 class CaptchaController extends MainController {
 
   constructor(Router, DatabaseContext) {
     super(Router);
-    this.token = new TokenService(config);
+    //this.token = new TokenService(config);
     this.captcha = new CaptchaService(config);
 
     Router.post('api/checkCaptcha', this.checkCaptcha.bind(this));
@@ -16,7 +16,7 @@ class CaptchaController extends MainController {
 
   async checkCaptcha(ctx) {
     try {
-      let { body: { id, code }, token } = ctx.request;
+      let { body: { id, code } } = ctx.request;
 
       if (!id) {
         id = ctx.cookies.get('captcha', {signed: config.get('cookie.signed')});

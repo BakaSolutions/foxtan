@@ -31,7 +31,7 @@ class PostController extends MainController {
   }
 
   async createPost(ctx) {
-    let { body: query, token } = ctx.request; // TODO: Token check
+    let { body: query } = ctx.request;
 
     try {
       let isANewThread = !(query.threadId),
@@ -92,12 +92,12 @@ class PostController extends MainController {
   }
 
   async deletePost(ctx) {
-    let { originalBody, token } = ctx.request; // TODO: Token check
+    let { originalBody } = ctx.request;
     return await this.post.deleteOne(originalBody);
   }
 
   async deletePosts(ctx) {
-    let { originalBody, token } = ctx.request; // TODO: Token check
+    let { originalBody } = ctx.request;
     return await this.post.deleteMany(originalBody);
   }
 

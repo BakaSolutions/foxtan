@@ -32,7 +32,6 @@ let config = {
     enable: false,
     log: {
       requests: true,
-      tokens: true,
       database: true,
       files: true
     }
@@ -92,13 +91,6 @@ let config = {
     upload: `http://${HOST}/src/`,
     thumb: `http://${HOST}/src/thumb/`,
     ws: `ws://${HOST}/ws`
-  },
-  token: {
-    expires: { // d    h    m    s
-      access:              12 * 60
-    },
-    algo: "HS512",
-    secret: '0n1y64k45d0n7ch4ng3p455w0rd5'
   },
   cookie: {
     sessionKey: 'session',
