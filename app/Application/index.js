@@ -56,7 +56,8 @@ class Foxtan {
 
     this.routing.onListen((...args) => {
       let address = `${host}:${port}`;
-      this.logger.log(`\x1b[32mФырк!\x1b[0m http://${address}${pathPrefix}index.xhtml`);
+      this.logger.log(`\x1b[32mФырк!\x1b[0m http://${address}${pathPrefix}index.xhtml for HTTP debug!`);
+      this.logger.log(`\x1b[32mФырк!\x1b[0m http://${address}${pathPrefix}debug.xhtml for WS debug!`);
       this.logger.log(`\x1b[33m[WS]:\x1b[0m   ws://${address}${pathPrefix}ws`);
     });
 

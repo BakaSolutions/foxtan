@@ -27,7 +27,9 @@
     "ioredis": "^4.27.3",
     "jwt-simple": "^0.5.6",
     "koa": "^2.11.0",
+    "koa-redis": "^4.0.1",
     "koa-router": "^10.0.0",
+    "koa-session-minimal": "^4.0.2",
     "mime-types": "^2.1.35",
     "needle": "^2.5.2",
     "sharp": "^0.30.6",
@@ -36,7 +38,7 @@
     "xxhash": "^0.3.0"
   },
   "engines": {
-    "node": ">=12.13.0"
+    "node": ">=12.19.0"
   },
   "devDependencies": {
     "nyc": "^15.1.0",

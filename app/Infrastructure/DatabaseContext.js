@@ -30,6 +30,7 @@ class DatabaseContext {
       file: require(`./${this.type}/FileModel.js`),
       post: require(`./${this.type}/PostModel.js`),
       thread: require(`./${this.type}/ThreadModel.js`),
+      user: require(`./${this.type}/UserModel.js`)
     };
 
     Object.entries(out).forEach(([key, Model]) => {

@@ -140,6 +140,59 @@
 <h1>Captcha frame</h1>
 <iframe src="captcha.xhtml"></iframe>
 
+<h1>Register a user</h1>
+<form action="api/register" method="post" class="create-form" enctype="multipart/form-data">
+  <div>
+    <table>
+      <tr>
+        <td><b>User name:</b></td>
+        <td><input name="name" value="admin" /></td>
+      </tr>
+      <tr>
+        <td><b>Email:</b></td>
+        <td><input name="email" type="email" /></td>
+      </tr>
+      <tr>
+        <td><b>[Optional] Invite:</b></td>
+        <td><input name="invite" /></td>
+      </tr>
+      <tr>
+        <td><b>Password:</b></td>
+        <td><input name="password" type="password" /></td>
+      </tr>
+    </table>
+    <button>Submit</button>
+  </div>
+</form>
+
+<h1>Log in</h1>
+<form action="api/logOn" method="post" class="create-form" enctype="multipart/form-data">
+  <div>
+    <table>
+      <tr>
+        <td><b>User name:</b></td>
+        <td><input name="name" value="admin" /></td>
+      </tr>
+      <tr>
+        <td><b>Email:</b></td>
+        <td><input name="email" type="email" /></td>
+      </tr>
+      <tr>
+        <td><b>Password:</b></td>
+        <td><input name="password" type="password" /></td>
+      </tr>
+    </table>
+    <button>Submit</button>
+  </div>
+</form>
+
+<h1>Log off</h1>
+<form action="api/logOff" method="post" class="create-form" enctype="multipart/form-data">
+  <div>
+    <button>Submit</button>
+  </div>
+</form>
+
 <div class="user-tools">
   <label for="x-requested-with">
     Use X-Requested-With:

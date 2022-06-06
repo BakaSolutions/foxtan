@@ -101,6 +101,8 @@ let config = {
     secret: '0n1y64k45d0n7ch4ng3p455w0rd5'
   },
   cookie: {
+    sessionKey: 'session',
+    keys: ['my53cr37fr13nd', '0h74k3m37073r1v3r'],
     signed: false,
     secret: 'p13453ch4ng3m364k4'
   }

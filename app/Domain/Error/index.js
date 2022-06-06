@@ -1,16 +1,24 @@
 class CustomError extends Error {
 
+  /**
+   * Is used for displaying custom errors in API endpoints.
+   * @param message {String} SOME_CAPS_STRING
+   * @param description {String} Human-readable error message
+   * @param code {Number}
+   */
   constructor(message, description, code) {
     super(description);
-    this.code = message;
-    this.status = code;
+    this.description = this.message;
+
+    this.message = message;
+    this.code = code;
   }
 
   display() {
     return {
-      message: this.code,
-      description: this.message,
-      code: this.status
+      message: this.message,
+      description: this.description,
+      code: this.code
     };
   }
 

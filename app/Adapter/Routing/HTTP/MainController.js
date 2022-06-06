@@ -1,5 +1,9 @@
 const http = require('http');
-const { CustomError } = require("../../../Domain/Error/index.js");
+
+const { CustomError } = require('../../../Domain/Error/index.js');
+const config = require('../../../Infrastructure/Config.js');
+
+const DEBUG = config.get('debug.enable');
 
 class MainController {
 
@@ -29,13 +33,16 @@ class MainController {
 
     if (out instanceof CustomError) {
       return ctx.body = {
-        error: out.display()
+        error: DEBUG
+          ? out.displayWithStack()
+          : out.display()
       };
     }
 
     ctx.body = {
       error: {
-        description: http.STATUS_CODES[ctx.status]
+        description: out.message || http.STATUS_CODES[ctx.status],
+        code: ctx.status
       }
     };
   }
