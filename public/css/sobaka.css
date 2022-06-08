@@ -1,6 +1,8 @@
 * { position: relative; box-sizing: border-box }
+:root {
+  color-scheme: light dark;
+}
 pre { margin: 0 }
-body { background: #efefef }
 .popups {
   position: fixed;
   top: 0;
@@ -34,7 +36,6 @@ body { background: #efefef }
   position: fixed;
   bottom: 0;
   right: 0;
-  background: #4ef;
 }
 .user-tools, input[name=accessToken] {
   border-radius: 4px 0 0 0;

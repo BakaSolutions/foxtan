@@ -1,0 +1,36 @@
+.tabbed {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+.tabbed > a {
+    position: relative;
+    display: block;
+    cursor: pointer;
+}
+.tabbed > a:focus {
+    outline: none;
+}
+.tabbed > a:hover::before,
+.tabbed > a:active::before,
+.tabbed > a:focus::before {
+    content: '[';
+    left: -1em;
+    position: absolute;
+}
+.tabbed > a:hover::after,
+.tabbed > a:active::after,
+.tabbed > a:focus::after  {
+    content: ']';
+    right: -1em;
+    position: absolute;
+}
+
+.tabs > section:target,
+.tabs > section:last-of-type {
+    display: block;
+}
+.tabs > section,
+.tabs > section:target ~ section:last-of-type {
+    display: none;
+}
