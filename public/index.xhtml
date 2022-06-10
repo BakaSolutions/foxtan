@@ -15,6 +15,7 @@
       <a href="#post">Post</a>
       <a href="#captcha">Captcha</a>
       <a href="#user">User</a>
+      <a href="#group">Group</a>
     </div>
     <hr />
     <section id="post">
@@ -199,6 +200,42 @@
         </div>
       </form>
     </section>
+    <section id="group">
+      <h1>Create a group</h1>
+      <form action="api/createGroup" method="post" class="create-form" enctype="multipart/form-data">
+        <div>
+          <table>
+            <tr>
+              <td><b>Group name:</b></td>
+              <td><input name="name" value="Users" /></td>
+            </tr>
+            <tr>
+              <td><b>PrivilegesId:</b></td>
+              <td><input name="privilegesId" type="number" min="1" step="1" /></td>
+            </tr>
+            <tr>
+              <td><b>Description:</b></td>
+              <td><input name="description" value="Sample user group" /></td>
+            </tr>
+          </table>
+          <button>Submit</button>
+        </div>
+      </form>
+
+      <h1>Read a group</h1>
+      <form action="api/readGroup" method="get" class="create-form">
+        <div>
+          <table>
+            <tr>
+              <td><b>Group name:</b></td>
+              <td><input name="name" value="Users" /></td>
+            </tr>
+          </table>
+          <button>Submit</button>
+        </div>
+      </form>
+    </section>
+
     <section>
       <h1>General info</h1>
       <form action="api/meta" class="create-form">
