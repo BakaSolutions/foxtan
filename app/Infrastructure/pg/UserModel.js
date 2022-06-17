@@ -22,6 +22,18 @@ class UserModelPostgre extends UserModelInterface {
     return UserDTO.from(query[0]);
   }
 
+  async readOneById(id) {
+    const template = `
+      SELECT *
+      FROM "user"
+      WHERE
+        id = $1
+      LIMIT 1
+    `;
+    const query = await this.dialect.executeQuery(template, [ id ]);
+    return query.length ? UserDTO.from(query[0]) : null;
+  }
+
   async readOneByNameOrEmail({name, email}) {
     const template = `
       SELECT *

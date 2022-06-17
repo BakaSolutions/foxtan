@@ -16,6 +16,7 @@
       <a href="#captcha">Captcha</a>
       <a href="#user">User</a>
       <a href="#group">Group</a>
+      <a href="#member">Member</a>
     </div>
     <hr />
     <section id="post">
@@ -229,6 +230,41 @@
             <tr>
               <td><b>Group name:</b></td>
               <td><input name="name" value="Users" /></td>
+            </tr>
+          </table>
+          <button>Submit</button>
+        </div>
+      </form>
+    </section>
+    <section id="member">
+      <h1>Create a member</h1>
+      <form action="api/createMember" method="post" class="create-form" enctype="multipart/form-data">
+        <div>
+          <table>
+            <tr>
+              <td><b>Group name:</b></td>
+              <td><input name="groupName" value="Users" /></td>
+            </tr>
+            <tr>
+              <td><b>User id:</b></td>
+              <td><input name="userId" type="number" min="1" step="1" /></td>
+            </tr>
+            <tr>
+              <td><b>Invited by {user id}:</b></td>
+              <td><input name="invitedById" type="number" /></td>
+            </tr>
+          </table>
+          <button>Submit</button>
+        </div>
+      </form>
+
+      <h1>Read membership by user id</h1>
+      <form action="api/readMember" method="post" class="create-form">
+        <div>
+          <table>
+            <tr>
+              <td><b>User id:</b></td>
+              <td><input name="userId" value="1" /></td>
             </tr>
           </table>
           <button>Submit</button>

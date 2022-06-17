@@ -111,6 +111,10 @@ class UserService {
     return this._model.readOneByEmail(email);
   }
 
+  async readOneById(id) {
+    return this._model.readOneById(+id);
+  }
+
   static checkPassword(user, password) {
     let { passwordHash, salt } = user;
     password = UserService.createHash(password, salt);
