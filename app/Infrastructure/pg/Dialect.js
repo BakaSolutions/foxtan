@@ -1,3 +1,6 @@
+const config = require('../Config.js');
+const DEBUG = config.get('debug.enable') && config.get('debug.log.database');
+
 class DialectPostgre {
 
   constructor(connection) {
@@ -17,6 +20,11 @@ class DialectPostgre {
   }
 
   async executeQuery(template, values, {raw = false} = {}) {
+    template = template.trim().replace(/^ {4,}/gm, '').replace(/\n/g, ' ');
+    if (DEBUG) {
+      console.log(`[DB] Template: "${template}"`);
+      console.log(`[DB] Values:   "${values.join(',') || '<empty>'}"`);
+    }
     const query = await this.connection.query(template, values);
     return raw ? query : query.rows;
   }
