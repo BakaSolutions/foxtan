@@ -20,10 +20,9 @@ class DialectPostgre {
   }
 
   async executeQuery(template, values, {raw = false} = {}) {
-    template = template.trim().replace(/^ {4,}/gm, '').replace(/\n/g, ' ');
+    template = template.trim().replace(/^ {4,}/gm, '').replaceAll('\n', ' ');
     if (DEBUG) {
-      console.log(`[DB] Template: "${template}"`);
-      console.log(`[DB] Values:   "${values.join(',') || '<empty>'}"`);
+      console.log(`[DB] "${ template.replace(/\$([0-9]+)/g, (_, i) => '"' + values[--i] + '"') }"`);
     }
     const query = await this.connection.query(template, values);
     return raw ? query : query.rows;
