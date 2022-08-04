@@ -15,6 +15,10 @@
   /* AJAX module */
   so.baka.AJAX = {
     request: function (method, url, data) {
+      if (!method) {
+        method = "GET";
+      }
+      url = new URL(url);
       let promise;
       if (so.baka.settings.fetchAPI) {
         new baka.popup('Ni-paa~! We don\'t support fetch() yet!\nBut we can use XHR...','info');
@@ -24,6 +28,11 @@
         promise = new Promise(function (resolve, reject) {
           let xhr = new XMLHttpRequest();
           xhr.timeout = 4200;
+          if (method.toUpperCase() === "GET") {
+            for(const pair of data.entries()) {
+              url.searchParams.append(pair[0], pair[1]);
+            }
+          }
           xhr.open(method, url);
           if (so.baka.settings.useHeader) {
             xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
