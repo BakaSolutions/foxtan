@@ -31,7 +31,7 @@ class MemberController extends MainController {
 
   async read(ctx) {
     try {
-      let { groupName, userId } = ctx.request.body;
+      let { groupName, userId } = ctx.query;
       let member;
       /*if (groupName) {
         member = await this.member.readOneByGroupName(groupName);

@@ -27,7 +27,7 @@ class MemberModelPostgre extends MemberModelInterface {
       SELECT *
       FROM "member"
       WHERE
-        id = $1
+        "id" = $1
       LIMIT 1
     `;
     const query = await this.dialect.executeQuery(template, [ id ]);
@@ -39,7 +39,7 @@ class MemberModelPostgre extends MemberModelInterface {
       SELECT *
       FROM "member"
       WHERE
-        userId = $1
+        "userId" = $1
       LIMIT 1
     `;
     const query = await this.dialect.executeQuery(template, [ userId ]);
@@ -51,7 +51,7 @@ class MemberModelPostgre extends MemberModelInterface {
       SELECT *
       FROM "member"
       WHERE
-        groupName = $1
+        "groupName" = $1
       LIMIT 1
     `;
     const query = await this.dialect.executeQuery(template, [ groupName ]);

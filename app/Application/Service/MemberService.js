@@ -5,6 +5,9 @@ class MemberService {
    * @param {MemberModelInterface} MemberModel
    */
   constructor(MemberModel) {
+    if (!MemberModel) {
+      throw new Error('No MemberModel');
+    }
     this._model = MemberModel;
   }
 
@@ -17,7 +20,7 @@ class MemberService {
 
   async readOneByUserId(userId) {
     let member = await this._model.readOneByUserId(userId);
-    return member.toObject();
+    return member ? member.toObject() : member;
   }
 
 }

@@ -32,6 +32,7 @@ class DatabaseContext {
       thread: require(`./${this.type}/ThreadModel.js`),
       user: require(`./${this.type}/UserModel.js`),
       group: require(`./${this.type}/GroupModel.js`),
+      member: require(`./${this.type}/MemberModel.js`),
     };
 
     Object.entries(out).forEach(([key, Model]) => {
