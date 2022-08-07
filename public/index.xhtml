@@ -17,6 +17,7 @@
       <a href="#user">User</a>
       <a href="#group">Group</a>
       <a href="#member">Member</a>
+      <a href="#privileges">Privileges</a>
     </div>
     <hr />
     <section id="post">
@@ -265,6 +266,41 @@
             <tr>
               <td><b>User id:</b></td>
               <td><input name="userId" value="1" /></td>
+            </tr>
+          </table>
+          <button>Submit</button>
+        </div>
+      </form>
+    </section>
+    <section id="privileges">
+      <h1>Create a privilege</h1>
+      <form action="api/createPrivilege" method="post" class="create-form" enctype="multipart/form-data">
+        <div>
+          <table>
+            <tr>
+              <td><b>newBoardsPerMinute:</b></td>
+              <td><input name="newBoardsPerMinute" type="number" min="0" step="1" value="60" /></td>
+            </tr>
+            <tr>
+              <td><b>newGroupsPerMinute:</b></td>
+              <td><input name="newGroupsPerMinute" type="number" min="0" step="1" value="0" /></td>
+            </tr>
+            <tr>
+              <td><b>newInvitesPerMinute:</b></td>
+              <td><input name="newInvitesPerMinute" type="number" min="0" step="1" value="86400" /></td>
+            </tr>
+          </table>
+          <button>Submit</button>
+        </div>
+      </form>
+
+      <h1>Read a privilege by id</h1>
+      <form action="api/readPrivilege" method="get" class="create-form">
+        <div>
+          <table>
+            <tr>
+              <td><b>Id:</b></td>
+              <td><input name="id" value="1" /></td>
             </tr>
           </table>
           <button>Submit</button>
