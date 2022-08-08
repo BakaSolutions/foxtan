@@ -1,7 +1,7 @@
 {
   "name": "foxtan",
   "version": "0.2.1",
-  "description": "Slyest imageboard engine that was ever made!!1",
+  "description": "Slyest imageboard engine that was ever made. Fastest one, beat by none!",
   "main": "app/Application/index.js",
   "scripts": {
     "coverage": "nyc npm test",
@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://bitbucket.org/bakaso/foxtan.git"
+    "url": "git+https://github.com/BakaSolutions/foxtan.git"
   },
   "keywords": [
     "imageboard"
   ],
   "author": "rngnrs",
   "license": "MIT",
-  "homepage": "https://bitbucket.org/bakaso/foxtan#readme",
+  "homepage": "https://github.com/BakaSolutions/foxtan#readme",
   "dependencies": {
     "@rngnrs/figurecon": "^1.1.1",
     "busboy": "^1.6.0",
@@ -43,7 +43,7 @@
     "zunit": "^3.0.4"
   },
   "optionalDependencies": {
-    "knex": "^0.95.15",
+    "knex": "^2.2.0",
     "koa-mount": "^4.0.0",
     "koa-static": "^5.0.0",
     "pg": "^8.7.3"

@@ -13,9 +13,8 @@ class PrivilegeDTO extends DTO {
     }
 
     this.id = data.id;
-    this.newBoardsPerMinute = data.newBoardsPerMinute;
-    this.newGroupsPerMinute = data.newGroupsPerMinute;
-    this.newInvitesPerMinute = data.newInvitesPerMinute;
+    this.newBoardsPerDay = data.newBoardsPerDay;
+    this.newInvitesPerDay = data.newInvitesPerDay;
 
     return this;
   }

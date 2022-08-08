@@ -125,4 +125,29 @@ exports.seed = async knex => {
       modifiers: ['sage']
     }
   ]).into('post');
+  await knex.withSchema(schema).insert([
+    {
+      id: 1,
+      newBoardsPerDay: 999,
+      newInvitesPerDay: 999
+    }
+  ]).into('privileges');
+  await knex.withSchema(schema).insert([
+    {
+      id: 1,
+      privilegesId: 1,
+      name: 'Admin',
+      email: 'admin@localhost',
+      passwordHash: '04d9f19e9a814fd839f91675d7558e5669edeb13c489802645714f351f5b9d84',
+      salt: '3di'
+    }
+  ]).into('user');
+  await knex.withSchema(schema).insert([
+    {
+      name: 'admin',
+      privilegesId: 1,
+      accessId: [ 1 ],
+      description: 'Sample admin group'
+    }
+  ]).into('group');
 };

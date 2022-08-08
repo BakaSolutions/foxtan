@@ -12,8 +12,8 @@ exports.up = knex => {
       table.string('hash', fileHashLength).primary();
       table.string('mime', 40);
       table.string('name', 255);
-      table.specificType('width', 'smallint').unsigned();
-      table.specificType('height', 'smallint').unsigned();
+      table.smallint('width').unsigned();
+      table.smallint('height').unsigned();
       table.integer('size').unsigned();
       table.specificType('modifiers', 'varchar[]');
     })
@@ -23,13 +23,13 @@ exports.up = knex => {
       table.float('threadPerMinute');
       table.float('postsPerMinute');
       //table.float('threadCost');
-      table.specificType('threadBumps', 'smallint').unsigned();
+      table.smallint('threadBumps').unsigned();
       //table.float('postCost');
-      table.specificType('postFiles', 'smallint').unsigned();
+      table.smallint('postFiles').unsigned();
       table.float('postFileSize');
       table.float('postTotalFileSize');
-      table.specificType('postCharactersTop', 'smallint').unsigned();
-      //table.specificType('postCharactersBottom', 'smallint').unsigned();
+      table.smallint('postCharactersTop').unsigned();
+      //table.smallint('postCharactersBottom').unsigned();
     })
     .createTable('board', (table) => {
       table.string('name', boardNameMaxLength).primary();
@@ -48,7 +48,7 @@ exports.up = knex => {
       table.increments('id').unsigned().primary();
       table.string('boardName', boardNameMaxLength).notNullable();
       table.integer('limitsId').unsigned();
-      table.specificType('pinned', 'smallint').unsigned();
+      table.smallint('pinned').unsigned();
       table.specificType('modifiers', 'varchar[]');
 
       table.foreign('boardName').references('name').inTable(schema + '.board');
@@ -96,20 +96,22 @@ exports.up = knex => {
     })
     .createTable('privileges', (table) => {
       table.increments('id').unsigned().primary();
-      table.float('newBoardsPerMinute');
-      table.float('newGroupsPerMinute');
-      table.float('newInvitesPerMinute');
+      table.float('newBoardsPerDay');
+      table.float('newInvitesPerDay');
     })
     .createTable('group', (table) => {
       table.string('name').primary();
       table.integer('privilegesId').unsigned();
+      table.specificType('accessId', 'integer[]').unsigned();
       table.text('description');
 
       table.foreign('privilegesId').references('id').inTable(schema + '.privileges');
+      //table.foreign('accessId').references('id').inTable(schema + '.access');
     })
     .createTable('user', (table) => {
       table.increments('id').unsigned().primary();
       table.integer('privilegesId').unsigned();
+      table.specificType('accessId', 'integer[]').unsigned();
       //table.string('avatar');
       table.string('name');
       table.string('email');
@@ -119,6 +121,7 @@ exports.up = knex => {
       table.timestamp('expiredAt');
 
       table.foreign('privilegesId').references('id').inTable(schema + '.privileges');
+      //table.foreign('accessId').references('id').inTable(schema + '.access');
       //table.foreign('avatar').references('hash').inTable(schema + '.file');
     })
     .createTable('action', (table) => {
@@ -144,25 +147,14 @@ exports.up = knex => {
     })
     .createTable('access', (table) => {
       table.increments('id').unsigned().primary();
-      table.string('groupName');
-      table.integer('userId').unsigned();
-      table.string('accessedBoardName', boardNameMaxLength);
-      table.string('accessedGroupName', boardNameMaxLength);
-      table.integer('accessedThreadId').unsigned();
-      table.integer('accessedPostId').unsigned();
-      table.integer('accessedUserId').unsigned();
-      table.boolean('administer');
-      table.boolean('moderate');
-      table.boolean('post');
-      table.boolean('read');
+      table.specificType('appliesToBoard', 'varchar');
+      table.integer('appliesToThread').unsigned();
+      table.specificType('access', 'varchar[]');
 
-      table.foreign('groupName').references('name').inTable(schema + '.group');
-      table.foreign('userId').references('id').inTable(schema + '.user');
-      table.foreign('accessedGroupName').references('name').inTable(schema + '.group');
-      table.foreign('accessedBoardName').references('name').inTable(schema + '.board');
-      table.foreign('accessedThreadId').references('id').inTable(schema + '.thread');
-      table.foreign('accessedPostId').references('id').inTable(schema + '.post');
-      table.foreign('accessedUserId').references('id').inTable(schema + '.user');
+      /*table.foreign('id').references('accessId').inTable(schema + '.group');
+      table.foreign('id').references('accessId').inTable(schema + '.user');
+      table.foreign('appliesToBoard').references('name').inTable(schema + '.board');
+      table.foreign('appliesToThread').references('id').inTable(schema + '.thread');*/
     })
     .createTable('invite', (table) => {
       table.string('id').primary();

@@ -1,9 +1,8 @@
 class PrivilegeModelInterface {
 
   async create({
-    newBoardsPerMinute,
-    newGroupsPerMinute,
-    newInvitesPerMinute
+    newBoardsPerDay,
+    newInvitesPerDay
   }) {}
   async readOneById(id) {}
 

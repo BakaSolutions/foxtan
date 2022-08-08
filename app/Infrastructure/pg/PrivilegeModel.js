@@ -11,7 +11,7 @@ class PrivilegeModelPostgre extends PrivilegeModelInterface {
 
   async create(privileges) {
     try {
-      const columns = ['newBoardsPerMinute', 'newGroupsPerMinute', 'newInvitesPerMinute'];
+      const columns = ['newBoardsPerDay', 'newInvitesPerDay'];
       const template = `
       INSERT INTO "privileges"
       (${columns.map(c => '"' + c + '"').join(', ')})
