@@ -34,6 +34,7 @@ class DatabaseContext {
       group: require(`./${this.type}/GroupModel.js`),
       member: require(`./${this.type}/MemberModel.js`),
       privilege: require(`./${this.type}/PrivilegeModel.js`),
+      invite: require(`./${this.type}/InviteModel.js`),
     };
 
     Object.entries(out).forEach(([key, Model]) => {

@@ -157,7 +157,7 @@ exports.up = knex => {
       table.foreign('appliesToThread').references('id').inTable(schema + '.thread');*/
     })
     .createTable('invite', (table) => {
-      table.string('id').primary();
+      table.increments('id').unsigned().primary();
       table.integer('authorId').unsigned();
       table.string('groupName');
       table.string('code');
