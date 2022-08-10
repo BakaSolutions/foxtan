@@ -42,33 +42,39 @@ class MissingParamError extends ValidationError {
   }
 }
 
-class BoardNotFoundError extends CustomError {
-  constructor(message) {
-    super("BOARD_NOT_FOUND", message || "There is no such a board", 404);
+class NotFoundError extends CustomError {
+  constructor(description) {
+    super("NOT_FOUND", description || "Not found", 404);
   }
 }
 
-class ThreadNotFoundError extends CustomError {
-  constructor(message) {
-    super("THREAD_NOT_FOUND", message || "There is no such a thread", 404);
+class BoardNotFoundError extends NotFoundError {
+  constructor(description) {
+    super("BOARD_NOT_FOUND", description || "There is no such a board", 404);
   }
 }
 
-class ThreadsNotFoundError extends CustomError {
+class ThreadNotFoundError extends NotFoundError {
   constructor(message) {
-    super("THREADS_NOT_FOUND", message || "There is no threads on such page of a board", 404);
+    super("THREAD_NOT_FOUND", description || "There is no such a thread", 404);
   }
 }
 
-class PostNotFoundError extends CustomError {
-  constructor(message) {
-    super("POST_NOT_FOUND", message || "There is no such a post", 404);
+class ThreadsNotFoundError extends NotFoundError {
+  constructor(description) {
+    super("THREADS_NOT_FOUND", description || "There is no threads on such page of a board", 404);
+  }
+}
+
+class PostNotFoundError extends NotFoundError {
+  constructor(description) {
+    super("POST_NOT_FOUND", description || "There is no such a post", 404);
   }
 }
 
 /*class PostDeletedError extends CustomError {
-  constructor(message) {
-    super("POST_DELETED", message || "Post was deleted", 410);
+  constructor(description) {
+    super("POST_DELETED", description || "Post was deleted", 410);
   }
 }*/
 
@@ -92,12 +98,12 @@ module.exports = {
 
   MissingParamError,
 
+  NotFoundError,
   BoardNotFoundError,
-
   ThreadNotFoundError,
   ThreadsNotFoundError,
-
   PostNotFoundError,
+
   DtoError,
   BadRequestError
 };

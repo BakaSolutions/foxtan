@@ -3,17 +3,30 @@ class UserBO {
   /**
    *
    * @param {UserService} UserService
+   * @param {InviteService} InviteService
    */
-  constructor(UserService) {
+  constructor(UserService, InviteService) {
     if (!UserService) {
       throw new Error('No UserService');
     }
     this.UserService = UserService;
+    this.InviteService = InviteService;
   }
 
   async register(userObject) {
     await this.UserService.validateRegistration(userObject);
-    return this.UserService.register(userObject);
+
+    let code = userObject.invite;
+    let invite = code
+      ? await this.InviteService.readOneByCode(code)
+      : null;
+
+    let isRegistered = await this.UserService.register(userObject);
+
+    if (isRegistered && code) {
+      await this.InviteService.redeem(invite);
+    }
+    return isRegistered;
   }
 
   async login(userObject) {

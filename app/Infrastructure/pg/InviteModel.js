@@ -62,7 +62,7 @@ class InviteModelPostgre extends InviteModelInterface {
     return query.length ? InviteDTO.from(query[0]) : null;
   }
 
-  async setExpired({ code }, date = +new Date()) {
+  async setExpired({ code }, date = new Date()) {
     const template = `
       UPDATE "invite"
       SET "expiredAt" = $1

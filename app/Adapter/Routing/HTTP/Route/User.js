@@ -2,6 +2,7 @@ const MainController = require('../MainController.js');
 
 const UserBO = require('../../../../Application/Business/UserBO.js');
 const UserService = require('../../../../Application/Service/UserService.js');
+const InviteService = require('../../../../Application/Service/InviteService.js');
 
 class UserController extends MainController {
 
@@ -9,7 +10,8 @@ class UserController extends MainController {
     super(Router);
 
     let userService = new UserService(DatabaseContext.user);
-    this.user = new UserBO(userService);
+    let inviteService = new InviteService(DatabaseContext.invite);
+    this.user = new UserBO(userService, inviteService);
     // Setting up
     Router.post('api/register', this.register.bind(this));
     Router.post('api/logOn', this.logOn.bind(this));
