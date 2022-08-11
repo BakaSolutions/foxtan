@@ -16,7 +16,7 @@ class UserService {
     let obj = { name, email, password };
     for (let key of Object.keys(obj)) {
       if (!obj[key]) {
-        throw {
+        throw { // TODO: Add custom errors into UserService
           status: 400,
           message: `Please, enter your ${key}`
         };

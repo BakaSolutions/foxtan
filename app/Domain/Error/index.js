@@ -1,17 +1,21 @@
+const Tools = require('../../Infrastructure/Tools.js');
+
 class CustomError extends Error {
 
   /**
    * Is used for displaying custom errors in API endpoints.
-   * @param message {String} SOME_CAPS_STRING
-   * @param description {String} Human-readable error message
-   * @param code {Number}
+   * @param {String} message SOME_CAPS_STRING
+   * @param {String} description Human-readable error message
+   * @param {Number} code
+   * @param {String} [stack]
    */
-  constructor(message, description, code) {
+  constructor(message, description, code, stack) {
     super(description);
     this.description = this.message;
 
     this.message = message;
     this.code = code;
+    this.stack = stack;
   }
 
   display() {
@@ -24,7 +28,7 @@ class CustomError extends Error {
 
   displayWithStack() {
     let out = this.display();
-    out.stack = this.stack;
+    out.stack = this.stack?.replaceAll(Tools.ROOT, '');
     return out;
   }
 

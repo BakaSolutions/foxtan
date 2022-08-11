@@ -1,6 +1,6 @@
 const http = require('http');
 
-const { CustomError } = require('../../../Domain/Error/index.js');
+const { CustomError, NotFoundError } = require('../../../Domain/Error/index.js');
 const config = require('../../../Infrastructure/Config.js');
 
 const DEBUG = config.get('debug.enable');
@@ -13,16 +13,20 @@ class MainController {
 
   success(ctx, out) {
     if (out === null || typeof out === 'undefined') {
-      return ctx.throw(404);
+      // return ctx.throw(404);
+      return this.fail(ctx, new NotFoundError());
     }
     ctx.body = out;
   }
 
+  /**
+   *
+   * @param ctx
+   * @param {CustomError} out
+   * @returns {{error: ({code}|*)}}
+   */
   fail(ctx, out) {
-    ctx.status = out
-      ? out.status || 500
-      : 500;
-    delete out.status;
+    ctx.status = +out?.code || +out?.status || 500;
 
     if (ctx.status >= 500) {
       Promise.reject(out); // will catch in Application/index.js:logUnexpectedErrors()
