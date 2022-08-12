@@ -46,6 +46,18 @@ class MissingParamError extends ValidationError {
   }
 }
 
+class BadRequestError extends ValidationError {
+  constructor(description) {
+    super("BAD_REQUEST", description || "Bad request");
+  }
+}
+
+class NotAuthorizedError extends CustomError {
+  constructor(description) {
+    super("NOT_AUTHORIZED", description || "For this request you need to log in", 401);
+  }
+}
+
 class NotFoundError extends CustomError {
   constructor(description) {
     super("NOT_FOUND", description || "Not found", 404);
@@ -89,25 +101,23 @@ class DtoError extends CustomError {
 }
 
 
-class BadRequestError extends ValidationError {
-  constructor(description) {
-    super("BAD_REQUEST", description || "Bad request");
-  }
-}
-
-
 module.exports = {
   CustomError,
+
+  // 400
   ValidationError,
-
   MissingParamError,
-
+  BadRequestError,
+  // 401
+  NotAuthorizedError,
+  // 404
   NotFoundError,
   BoardNotFoundError,
   ThreadNotFoundError,
   ThreadsNotFoundError,
   PostNotFoundError,
+  // 410
+  // PostDeletedError,
 
   DtoError,
-  BadRequestError
 };

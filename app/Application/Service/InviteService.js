@@ -2,6 +2,7 @@ const {
   BadRequestError,
   NotFoundError
 } = require('../../Domain/Error/index.js');
+const Tools = require('../../Infrastructure/Tools.js');
 
 class InviteService {
 
@@ -16,11 +17,19 @@ class InviteService {
     this._model = InviteModel;
   }
 
+  /**
+   * @param {Object} inviteObject
+   * @param {Number} inviteObject.authorId
+   * @param {String} inviteObject.groupName
+   * @param {String} [inviteObject.code]
+   * @param {Date} [inviteObject.createdAt]
+   * @param {Date} [inviteObject.expiredAt]
+   */
   async create(inviteObject) {
+    inviteObject.code ??= Tools.randomHex(20);
     let invite = await this._model.create(inviteObject);
     return invite.toObject();
   }
-
 
   async readOneById(id) {
     let invite = await this._model.readOneById(id);

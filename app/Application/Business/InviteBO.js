@@ -1,17 +1,46 @@
+const {
+  MissingParamError,
+  NotAuthorizedError,
+  NotFoundError
+} = require('../../Domain/Error/index.js');
+
 class InviteBO {
 
   /**
    *
    * @param {InviteService} InviteService
+   * @param {GroupService} GroupService
    */
-  constructor(InviteService) {
+  constructor(InviteService, GroupService) {
     if (!InviteService) {
       throw new Error('No InviteService');
     }
+    if (!GroupService) {
+      throw new Error('No GroupService');
+    }
     this.InviteService = InviteService;
+    this.GroupService = GroupService;
   }
 
+  /**
+   * @param {Object} inviteObject
+   * @param {Number} inviteObject.authorId
+   * @param {String} inviteObject.groupName
+   * @param {String} [inviteObject.code]
+   * @param {Date} [inviteObject.createdAt]
+   * @param {Date} [inviteObject.expiredAt]
+   */
   async create(inviteObject) {
+    /* if (!inviteObject.authorId) {
+       throw new NotAuthorizedError(); TODO: Implement sessions in WS
+     }*/
+    if (!inviteObject.groupName) {
+      throw new MissingParamError(`Define a "groupName" for the invite`);
+    }
+    let group = await this.GroupService.readOneByName(inviteObject.groupName);
+    if (!group) {
+      throw new NotFoundError(`Group "${inviteObject.groupName}" was not found`);
+    }
     return this.InviteService.create(inviteObject);
   }
 
