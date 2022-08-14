@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
-const { CustomError } = require('../Domain/Error/index.js');
-//const EventBus = require('./event.js');
+const { BadRequestError, NotFoundError, CustomError } = require('../Domain/Error/index.js');
+const EventBus = require('./EventBus.js');
 
 module.exports = class WS {
 
@@ -33,7 +33,7 @@ module.exports = class WS {
       }
     }, 30000);
 
-    //EventBus.on('ws.broadcast', data => this.broadcast(data));
+    EventBus.on('broadcast', (type, event, data) => this.broadcast(type, event, data));
   }
 
   use (command, handler) {
@@ -43,10 +43,11 @@ module.exports = class WS {
     this.middlewares[command].push(handler);
   }
 
-  broadcast (data) {
+  broadcast (type, event, data) {
     for (let client of this.instance.clients) {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(data);
+        let out = {type, event, data};
+        client.send(JSON.stringify(out));
       }
     }
   }
@@ -58,7 +59,7 @@ module.exports = class WS {
 
       let sequence = this.middlewares[params.request];
       if (!sequence) {
-        return this.fail(ws, params, {code: 404});
+        return this.fail(ws, params, NotFoundError());
       }
 
       try {
@@ -74,7 +75,7 @@ module.exports = class WS {
         return this.fail(ws, params, {code: 500});
       }
     } catch (e) {
-      return this.fail(ws, params, {code: 400});
+      return this.fail(ws, params, BadRequestError());
     }
   }
 

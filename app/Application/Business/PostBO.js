@@ -1,4 +1,5 @@
 const Tools = require('../../Infrastructure/Tools.js');
+const EventBus = require('../../Infrastructure/EventBus.js');
 
 class PostBO {
 
@@ -17,16 +18,32 @@ class PostBO {
     this.FileService = FileService;
   }
 
+  async createPreHook(postDTO, threadDTO) {
+    let Thread;
+    if (threadDTO) {
+      Thread = await this.ThreadService.create(threadDTO);
+      postDTO.threadId = Thread.id;
+    }
+    return [postDTO, Thread];
+  }
+
   /**
    * @param {PostDTO} postDTO
    * @param {ThreadDTO} threadDTO
    */
   async create(postDTO, threadDTO) {
+    [postDTO, threadDTO] = await this.createPreHook(postDTO, threadDTO);
+    let Post = await this.PostService.create(postDTO);
+    return this.createPostHook(Post, threadDTO);
+  }
+
+  async createPostHook(Post, threadDTO) {
     if (threadDTO) {
-      let thread = await this.ThreadService.create(threadDTO);
-      postDTO.threadId = thread.id;
+      let Thread = await this.ThreadService.readOneById(threadDTO.id);
+      EventBus.emit('broadcast', 'thread', 'created', Thread);
     }
-    return this.PostService.create(postDTO);
+    EventBus.emit('broadcast', 'post', 'created', Post);
+    return Post;
   }
 
   async readOne(id) {

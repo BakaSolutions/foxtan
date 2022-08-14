@@ -1,4 +1,5 @@
 const { BoardNotFoundError } = require('../../Domain/Error/index.js');
+const EventBus = require('../../Infrastructure/EventBus.js');
 
 class BoardBO {
 
@@ -6,8 +7,10 @@ class BoardBO {
     this.BoardService = BoardService;
   }
 
-  create(board) {
-    return this.BoardService.create(board);
+  async create(board) {
+    let Board = await this.BoardService.create(board);
+    EventBus.emit('broadcast', 'board', 'created', Board);
+    return Board;
   }
 
   readOne(name) {
