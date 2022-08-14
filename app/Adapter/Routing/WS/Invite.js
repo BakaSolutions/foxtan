@@ -13,8 +13,8 @@ class InviteController {
       {
         request: 'invite',
         middleware: async ({ groupName }, ws) => {
-          let authorId = null; // TODO: Implement sessions in WS
-          await this.invite.create({authorId, groupName});
+          let authorId = ws.session.user?.id;
+          return this.invite.create({authorId, groupName});
         }
       }
     ];

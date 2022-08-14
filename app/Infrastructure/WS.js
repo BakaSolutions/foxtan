@@ -1,24 +1,39 @@
 const WebSocket = require('ws');
+const { parse } = require('url');
 const { BadRequestError, NotFoundError, CustomError } = require('../Domain/Error/index.js');
 const EventBus = require('./EventBus.js');
+const Session = require('./Session.js');
 
 module.exports = class WS {
 
   /**
    *
+   * @param app
    * @param {Server} server
    * @param {String} [path]
    */
-  constructor (server, path = '/ws') {
+  constructor (app, server, path = '/ws') {
     this.middlewares = {};
-    this.instance = new WebSocket.Server({
-      server,
-      path
+    this.instance = new WebSocket.Server({ noServer: true });
+
+    server.on('upgrade', (request, socket, head) => {
+      const { pathname } = parse(request.url);
+
+      if (pathname === path) {
+        let ctx = app.createContext(request);
+        Session(ctx, async () => {
+          this.instance.handleUpgrade(request, socket, head, ws => {
+            ws.session = ctx.session;
+            this.instance.emit('connection', ws, request);
+          });
+        });
+        return;
+      }
+      socket.destroy();
     });
 
     this.instance.on('connection', ws => {
       ws.isAlive = true;
-
       ws.on('pong', () => ws.isAlive = true);
       ws.on('message', async message => await this.onMessage(message, ws));
     });

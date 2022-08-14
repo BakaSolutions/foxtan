@@ -31,9 +31,9 @@ class InviteBO {
    * @param {Date} [inviteObject.expiredAt]
    */
   async create(inviteObject) {
-    /* if (!inviteObject.authorId) {
-       throw new NotAuthorizedError(); TODO: Implement sessions in WS
-     }*/
+    if (!inviteObject.authorId) {
+      throw new NotAuthorizedError();
+    }
     if (!inviteObject.groupName) {
       throw new MissingParamError(`Define a "groupName" for the invite`);
     }

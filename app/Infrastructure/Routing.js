@@ -11,15 +11,13 @@ class Routing {
   constructor(DatabaseContext) {
     let websocketPath = `${config.get('server.pathPrefix')}ws`;
 
-    this._http = http.createServer();
     this._framework = new Koa();
+    this._http = http.createServer(this._framework.callback());
     this._router = KoaRouter({
       prefix: config.get('server.pathPrefix')
     });
-    this._websocket = new WS(this._http, websocketPath);
+    this._websocket = new WS(this._framework, this._http, websocketPath);
     this._databaseContext = DatabaseContext;
-
-    this._http.on('request', this._framework.callback());
   }
 
   /**
