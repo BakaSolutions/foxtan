@@ -39,10 +39,15 @@ class PostBO {
 
   async createPostHook(Post, threadDTO) {
     if (threadDTO) {
-      let Thread = await this.ThreadService.readOneById(threadDTO.id);
-      EventBus.emit('broadcast', 'thread', 'created', Thread);
+      EventBus.emit('broadcast', 'thread', 'created', {
+        ...(await this.ThreadService.readOneById(threadDTO.id)),
+        head: Post,
+        posts: 1,
+      });
+    } else {
+      EventBus.emit('broadcast', 'post', 'created', Post);
     }
-    EventBus.emit('broadcast', 'post', 'created', Post);
+
     return Post;
   }
 
