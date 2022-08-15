@@ -144,10 +144,19 @@ exports.seed = async knex => {
   ]).into('user');
   await knex.withSchema(schema).insert([
     {
-      name: 'admin',
+      name: 'Admin',
       privilegesId: 1,
       accessId: [ 1 ],
       description: 'Sample admin group'
     }
   ]).into('group');
+  await knex.withSchema(schema).insert([
+    {
+      id: 1,
+      groupName: 'Admin',
+      userId: 1,
+      invitedById: 1,
+      invitedAt: new Date()
+    }
+  ]).into('member');
 };

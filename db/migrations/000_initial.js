@@ -51,7 +51,7 @@ exports.up = knex => {
       table.smallint('pinned').unsigned();
       table.specificType('modifiers', 'varchar[]');
 
-      table.foreign('boardName').references('name').inTable(schema + '.board');
+      table.foreign('boardName').references('name').inTable(schema + '.board').onUpdate('CASCADE');
       table.foreign('limitsId').references('id').inTable(schema + '.limits');
     })
     .createTable('post', (table) => {
@@ -91,7 +91,7 @@ exports.up = knex => {
       table.timestamp('expiredAt');
       table.string('banType');
 
-      table.foreign('boardId').references('name').inTable(schema + '.board');
+      table.foreign('boardId').references('name').inTable(schema + '.board').onUpdate('CASCADE');
       table.foreign('threadId').references('id').inTable(schema + '.thread');
     })
     .createTable('privileges', (table) => {
@@ -141,8 +141,8 @@ exports.up = knex => {
       table.foreign('userId').references('id').inTable(schema + '.user');
       table.foreign('threadId').references('id').inTable(schema + '.thread');
       table.foreign('postId').references('id').inTable(schema + '.post');
-      table.foreign('groupName').references('name').inTable(schema + '.group');
-      table.foreign('boardName').references('name').inTable(schema + '.board');
+      table.foreign('groupName').references('name').inTable(schema + '.group').onUpdate('CASCADE');
+      table.foreign('boardName').references('name').inTable(schema + '.board').onUpdate('CASCADE');
       table.foreign('banId').references('id').inTable(schema + '.ban');
     })
     .createTable('access', (table) => {
@@ -153,7 +153,7 @@ exports.up = knex => {
 
       /*table.foreign('id').references('accessId').inTable(schema + '.group');
       table.foreign('id').references('accessId').inTable(schema + '.user');
-      table.foreign('appliesToBoard').references('name').inTable(schema + '.board');
+      table.foreign('appliesToBoard').references('name').inTable(schema + '.board').onUpdate('CASCADE');
       table.foreign('appliesToThread').references('id').inTable(schema + '.thread');*/
     })
     .createTable('invite', (table) => {
@@ -165,7 +165,7 @@ exports.up = knex => {
       table.timestamp('expiredAt');
 
       table.foreign('authorId').references('id').inTable(schema + '.user');
-      table.foreign('groupName').references('name').inTable(schema + '.group');
+      table.foreign('groupName').references('name').inTable(schema + '.group').onUpdate('CASCADE');
     })
     .createTable('member', (table) => {
       table.increments('id').unsigned().primary();
@@ -175,7 +175,7 @@ exports.up = knex => {
       table.timestamp('invitedAt');
       table.timestamp('expiredAt');
 
-      table.foreign('groupName').references('name').inTable(schema + '.group');
+      table.foreign('groupName').references('name').inTable(schema + '.group').onUpdate('CASCADE');
       table.foreign('userId').references('id').inTable(schema + '.user');
       table.foreign('invitedById').references('id').inTable(schema + '.user');
     })
