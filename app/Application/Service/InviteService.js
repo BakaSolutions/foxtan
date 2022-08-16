@@ -40,6 +40,7 @@ class InviteService {
   }
 
   async readOneByCode(code) {
+    code = code.toLocaleLowerCase();
     let invite = await this._model.readOneByCode(code);
     if (!invite) {
       throw new BadRequestError('There is no such an invite');

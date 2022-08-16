@@ -39,12 +39,12 @@ class UserModelPostgre extends UserModelInterface {
       SELECT *
       FROM "user"
       WHERE
-        name = $1
+        (LOWER("name") LIKE $1)
       OR
-        email = $2
+        (LOWER("email") LIKE $2)
       LIMIT 1
     `;
-    const query = await this.dialect.executeQuery(template, [ name, email ]);
+    const query = await this.dialect.executeQuery(template, [ `%${name}%`, `%${email}%` ]);
     return query.length ? UserDTO.from(query[0]) : null;
   }
 
@@ -52,10 +52,10 @@ class UserModelPostgre extends UserModelInterface {
     const template = `
       SELECT *
       FROM "user"
-      WHERE name = $1
+      WHERE (LOWER("name") LIKE $1)
       LIMIT 1
     `;
-    const query = await this.dialect.executeQuery(template, [ name ]);
+    const query = await this.dialect.executeQuery(template, [ `%${name}%` ]);
     return query.length ? UserDTO.from(query[0]) : null;
   }
 
@@ -63,10 +63,10 @@ class UserModelPostgre extends UserModelInterface {
     const template = `
       SELECT *
       FROM "user"
-      WHERE email = $1
+      WHERE (LOWER("email") LIKE $1)
       LIMIT 1
     `;
-    const query = await this.dialect.executeQuery(template, [ email ]);
+    const query = await this.dialect.executeQuery(template, [ `%${email}%` ]);
     return query.length ? UserDTO.from(query[0]) : null;
   }
 

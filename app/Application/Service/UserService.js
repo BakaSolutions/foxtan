@@ -79,6 +79,7 @@ class UserService {
 
   async login(userObject) {
     let { name, password } = userObject;
+    name = name.toLocaleLowerCase();
     let user = await this._model.readOneByName(name);
 
     if (!user) {

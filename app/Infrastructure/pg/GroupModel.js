@@ -33,10 +33,10 @@ class GroupModelPostgre extends GroupModelInterface {
     const template = `
       SELECT *
       FROM "group"
-      WHERE name = $1
+      WHERE (LOWER("name") LIKE $1)
       LIMIT 1
     `;
-    const query = await this.dialect.executeQuery(template, [ name ]);
+    const query = await this.dialect.executeQuery(template, [ `%${name}%` ]);
     return query.length ? GroupDTO.from(query[0]) : null;
   }
 

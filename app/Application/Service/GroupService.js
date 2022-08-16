@@ -15,6 +15,7 @@ class GroupService {
 
 
   async readOneByName(name) {
+    name = name.toLocaleLowerCase();
     return this._model.readOneByName(name);
   }
 
