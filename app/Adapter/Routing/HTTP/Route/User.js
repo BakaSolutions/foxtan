@@ -13,9 +13,10 @@ class UserController extends MainController {
     let inviteService = new InviteService(DatabaseContext.invite);
     this.user = new UserBO(userService, inviteService);
     // Setting up
-    Router.post('api/register', this.register.bind(this));
-    Router.post('api/logOn', this.logOn.bind(this));
+    Router.get('api/whoAmI', this.whoAmI.bind(this));
     Router.post('api/logOff', this.logOff.bind(this));
+    Router.post('api/logOn', this.logOn.bind(this));
+    Router.post('api/register', this.register.bind(this));
     // TODO: /api/requestLoginByEmail
   }
 
@@ -50,6 +51,14 @@ class UserController extends MainController {
       success: this.user.logoff()
     };
     this.success(ctx, out);
+  }
+
+  async whoAmI(ctx) {
+    try {
+      this.success(ctx, ctx.session.user);
+    } catch (e) {
+      this.fail(ctx, e);
+    }
   }
 
   isLoggedIn(ctx) {
