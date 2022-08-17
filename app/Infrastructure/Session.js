@@ -14,6 +14,7 @@ module.exports = session({
     client: redisClient()
   }),
   cookie: ctx => ({
-    maxAge: ctx.session.user ? 86400000 : 0 // 1 day or session time
+    sameSite: config.get('cookie.sameSite', 'none'),
+    maxAge: ctx.session.user ? config.get('cookie.maxAge') : 0 // 1 day or session time
   })
 });

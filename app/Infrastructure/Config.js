@@ -95,8 +95,8 @@ let config = {
   cookie: {
     sessionKey: 'session',
     keys: ['my53cr37fr13nd', '0h74k3m37073r1v3r'],
-    signed: false,
-    secret: 'p13453ch4ng3m364k4'
+    sameSite: 'none',
+    maxAge: 86400000, // in seconds
   }
 };
 
