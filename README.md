@@ -18,13 +18,9 @@
 git clone https://github.com/BakaSolutions/foxtan
 cd foxtan
 
-# Install using npm
-npm install
-npm i pg
-
-# Install using yarn
-yarn install
-yarn add pg
+# Install using pnpm (https://pnpm.io)
+pnpm install
+pnpm i pg
 ```
 
 #### Configuration
@@ -48,3 +44,9 @@ node app    # or `npm start` or `yarn start`
 # Launch on non-LTS
 npx -p node@lts -- node app
 ```
+
+#### API
+
+To learn more about the API, check out [fkclient.js](https://github.com/BakaSolutions/fkclient.js)
+as well as [its example](https://github.com/BakaSolutions/fkclient.js#running-the-example-app)
+- the simplest application based on Foxtan API.
