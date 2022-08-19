@@ -37,8 +37,8 @@ class UserController extends MainController {
       }
       let query = ctx.request.body;
       let user = await this.user.login(query);
-      ctx.session.user = user;
       ctx.sessionHandler.regenerateId();
+      ctx.session.user = user;
       this.success(ctx, user);
     } catch (e) {
       this.fail(ctx, e);
