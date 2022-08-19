@@ -20,7 +20,7 @@
   "license": "MIT",
   "homepage": "https://github.com/BakaSolutions/foxtan#readme",
   "dependencies": {
-    "@rngnrs/figurecon": "^1.1.1",
+    "@rngnrs/figurecon": "^1.2.0",
     "busboy": "^1.6.0",
     "canvas": "^2.9.3",
     "eventemitter3": "^4.0.7",
