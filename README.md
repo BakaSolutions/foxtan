@@ -48,5 +48,10 @@ npx -p node@lts -- node app
 #### API
 
 To learn more about the API, check out [fkclient.js](https://github.com/BakaSolutions/fkclient.js)
-as well as [its example](https://github.com/BakaSolutions/fkclient.js#running-the-example-app)
-- the simplest application based on Foxtan API.
+as well as [its example](https://github.com/BakaSolutions/fkclient.js#running-the-example-app) - 
+the simplest application based on Foxtan API.
+
+#### Clients
+
+- [Kumori](https://github.com/octoman90/Kumori) - Official up-to-date client-side rendering client based on Vue 3
+- [Kuri](https://github.com/BakaSolutions/kuri) - [STALLED] Server-side rendering client
