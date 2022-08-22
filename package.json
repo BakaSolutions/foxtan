@@ -23,6 +23,7 @@
     "@rngnrs/figurecon": "^1.2.0",
     "busboy": "^1.6.0",
     "canvas": "^2.9.3",
+    "email-validator": "^2.0.4",
     "eventemitter3": "^4.0.7",
     "file-type": "~16.5.4",
     "ioredis": "^4.28.5",

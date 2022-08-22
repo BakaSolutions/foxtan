@@ -1,3 +1,5 @@
+const emailValidator = require("email-validator");
+
 const crypto = require('../../Infrastructure/Crypto.js');
 const {
   MissingParamError,
@@ -27,7 +29,10 @@ class UserService {
       }
     }
 
-    // TODO: Validate e-mail during the registration
+    // TODO: Add a stricter validator
+    if (!emailValidator.validate(email)) {
+      throw new BadRequestError(`Please, enter a valid e-mail`);
+    }
 
     if (password.length < 8) {
       throw new BadRequestError(`Password must contain at least 8 characters`);
