@@ -22,6 +22,9 @@ class UserController extends MainController {
 
   async register(ctx) {
     try {
+      if (this.isLoggedIn(ctx)) {
+        return this.success(ctx, ctx.session.user);
+      }
       let query = ctx.request.body;
       let user = await this.user.register(query);
       this.success(ctx, user);
@@ -58,7 +61,7 @@ class UserController extends MainController {
   }
 
   isLoggedIn(ctx) {
-    return !!ctx.session.user;
+    return !!ctx.session?.user;
   }
 
 }

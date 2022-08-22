@@ -139,7 +139,8 @@ exports.seed = async knex => {
       name: 'Admin',
       email: 'admin@localhost',
       passwordHash: '04d9f19e9a814fd839f91675d7558e5669edeb13c489802645714f351f5b9d84',
-      salt: '3di'
+      salt: '3di',
+      registeredAt: new Date()
     }
   ]).into('user');
   await knex.withSchema(schema).insert([

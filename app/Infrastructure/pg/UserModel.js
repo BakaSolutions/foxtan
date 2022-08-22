@@ -10,16 +10,23 @@ class UserModelPostgre extends UserModelInterface {
   }
 
   async create(user) {
-    const columns = ['name', 'email', 'passwordHash', 'salt', 'registeredAt'];
-    const template = `
-      INSERT INTO "user"
-      (${columns.map(c => '"' + c + '"').join(', ')})
-      VALUES (${columns.map((c, i) => '$' + (i + 1))})
-      RETURNING *
-    `;
-    const values = columns.map(attr => user[attr]);
-    const query = await this.dialect.executeQuery(template, values);
-    return UserDTO.from(query[0]);
+    try {
+      const columns = ['name', 'email', 'passwordHash', 'salt', 'registeredAt'];
+      const template = `
+        INSERT INTO "user"
+        (${columns.map(c => '"' + c + '"').join(', ')})
+        VALUES (${columns.map((c, i) => '$' + (i + 1))})
+        RETURNING *
+      `;
+      const values = columns.map(attr => user[attr]);
+      const query = await this.dialect.executeQuery(template, values);
+      return UserDTO.from(query[0]);
+    } catch (e) {
+      if ('23505' !== e.code) {
+        throw e;
+      }
+      return this.readOneByName(user.name);
+    }
   }
 
   async readOneById(id) {

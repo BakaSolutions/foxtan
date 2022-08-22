@@ -1,3 +1,5 @@
+const { BadRequestError } = require('../../Domain/Error/index.js');
+
 class UserBO {
 
   /**
@@ -20,6 +22,14 @@ class UserBO {
     let invite = code
       ? await this.InviteService.readOneByCode(code)
       : null;
+
+    if (!invite) {
+      throw new BadRequestError('Please, present your invitation code');
+    }
+
+    if (invite.expiredAt) {
+      throw new BadRequestError('This invite is expired');
+    }
 
     let isRegistered = await this.UserService.register(userObject);
 
