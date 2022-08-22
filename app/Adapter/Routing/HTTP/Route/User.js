@@ -54,11 +54,7 @@ class UserController extends MainController {
   }
 
   async whoAmI(ctx) {
-    try {
-      this.success(ctx, ctx.session.user);
-    } catch (e) {
-      this.fail(ctx, e);
-    }
+    this.success(ctx, ctx.session?.user || {});
   }
 
   isLoggedIn(ctx) {
