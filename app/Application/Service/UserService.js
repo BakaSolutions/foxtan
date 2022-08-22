@@ -1,4 +1,11 @@
 const crypto = require('../../Infrastructure/Crypto.js');
+const {
+  MissingParamError,
+  BadRequestError,
+  NotAuthorizedError,
+  NotFoundError,
+  ConflictError
+} = require('../../Domain/Error/index.js');
 
 class UserService {
 
@@ -16,34 +23,22 @@ class UserService {
     let obj = { name, email, password };
     for (let key of Object.keys(obj)) {
       if (!obj[key]) {
-        throw { // TODO: Add custom errors into UserService
-          status: 400,
-          message: `Please, enter your ${key}`
-        };
+        throw new MissingParamError(`Please, enter your ${key}`);
       }
     }
 
     // TODO: Validate e-mail during the registration
 
     if (password.length < 8) {
-      throw {
-        status: 400,
-        message: `Password must contain at least 8 characters`
-      };
+      throw new BadRequestError(`Password must contain at least 8 characters`);
     }
 
     let user = await this.getUser({ name, email });
     if (user?.name?.toLowerCase() === name.toLowerCase()) {
-      throw {
-        status: 409,
-        message: `User with this login already exists!`
-      };
+      throw new ConflictError(`User with this login already exists!`);
     }
     if (user?.email?.toLowerCase() === email.toLowerCase()) {
-      throw {
-        status: 409,
-        message: `User with this e-mail already exists!`
-      };
+      throw new ConflictError(`User with this e-mail already exists!`);
     }
 
     return true;
@@ -52,16 +47,10 @@ class UserService {
   async validateLogin(userObject) {
     let { name, email, password } = userObject;
     if (!name && !email) {
-      throw {
-        status: 400,
-        message: `Please, enter your credentials`
-      };
+      throw new MissingParamError(`Please, enter your credentials`);
     }
     if (!password) {
-      throw {
-        status: 400,
-        message: `Please, enter your password`
-      };
+      throw new MissingParamError(`Please, enter your password`);
     }
 
     return true;
@@ -83,23 +72,13 @@ class UserService {
     let user = await this._model.readOneByName(name);
 
     if (!user) {
-      throw {
-        status: 404,
-        message: `User with this login does not exist!`
-      };
+      throw new NotFoundError(`User with this login does not exist!`);
     }
     if (!UserService.checkPassword(user, password)) {
-      throw {
-        status: 401,
-        message: `Wrong password!`
-      };
+      throw new NotAuthorizedError(`Wrong password!`);
     }
 
     return user.toObject();
-  }
-
-  async logoff(userDTO) {
-
   }
 
   async getUser({ name, email }) {
@@ -124,10 +103,7 @@ class UserService {
 
   static createHash(password, salt) {
     if (!password) {
-      throw {
-        status: 400,
-        message: `Password is empty!`
-      };
+      throw new BadRequestError(`Password is empty!`);
     }
     if (!salt) {
       salt = UserService.createSalt();

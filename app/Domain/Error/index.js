@@ -88,6 +88,12 @@ class PostNotFoundError extends NotFoundError {
   }
 }
 
+class ConflictError extends CustomError {
+  constructor(description) {
+    super("CONFLICT", description || "Conflict error", 409);
+  }
+}
+
 /*class PostDeletedError extends CustomError {
   constructor(description) {
     super("POST_DELETED", description || "Post was deleted", 410);
@@ -116,6 +122,8 @@ module.exports = {
   ThreadNotFoundError,
   ThreadsNotFoundError,
   PostNotFoundError,
+  // 409
+  ConflictError,
   // 410
   // PostDeletedError,
 
