@@ -72,9 +72,12 @@ class UserService {
   }
 
   async login(userObject) {
-    let { name, password } = userObject;
-    name = name.toLocaleLowerCase();
-    let user = await this._model.readOneByName(name);
+    let { name, email, password } = userObject;
+
+    let user = await this._model.readOneByNameOrEmail({
+      name: name?.toLocaleLowerCase(),
+      email: email?.toLocaleLowerCase()
+    });
 
     if (!user) {
       throw new NotFoundError(`User with this login does not exist!`);
