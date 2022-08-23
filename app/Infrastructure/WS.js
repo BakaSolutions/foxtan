@@ -52,6 +52,7 @@ module.exports = class WS {
   }
 
   use (command, handler) {
+    command = command?.toLocaleLowerCase();
     if (!this.middlewares[command]) {
       this.middlewares[command] = [];
     }
@@ -72,9 +73,9 @@ module.exports = class WS {
     try {
       params = JSON.parse(message);
 
-      let sequence = this.middlewares[params.request];
+      let sequence = this.middlewares[params.request?.toLocaleLowerCase()];
       if (!sequence) {
-        return this.fail(ws, params, NotFoundError());
+        return this.fail(ws, params, new NotFoundError());
       }
 
       try {
@@ -90,7 +91,7 @@ module.exports = class WS {
         return this.fail(ws, params, {code: 500});
       }
     } catch (e) {
-      return this.fail(ws, params, BadRequestError());
+      return this.fail(ws, params, new BadRequestError());
     }
   }
 

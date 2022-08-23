@@ -17,7 +17,6 @@ class UserController extends MainController {
       UserService: new UserService(DatabaseContext.user),
     });
     // Setting up
-    Router.get('api/whoAmI', this.whoAmI.bind(this));
     Router.post('api/logOff', this.logOff.bind(this));
     Router.post('api/logOn', this.logOn.bind(this));
     Router.post('api/register', this.register.bind(this));
@@ -65,10 +64,6 @@ class UserController extends MainController {
       success: this.user.logoff()
     };
     this.success(ctx, out);
-  }
-
-  async whoAmI(ctx) {
-    this.success(ctx, ctx.session?.user || {});
   }
 
   isLoggedIn(ctx) {
