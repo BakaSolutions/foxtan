@@ -55,10 +55,10 @@ class InviteModelPostgre extends InviteModelInterface {
     const template = `
       SELECT *
       FROM "invite"
-      WHERE (LOWER("code") LIKE $1)
+      WHERE (LOWER("code") = $1)
       LIMIT 1
     `;
-    const query = await this.dialect.executeQuery(template, [ `%${code}%` ]);
+    const query = await this.dialect.executeQuery(template, [ code?.toLocaleLowerCase() ]);
     return query.length ? InviteDTO.from(query[0]) : null;
   }
 
@@ -66,9 +66,9 @@ class InviteModelPostgre extends InviteModelInterface {
     const template = `
       UPDATE "invite"
       SET "expiredAt" = $1
-      WHERE (LOWER("code") LIKE $2)
+      WHERE (LOWER("code") = $2)
     `;
-    const query = await this.dialect.executeQuery(template, [ date, `%${code}%` ]);
+    const query = await this.dialect.executeQuery(template, [ date, code?.toLocaleLowerCase() ]);
     return query.length ? InviteDTO.from(query[0]) : null;
   }
 }

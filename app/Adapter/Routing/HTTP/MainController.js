@@ -34,6 +34,7 @@ class MainController {
     }
 
     ctx.message = out.message; // goes to log
+    ctx.description = out.description; // goes to log
 
     if (out instanceof CustomError) {
       return ctx.body = {

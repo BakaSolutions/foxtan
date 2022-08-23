@@ -21,8 +21,8 @@ RETURNING *`;
   }
 
   async readOneByName(name) {
-    const template = `SELECT * FROM board WHERE (LOWER("name") LIKE $1) LIMIT 1`;
-    const query = await this.dialect.executeQuery(template, [ `%${name}%` ]);
+    const template = `SELECT * FROM board WHERE (LOWER("name") = $1) LIMIT 1`;
+    const query = await this.dialect.executeQuery(template, [ name ]);
     return BoardDTO.from(query[0]);
   }
 

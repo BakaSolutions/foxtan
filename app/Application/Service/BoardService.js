@@ -31,7 +31,7 @@ class BoardService {
    * @returns {Promise<BoardDTO>}
    */
   readOneByName(name) {
-    name = name.toLocaleLowerCase();
+    name = name?.toLocaleLowerCase();
     return this._boardModel.readOneByName(name);
   }
 

@@ -15,6 +15,9 @@ let middleware = app => {
         if (ctx.message) {
           string += ` (${ctx.message})`;
         }
+        if (ctx.description) {
+          string += ` (${ctx.description})`;
+        }
         console.log(string);
       }
     }

@@ -4,15 +4,33 @@ class UserBO {
 
   /**
    *
-   * @param {UserService} UserService
+   * @param {GroupService} GroupService
    * @param {InviteService} InviteService
+   * @param {MemberService} MemberService
+   * @param {UserService} UserService
    */
-  constructor(UserService, InviteService) {
+  constructor({
+    InviteService,
+    GroupService,
+    MemberService,
+    UserService
+  }) {
+    if (!GroupService) {
+      throw new Error('No GroupService');
+    }
+    if (!InviteService) {
+      throw new Error('No InviteService');
+    }
+    if (!MemberService) {
+      throw new Error('No MemberService');
+    }
     if (!UserService) {
       throw new Error('No UserService');
     }
-    this.UserService = UserService;
+    this.GroupService = GroupService;
     this.InviteService = InviteService;
+    this.MemberService = MemberService;
+    this.UserService = UserService;
   }
 
   async register(userObject) {
@@ -22,21 +40,29 @@ class UserBO {
     let invite = code
       ? await this.InviteService.readOneByCode(code)
       : null;
-
     if (!invite) {
       throw new BadRequestError('Please, present your invitation code');
     }
-
     if (invite.expiredAt) {
       throw new BadRequestError('This invite is expired');
     }
 
-    let isRegistered = await this.UserService.register(userObject);
-
-    if (isRegistered && code) {
-      await this.InviteService.redeem(invite);
+    let group = await this.GroupService.readOneByName(invite.groupName);
+    if (!group) {
+      throw new BadRequestError(`There is no such a group: "${invite.groupName}"`);
     }
-    return isRegistered;
+
+    let registeredUser = await this.UserService.register(userObject);
+
+    let membership = {
+      groupName: invite.groupName,
+      userId: registeredUser.id,
+      invitedById: invite.authorId,
+    }
+    await this.MemberService.create(membership);
+    await this.InviteService.redeem(invite);
+
+    return registeredUser;
   }
 
   async login(userObject) {
