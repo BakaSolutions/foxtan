@@ -4,7 +4,7 @@
   "description": "Slyest imageboard engine that was ever made. Fastest one, beat by none!",
   "main": "app/Application/index.js",
   "scripts": {
-    "coverage": "nyc npm test",
+    "coverage": "nyc pnpm test",
     "postinstall": "node scripts/postinstall.js",
     "start": "node app/Application",
     "test": "node test"

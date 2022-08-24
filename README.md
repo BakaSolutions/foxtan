@@ -20,7 +20,6 @@ cd foxtan
 
 # Install using pnpm (https://pnpm.io)
 pnpm install
-pnpm i pg
 ```
 
 #### Configuration
@@ -39,7 +38,7 @@ Default admin credentials:
 #### Usage
 ```
 # Launch on LTS or "current" version
-node app    # or `npm start` or `yarn start`
+node app    # or `pnpm start`
 
 # Launch on non-LTS
 npx -p node@lts -- node app
