@@ -68,6 +68,10 @@ class UserService {
     userObject.registeredAt = new Date();
 
     let user = await this._model.create(userObject);
+    if (user === null) {
+      console.log("this usually does not happen. study logs!");
+      throw new BadRequestError("Can not register user with your credentials");
+    }
     return user.toObject();
   }
 

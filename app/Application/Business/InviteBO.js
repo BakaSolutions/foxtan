@@ -41,6 +41,7 @@ class InviteBO {
     if (!group) {
       throw new NotFoundError(`Group "${inviteObject.groupName}" was not found`);
     }
+    inviteObject.groupName = group.name; // case-insensitive read,=> case-sensitive write
     return this.InviteService.create(inviteObject);
   }
 

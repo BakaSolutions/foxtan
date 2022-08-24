@@ -10,16 +10,23 @@ class MemberModelPostgre extends MemberModelInterface {
   }
 
   async create(member) {
-    const columns = ['groupName', 'userId', 'invitedById', 'invitedAt', 'expiredAt'];
-    const template = `
-      INSERT INTO "member"
-      (${columns.map(c => '"' + c + '"').join(', ')})
-      VALUES (${columns.map((c, i) => '$' + (i + 1))})
-      RETURNING *
-    `;
-    const values = columns.map(attr => member[attr]);
-    const query = await this.dialect.executeQuery(template, values);
-    return MemberDTO.from(query[0]);
+    try {
+      const columns = ['groupName', 'userId', 'invitedById', 'invitedAt', 'expiredAt'];
+      const template = `
+        INSERT INTO "member"
+        (${columns.map(c => '"' + c + '"').join(', ')})
+        VALUES (${columns.map((c, i) => '$' + (i + 1))})
+        RETURNING *
+      `;
+      const values = columns.map(attr => member[attr]);
+      const query = await this.dialect.executeQuery(template, values);
+      return MemberDTO.from(query[0]);
+    } catch (e) {
+      if ('23505' !== e.code) {
+        throw e;
+      }
+      return this.readOneByUserId(member.userId);
+    }
   }
 
   async readOneById(id) {

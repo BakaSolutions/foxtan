@@ -127,14 +127,12 @@ exports.seed = async knex => {
   ]).into('post');
   await knex.withSchema(schema).insert([
     {
-      id: 1,
       newBoardsPerDay: 999,
       newInvitesPerDay: 999
     }
   ]).into('privileges');
   await knex.withSchema(schema).insert([
     {
-      id: 1,
       privilegesId: 1,
       name: 'Admin',
       email: 'admin@localhost',
@@ -153,7 +151,6 @@ exports.seed = async knex => {
   ]).into('group');
   await knex.withSchema(schema).insert([
     {
-      id: 1,
       groupName: 'Admin',
       userId: 1,
       invitedById: 1,
