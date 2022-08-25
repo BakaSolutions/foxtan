@@ -15,7 +15,8 @@ exports.seed = async knex => {
   await knex.withSchema(schema).insert([
     {
       //id: 1,
-      boardName: 't'
+      boardName: 't',
+      pinned: 1,
     },
     {
       //id: 2,
@@ -23,7 +24,7 @@ exports.seed = async knex => {
     },
     {
       //id: 3,
-      boardName: 't'
+      boardName: 't',
     },
     {
       //id: 4,
@@ -31,7 +32,7 @@ exports.seed = async knex => {
     },
     {
       //id: 5,
-      boardName: 't'
+      boardName: 't',
     },
     {
       //id: 6,
@@ -39,7 +40,7 @@ exports.seed = async knex => {
     },
     {
       //id: 7,
-      boardName: 't'
+      boardName: 't',
     },
     {
       //id: 8,
@@ -49,6 +50,7 @@ exports.seed = async knex => {
   await knex.withSchema(schema).insert([
     {
       threadId: 1,
+      userId: 1,
       number: 1,
       text: 'id 1, /t/, thread 1, post 1, OP'
     },
@@ -129,6 +131,10 @@ exports.seed = async knex => {
     {
       newBoardsPerDay: 999,
       newInvitesPerDay: 999
+    },
+    {
+      newBoardsPerDay: 0,
+      newInvitesPerDay: 0.1
     }
   ]).into('privileges');
   await knex.withSchema(schema).insert([
@@ -147,6 +153,12 @@ exports.seed = async knex => {
       privilegesId: 1,
       accessId: [ 1 ],
       description: 'Sample admin group'
+    },
+    {
+      name: 'User',
+      privilegesId: 2,
+      accessId: [ ],
+      description: 'Sample user group'
     }
   ]).into('group');
   await knex.withSchema(schema).insert([
