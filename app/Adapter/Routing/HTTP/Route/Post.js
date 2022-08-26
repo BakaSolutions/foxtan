@@ -63,6 +63,13 @@ class PostController extends MainController {
         postDTO.attachments = files.map(f => f.hash);
       }
 
+      postDTO.modifiers = Object.entries(postDTO.modifiers)
+        .map(([key, value]) => {
+          if ('true' === value) {
+            return key;
+          }
+        })
+
       /*if (isANewThread) {
         await this.thread.validate();
       }
