@@ -81,6 +81,15 @@ class ThreadController {
           }
           return this.thread.cleanOutput(thread, hasPrivileges);
         }
+      }, {
+        request: 'pinThread',
+        middleware: async params => {
+          let { id, priority } = params;
+          if (priority <= 0) {
+            priority = null;
+          }
+          return this.thread.pin({id, priority});
+        }
       }
     ];
   }

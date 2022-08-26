@@ -94,6 +94,21 @@ class ThreadService {
     }
   }
 
+  /**
+   *
+   * @param {Number} id
+   * @param {Number} priority
+   * @returns {Promise<{updated: Number}>}
+   */
+  async pin({ id, priority} = {}) {
+    try {
+      let updated = await this._threadModel.pin({ id, priority });
+      return { updated };
+    } catch (e) {
+      return { updated: 0 };
+    }
+  }
+
 }
 
 module.exports = ThreadService;

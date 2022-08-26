@@ -38,6 +38,10 @@ class ThreadBO {
     return Tools.parallel(this.process.bind(this), threads);
   }
 
+  async pin({ id, priority = null} = {}) {
+    return this.ThreadService.pin({ id, priority });
+  }
+
   async sync(boardName) {
     let out = {};
     let threads = await this.ThreadService.readAllByBoard(boardName);
