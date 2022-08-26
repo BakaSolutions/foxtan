@@ -41,20 +41,6 @@ class UserModelPostgre extends UserModelInterface {
     return query.length ? UserDTO.from(query[0]) : null;
   }
 
-  async readOneByNameOrEmail({name, email}) {
-    const template = `
-      SELECT *
-      FROM "user"
-      WHERE
-        (LOWER("name") = $1)
-      OR
-        (LOWER("email") = $2)
-      LIMIT 1
-    `;
-    const query = await this.dialect.executeQuery(template, [ name?.toLocaleLowerCase(), email?.toLocaleLowerCase() ]);
-    return query.length ? UserDTO.from(query[0]) : null;
-  }
-
   async readOneByName(name) {
     const template = `
       SELECT *

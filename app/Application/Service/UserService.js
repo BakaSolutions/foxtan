@@ -78,11 +78,7 @@ class UserService {
   async login(userObject) {
     let { name, email, password } = userObject;
 
-    let user = await this._model.readOneByNameOrEmail({
-      name: name?.toLocaleLowerCase(),
-      email: email?.toLocaleLowerCase()
-    });
-
+    let user = await this.getUser({ name , email });
     if (!user) {
       throw new NotFoundError(`User with this login does not exist!`);
     }
@@ -94,13 +90,11 @@ class UserService {
   }
 
   async getUser({ name, email }) {
-    if (name && email) {
-      return this._model.readOneByNameOrEmail({ name, email });
-    }
-    if (name) {
-      return this._model.readOneByName(name);
-    }
-    return this._model.readOneByEmail(email);
+    return name
+      ? await this._model.readOneByName(name?.toLocaleLowerCase())
+      : email
+        ? await this._model.readOneByEmail(email?.toLocaleLowerCase())
+        : null;
   }
 
   async readOneById(id) {

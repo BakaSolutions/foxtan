@@ -67,7 +67,7 @@ class UserController extends MainController {
   }
 
   isLoggedIn(ctx) {
-    return !!ctx.session?.user;
+    return !!ctx.session.user;
   }
 
   setUserSession(ctx, user) {
