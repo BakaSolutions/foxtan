@@ -113,8 +113,24 @@ module.exports = class WS {
   }
 
   success(ws, what, data) {
-    let out = Object.assign({what}, {data});
-    ws.send(JSON.stringify(out));
+    // Remove nulls, NaNs, empty strings and empty arrays from data
+    // Sadly it won't work for empty nested objects
+    const data = JSON.stringify(
+      {what, data},
+      (_, value) => {
+        if ([null, NaN, undefined].includes(value)) {
+          return undefined;
+        }
+
+        if (0 === value?.length) {
+          return undefined;
+        }
+
+        return value;
+      }
+    );
+
+    ws.send(data);
   }
 
   fail(ws, what, e) {
