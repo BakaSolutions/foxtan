@@ -115,7 +115,7 @@ module.exports = class WS {
   success(ws, what, data) {
     // Remove nulls, NaNs, empty strings and empty arrays from data
     // Sadly it won't work for empty nested objects
-    const data = JSON.stringify(
+    const body = JSON.stringify(
       {what, data},
       (_, value) => {
         if ([null, NaN, undefined].includes(value)) {
@@ -130,7 +130,7 @@ module.exports = class WS {
       }
     );
 
-    ws.send(data);
+    ws.send(body);
   }
 
   fail(ws, what, e) {
