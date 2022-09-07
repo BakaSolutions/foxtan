@@ -10,12 +10,19 @@ class PostModelPostgre extends PostModelInterface {
   }
 
   async create(post) {
-    const template = `INSERT INTO post
-("threadId", "userId", "number", "subject", "text", "sessionKey",
-"modifiers", "ipAddress", "created", "updated", "deleled", "attachments")
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-RETURNING *`;
-    const values = post.toArray();
+    const columns = [
+      'threadId', 'userId', 'number', 'subject', 'text',
+      'sessionKey', 'modifiers', 'ipAddress', 'created', 'updated',
+      'deleled', 'attachments', 'isHead',
+    ];
+
+    const template = `
+      INSERT INTO post
+      (${columns.map(c => '"' + c + '"').join(', ')})
+      VALUES (${columns.map((c, i) => '$' + (i + 1))})
+      RETURNING *`;
+
+    const values = columns.map(attr => post[attr]);
     const query = await this.dialect.executeQuery(template, values);
     return PostDTO.from(query[0]);
   }
@@ -28,7 +35,12 @@ RETURNING *`;
   }
 
   async readOneByThreadId(threadId) {
-    const template = `SELECT * FROM post WHERE "threadId" = $1 ORDER BY id LIMIT 1`;
+    const template = `
+      SELECT *
+      FROM post
+      WHERE "threadId" = $1 AND "isHead" IS TRUE
+      LIMIT 1`;
+
     const values = [ threadId ];
     const query = await this.dialect.executeQuery(template, values);
     return PostDTO.from(query[0]);

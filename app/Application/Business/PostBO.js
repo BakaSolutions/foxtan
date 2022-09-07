@@ -19,12 +19,14 @@ class PostBO {
   }
 
   async createPreHook(postDTO, threadDTO) {
-    let Thread;
-    if (threadDTO) {
-      Thread = await this.ThreadService.create(threadDTO);
-      postDTO.threadId = Thread.id;
+    if (!threadDTO) {
+      return [postDTO, undefined];
     }
-    return [postDTO, Thread];
+
+    const thread = await this.ThreadService.create(threadDTO);
+    postDTO.threadId = thread.id;
+    postDTO.isHead = true;
+    return [postDTO, thread]
   }
 
   /**
