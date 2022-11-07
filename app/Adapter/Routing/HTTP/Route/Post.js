@@ -70,6 +70,10 @@ class PostController extends MainController {
           }
         })
 
+      // This doesn't allow `sage` append to thread modifiers.
+      // They're empty by default right now. If it's not, rewrite this ASAP.
+      threadDTO.modifiers = [];
+
       /*if (isANewThread) {
         await this.thread.validate();
       }
