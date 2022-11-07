@@ -38,6 +38,8 @@ class PostBO {
   }
 
   async createPostHook(Post, threadDTO) {
+    Post = await this.process(Post);
+
     if (threadDTO) {
       EventBus.emit('broadcast', 'thread', 'created', {
         ...(await this.ThreadService.readOneById(threadDTO.id)),
