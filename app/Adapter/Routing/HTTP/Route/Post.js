@@ -11,6 +11,8 @@ const ThreadDTO = require('../../../../Domain/DTO/ThreadDTO.js');
 
 const MainController = require('../MainController.js');
 
+const CHECKBOX_STRING = 'on';
+
 class PostController extends MainController {
 
   constructor(Router, DatabaseContext) {
@@ -104,13 +106,68 @@ class PostController extends MainController {
   }
 
   async deletePost(ctx) {
-    let { originalBody } = ctx.request;
-    return await this.post.deleteOne(originalBody);
+    try {
+      let { body: query } = ctx.request;
+
+      let post = this.processSelectedPost(query.selectedPost);
+      let user = ctx.session.user || null;
+
+      let out = await this.post.deleteOne(post, user);
+      this.success(ctx, out);
+    } catch (e) {
+      this.fail(ctx, e);
+    }
   }
 
   async deletePosts(ctx) {
-    let { originalBody } = ctx.request;
-    return await this.post.deleteMany(originalBody);
+    try {
+      let { body: query } = ctx.request;
+
+      let posts = this.processSelectedPosts(query.selectedPost);
+      let user = ctx.session.user || null;
+
+      let out = await this.post.deleteMany(posts, user);
+      this.success(ctx, out);
+    } catch (e) {
+      this.fail(ctx, e);
+    }
+  }
+
+  processSelectedPost(selectedPost = {}) {
+    let key = Object.keys(selectedPost)[0];
+
+    let postId = null;
+    let postNumber = {};
+
+    let value = selectedPost[key];
+    if (value === CHECKBOX_STRING) {
+      postId = +key;
+      return { postId, postNumber };
+    }
+
+    if (typeof value === 'object') {
+      postNumber[key] = +Object.keys(value)[0];
+    }
+    return { postId, postNumber };
+  }
+
+  processSelectedPosts(selectedPost = {}) {
+    let keys = Object.keys(selectedPost);
+
+    let postIds = keys
+      .filter(id => selectedPost[id] === CHECKBOX_STRING)
+      .map(id => +id);
+    let postNumbers = {};
+
+    let boardNames = keys.filter(boardName => typeof selectedPost[boardName] === 'object');
+    for (let boardName of boardNames) {
+      postNumbers[boardName] = Object
+        .keys(selectedPost[boardName])
+        .filter(postNumber => selectedPost[boardName][postNumber] === CHECKBOX_STRING)
+        .map(id => +id);
+    }
+
+    return { postIds, postNumbers };
   }
 
 }

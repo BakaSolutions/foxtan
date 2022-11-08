@@ -40,7 +40,7 @@ class PostService {
       throw new BadRequestError('id must be more than 0');
     }
     try {
-      return this._postModel.readOneById(id);
+      return await this._postModel.readOneById(id);
     } catch (e) {
       throw new PostNotFoundError();
     }
@@ -58,7 +58,7 @@ class PostService {
       throw new BadRequestError('threadId must be more than 0');
     }
     try {
-      return this._postModel.readOneByThreadId(threadId);
+      return await this._postModel.readOneByThreadId(threadId);
     } catch (e) {
       throw new PostNotFoundError();
     }
@@ -80,7 +80,7 @@ class PostService {
       throw new BadRequestError('number must be more than 0');
     }
     try {
-      return this._postModel.readOneByBoardAndPost(boardName, number);
+      return await this._postModel.readOneByBoardAndPost(boardName, number);
     } catch (e) {
       throw new PostNotFoundError();
     }
@@ -109,7 +109,7 @@ class PostService {
    */
   async readThreadPosts(threadId, { count, page } = {}) {
     try {
-      return this._postModel.readByThreadId(threadId, { count, page });
+      return await this._postModel.readByThreadId(threadId, { count, page });
     } catch (e) {
       throw new PostNotFoundError();
     }
@@ -123,7 +123,7 @@ class PostService {
    */
   async readBoardFeed(boardName, { count, page } = {}) {
     try {
-      return this._postModel.readByBoardName(boardName, { count, page, order: 'desc' });
+      return await this._postModel.readByBoardName(boardName, { count, page, order: 'desc' });
     } catch (e) {
       throw new PostNotFoundError();
     }

@@ -63,6 +63,11 @@ class PostBO {
     return this.process(post);
   }
 
+  async readMany(ids = []) {
+    let posts = await Promise.all(ids.map(async id => await this.readOne(id)));
+    return Tools.parallel(this.process.bind(this), posts);
+  }
+
   async readThreadPosts(threadId, { count, page } = {}) {
     let posts = page >= 0
       ? await this.PostService.readThreadPosts(threadId, { count, page })
@@ -75,15 +80,29 @@ class PostBO {
     return Tools.parallel(this.process.bind(this), posts);
   }
 
-  /*
-  async deleteOne(post) {
+  async deleteOne({ postId, postNumber }, user) {
+    let post = postId > 0
+      ? await this.readOne(postId)
+      : await this.readOneByBoardAndPost(...Object.entries(postNumber));
+
+    // TODO: Check user session
+    // TODO: Check if post is a thread => delete thread posts
     return this.PostService.deleteOne(post);
   }
 
-  async deleteMany(posts) {
+  async deleteMany({ postIds, postNumbers }, user) {
+    let posts = postIds?.length > 0
+      ? await this.readMany(postIds)
+      : new Error('Not implemented yet, sorry');
+
+    if (posts instanceof Error) {
+      throw posts; // TODO: Read posts by boardNames and postNumbers
+    }
+
+    // TODO: Check user session
+    // TODO: Check if some of posts are threads => delete threads posts
     return this.PostService.deleteMany(posts);
   }
-  */
 
   async process(post) {
     if (!post) {
