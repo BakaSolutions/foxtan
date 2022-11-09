@@ -25,6 +25,7 @@ class PostDTO extends DTO {
     this.sessionKey = data.sessionKey;
     this.modifiers = data.modifiers || [];
     this.ipAddress = data.ipAddress;
+    this.isHead = data.isHead;
     this.created = data.created;
     this.updated = data.updated;
     this.deleted = data.deleted;

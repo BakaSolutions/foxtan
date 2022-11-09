@@ -58,6 +58,7 @@ exports.up = knex => {
       table.increments('id').unsigned().primary();
       table.integer('threadId').unsigned().notNullable();
       table.integer('userId').unsigned();
+      table.boolean('isHead');
       table.integer('number').unsigned();
       table.string('subject', 60);
       table.text('text');
