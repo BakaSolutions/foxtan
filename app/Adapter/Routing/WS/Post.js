@@ -1,5 +1,6 @@
 const PostBO = require('../../../Application/Business/PostBO.js');
 const FileService = require('../../../Application/Service/FileService.js');
+const ThreadService = require('../../../Application/Service/ThreadService.js');
 const PostService = require('../../../Application/Service/PostService.js');
 const Tools = require('../../../Infrastructure/Tools.js');
 const { MissingParamError, PostNotFoundError, DtoError, BadRequestError } = require('../../../Domain/Error/index.js');
@@ -8,7 +9,11 @@ const { MissingParamError, PostNotFoundError, DtoError, BadRequestError } = requ
 class PostController {
 
   constructor(DatabaseContext) {
-    this.post = new PostBO(new PostService(DatabaseContext.post), undefined, new FileService(DatabaseContext.file));
+    this.post = new PostBO(
+      new PostService(DatabaseContext.post),
+      new ThreadService(DatabaseContext.thread),
+      new FileService(DatabaseContext.file)
+    );
 
     return [
       {

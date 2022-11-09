@@ -2,14 +2,18 @@ const ThreadBO = require('../../../Application/Business/ThreadBO.js');
 const ThreadService = require('../../../Application/Service/ThreadService.js');
 const PostBO = require('../../../Application/Business/PostBO.js');
 const PostService = require('../../../Application/Service/PostService.js');
+const FileService = require('../../../Application/Service/FileService.js');
 const { MissingParamError, ThreadsNotFoundError, ThreadNotFoundError, DtoError, BadRequestError } = require('../../../Domain/Error/index.js');
+
+const Tools = require('../../../Infrastructure/Tools.js');
 
 class ThreadController {
   constructor(DatabaseContext) {
     let postService = new PostService(DatabaseContext.post);
     let threadService = new ThreadService(DatabaseContext.thread);
+    let fileService = new FileService(DatabaseContext.file);
 
-    this.post = new PostBO(postService);
+    this.post = new PostBO(postService, threadService, fileService);
     this.thread = new ThreadBO(threadService, postService);
 
     return [
@@ -37,6 +41,11 @@ class ThreadController {
           if (!threads || !threads.length) {
             throw new ThreadsNotFoundError(); // TODO: This job is for ThreadEntity but we have not got one yet
           }
+
+          threads = await Tools.parallel(async thread => {
+            thread.head = await this.post.process(thread.head);
+            return thread;
+          }, threads);
 
           return this.thread.cleanOutput(threads, hasPrivileges);
         }
@@ -79,6 +88,9 @@ class ThreadController {
             }
             throw e;
           }
+          
+          thread.head = await this.post.process(thread.head);
+
           return this.thread.cleanOutput(thread, hasPrivileges);
         }
       }, {

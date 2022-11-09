@@ -13,7 +13,7 @@ class SyncController {
     let threadService = new ThreadService(DatabaseContext.thread);
     let boardService = new BoardService(DatabaseContext.board);
 
-    this.post = new PostBO(postService);
+    this.post = new PostBO(postService, threadService);
     this.thread = new ThreadBO(threadService, postService);
     this.board = new BoardBO(boardService);
 

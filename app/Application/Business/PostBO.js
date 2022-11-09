@@ -13,6 +13,9 @@ class PostBO {
     if (!PostService) {
       throw new Error('No PostService');
     }
+    if (!ThreadService) {
+      throw new Error('No ThreadService');
+    }
     this.PostService = PostService;
     this.ThreadService = ThreadService;
     this.FileService = FileService;
