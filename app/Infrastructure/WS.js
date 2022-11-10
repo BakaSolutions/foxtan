@@ -62,8 +62,8 @@ module.exports = class WS {
   broadcast (type, event, data) {
     for (let client of this.instance.clients) {
       if (client.readyState === WebSocket.OPEN) {
-        let out = {type, event, data};
-        client.send(JSON.stringify(out));
+        let out = this.process({type, event, data});
+        client.send(out);
       }
     }
   }
@@ -113,23 +113,7 @@ module.exports = class WS {
   }
 
   success(ws, what, data) {
-    // Remove nulls, NaNs, empty strings and empty arrays from data
-    // Sadly it won't work for empty nested objects
-    const body = JSON.stringify(
-      {what, data},
-      (_, value) => {
-        if ([null, NaN, undefined].includes(value)) {
-          return undefined;
-        }
-
-        if (0 === value?.length) {
-          return undefined;
-        }
-
-        return value;
-      }
-    );
-
+    let body = this.process({ what, data });
     ws.send(body);
   }
 
@@ -145,4 +129,26 @@ module.exports = class WS {
     let out = Object.assign({what}, {error});
     ws.send(JSON.stringify(out));
   }
+
+  /**
+   * Remove nulls, NaNs, empty strings and empty arrays from data
+   * Sadly it won't work for empty nested objects
+   */
+  process (out = {}) {
+    return JSON.stringify(
+      out,
+      (_, value) => {
+        if ([null, NaN, undefined].includes(value)) {
+          return undefined;
+        }
+
+        if (0 === value?.length) {
+          return undefined;
+        }
+
+        return value;
+      }
+    );
+  }
+
 };
