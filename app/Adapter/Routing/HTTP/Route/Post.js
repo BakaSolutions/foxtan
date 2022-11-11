@@ -11,8 +11,6 @@ const ThreadDTO = require('../../../../Domain/DTO/ThreadDTO.js');
 
 const MainController = require('../MainController.js');
 
-const CHECKBOX_STRING = 'on';
-
 class PostController extends MainController {
 
   constructor(Router, DatabaseContext) {
@@ -140,7 +138,7 @@ class PostController extends MainController {
     let postNumber = {};
 
     let value = selectedPost[key];
-    if (value === CHECKBOX_STRING) {
+    if (typeof value === 'string') {
       postId = +key;
       return { postId, postNumber };
     }
@@ -155,7 +153,7 @@ class PostController extends MainController {
     let keys = Object.keys(selectedPost);
 
     let postIds = keys
-      .filter(id => selectedPost[id] === CHECKBOX_STRING)
+      .filter(id => typeof selectedPost[id] === 'string') // 'on', 'true' and so on
       .map(id => +id);
     let postNumbers = {};
 
@@ -163,7 +161,7 @@ class PostController extends MainController {
     for (let boardName of boardNames) {
       postNumbers[boardName] = Object
         .keys(selectedPost[boardName])
-        .filter(postNumber => selectedPost[boardName][postNumber] === CHECKBOX_STRING)
+        .filter(postNumber => typeof selectedPost[boardName][postNumber] === 'string')
         .map(id => +id);
     }
 

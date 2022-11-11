@@ -88,7 +88,14 @@ WHERE "id" = $2`;
   }
 
   async deleteOne(thread) {
-    throw new Error();
+    try {
+      const template = `DELETE FROM thread WHERE "id" = $1`;
+      const values = [ thread.id ];
+      await this.dialect.executeQuery(template, values, {raw: true});
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async deleteMany(thread) {

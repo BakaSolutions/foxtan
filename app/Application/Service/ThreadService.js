@@ -109,6 +109,10 @@ class ThreadService {
     }
   }
 
+  deleteOne(thread) {
+    return this._threadModel.deleteOne(thread);
+  }
+
 }
 
 module.exports = ThreadService;

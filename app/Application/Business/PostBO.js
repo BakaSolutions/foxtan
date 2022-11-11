@@ -91,7 +91,12 @@ class PostBO {
       : await this.readOneByBoardAndPost(...Object.entries(postNumber));
 
     // TODO: Check user session
-    // TODO: Check if post is a thread => delete thread posts
+
+    let isThread = await this.PostService.isThreadHead(post);
+    if (isThread) {
+      let threadPosts = await this.PostService.readOneByThreadId(post.threadId);
+      return this.PostService.deleteMany([post, ...threadPosts]);
+    }
     return this.PostService.deleteOne(post);
   }
 
@@ -105,7 +110,23 @@ class PostBO {
     }
 
     // TODO: Check user session
-    // TODO: Check if some of posts are threads => delete threads posts
+
+    let headPosts = posts.filter(post => this.PostService.isThreadHead(post));
+    if (headPosts?.length) {
+      await Tools.parallel(async post => {
+        try {
+          let thread = await this.ThreadService.readOneById(post.threadId);
+          let threadPosts = await this.PostService.readThreadPosts(post.threadId);
+          if (threadPosts?.length > 1) { // if thread has answers
+            posts = posts.concat(threadPosts.slice(1));
+          }
+          await this.ThreadService.deleteOne(thread);
+        } catch (e) {
+          console.log(e); // TODO: Remove after debug
+        }
+      }, headPosts);
+    }
+
     return this.PostService.deleteMany(posts);
   }
 

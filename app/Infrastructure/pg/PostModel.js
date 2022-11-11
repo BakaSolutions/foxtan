@@ -108,10 +108,14 @@ WHERE t."boardName" = $1`;
   }
 
   async deleteOne(post) {
-    const template = `DELETE FROM post WHERE "id" = $1`;
-    const values = [ post.id ];
-    const query = await this.dialect.executeQuery(template, values, {raw: true});
-    return query.rowCount || 0;
+    try {
+      const template = `DELETE FROM post WHERE "id" = $1`;
+      const values = [ post.id ];
+      await this.dialect.executeQuery(template, values, {raw: true});
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async deleteMany(posts) {
@@ -119,6 +123,7 @@ WHERE t."boardName" = $1`;
         DELETE FROM post
         WHERE
          ${posts.map((post, i) => '("id" = $' + (i + 1) + ')').join(' OR ')}`;
+    // TODO: `WHERE "id" IN (...)`?
     const values = posts.map(post => post.id);
     const query = await this.dialect.executeQuery(template, values, {raw: true});
     return query.rowCount || 0;

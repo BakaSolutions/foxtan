@@ -138,6 +138,14 @@ class PostService {
   }
 
   /**
+   * @param {PostDTO} post
+   * @returns {Promise<Boolean>}
+   */
+  async isThreadHead(post) {
+    return post?.isHead;
+  }
+
+  /**
    *
    * @param {Number} post
    * @returns {Promise<boolean>}
