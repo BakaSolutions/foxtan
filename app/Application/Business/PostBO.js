@@ -73,6 +73,16 @@ class PostBO {
     return Tools.parallel(this.process.bind(this), posts);
   }
 
+  async readManyByBoardAndPost(postObject = {}) {
+    let boards = Object.keys(postObject);
+    let posts = [];
+    boards.map(async boardName => {
+      let portionOfPosts = await this.PostService.readMany(boardName, postObject[boardName]);
+      posts = posts.concat(portionOfPosts);
+    });
+    return Tools.parallel(this.process.bind(this), posts);
+  }
+
   async readThreadPosts(threadId, { count, page } = {}) {
     let posts = page >= 0
       ? await this.PostService.readThreadPosts(threadId, { count, page })
@@ -103,11 +113,7 @@ class PostBO {
   async deleteMany({ postIds, postNumbers }, user) {
     let posts = postIds?.length > 0
       ? await this.readMany(postIds)
-      : new Error('Not implemented yet, sorry');
-
-    if (posts instanceof Error) {
-      throw posts; // TODO: Read posts by boardNames and postNumbers
-    }
+      : await this.readManyByBoardAndPost(postNumbers);
 
     // TODO: Check user session
 
@@ -122,7 +128,7 @@ class PostBO {
           }
           await this.ThreadService.deleteOne(thread);
         } catch (e) {
-          console.log(e); // TODO: Remove after debug
+          //
         }
       }, headPosts);
     }

@@ -71,7 +71,7 @@ class BoardNotFoundError extends NotFoundError {
 }
 
 class ThreadNotFoundError extends NotFoundError {
-  constructor(message) {
+  constructor(description) {
     super("THREAD_NOT_FOUND", description || "There is no such a thread", 404);
   }
 }
@@ -85,6 +85,12 @@ class ThreadsNotFoundError extends NotFoundError {
 class PostNotFoundError extends NotFoundError {
   constructor(description) {
     super("POST_NOT_FOUND", description || "There is no such a post", 404);
+  }
+}
+
+class PostsNotFoundError extends NotFoundError {
+  constructor(description) {
+    super("POSTS_NOT_FOUND", description || "There is no such posts", 404);
   }
 }
 
@@ -122,6 +128,7 @@ module.exports = {
   ThreadNotFoundError,
   ThreadsNotFoundError,
   PostNotFoundError,
+  PostsNotFoundError,
   // 409
   ConflictError,
   // 410

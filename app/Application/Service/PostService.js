@@ -1,6 +1,7 @@
 const {
   MissingParamError,
   PostNotFoundError,
+  PostsNotFoundError,
   BadRequestError
 } = require('../../Domain/Error/index.js');
 
@@ -83,6 +84,20 @@ class PostService {
       return await this._postModel.readOneByBoardAndPost(boardName, number);
     } catch (e) {
       throw new PostNotFoundError();
+    }
+  }
+
+  async readMany(boardName, number) {
+    if (!boardName) {
+      throw new BadRequestError('boardName is required');
+    }
+    if (typeof number === 'number') {
+      return this.readOneByBoardAndPost(boardName, number);
+    }
+    try {
+      return await this._postModel.readManyByBoardAndPosts(boardName, number);
+    } catch (e) {
+      throw new PostsNotFoundError();
     }
   }
 

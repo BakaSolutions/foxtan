@@ -58,6 +58,19 @@ LIMIT 1`;
     return PostDTO.from(query[0]);
   }
 
+  async readManyByBoardAndPosts(boardName, numbers = []) {
+    const template = `SELECT p.*
+FROM post p
+INNER JOIN thread t ON p."threadId" = t.id
+WHERE t."boardName" = $1
+AND (p.number = $2
+  OR ${numbers.map((post, i) => 'p.number = $' + (i + 3)).join(' OR ')}
+)`;
+    const values = [ boardName, ...numbers ];
+    const query = await this.dialect.executeQuery(template, values);
+    return PostDTO.from(query[0]);
+  }
+
   async readByThreadId(threadId, { count, page, order } = {}) {
     const template = `SELECT * FROM post WHERE "threadId" = $1`;
     const values = [ threadId ];
@@ -119,10 +132,8 @@ WHERE t."boardName" = $1`;
   }
 
   async deleteMany(posts) {
-    const template = `
-        DELETE FROM post
-        WHERE
-         ${posts.map((post, i) => '("id" = $' + (i + 1) + ')').join(' OR ')}`;
+    const template = `DELETE FROM post
+WHERE ${posts.map((post, i) => '("id" = $' + (i + 1) + ')').join(' OR ')}`;
     // TODO: `WHERE "id" IN (...)`?
     const values = posts.map(post => post.id);
     const query = await this.dialect.executeQuery(template, values, {raw: true});
