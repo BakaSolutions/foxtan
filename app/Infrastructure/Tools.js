@@ -140,6 +140,8 @@ Tools.randomInt = length => Tools.random(10, length);
 
 Tools.randomHex = length => Tools.random(16, length);
 
+Tools.randomSessionString = () => Math.random().toString(36).slice(-8); // 8 lowercase chars
+
 Tools.startWith = (string, char) => (''+string).startsWith(char) ? string : char + string;
 
 Tools.endWith = (string, char) => (''+string).endsWith(char) ? string : string + char;

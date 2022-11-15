@@ -33,6 +33,7 @@ class PostController extends MainController {
   async createPost(ctx) {
     let { body: query } = ctx.request;
     query.userId = ctx.session.user?.id || null;
+    query.sessionKey = ctx.session.key || null;
 
     try {
       let isANewThread = !(query.threadId),
