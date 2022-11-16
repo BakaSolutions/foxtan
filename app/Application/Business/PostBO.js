@@ -1,5 +1,6 @@
 const Tools = require('../../Infrastructure/Tools.js');
 const EventBus = require('../../Infrastructure/EventBus.js');
+const { ForbiddenError } = require('../../Domain/Error/index.js');
 
 class PostBO {
 
@@ -95,12 +96,14 @@ class PostBO {
     return Tools.parallel(this.process.bind(this), posts);
   }
 
-  async deleteOne({ postId, postNumber }, user) {
+  async deleteOne({ postId, postNumber }, session) {
     let post = postId > 0
       ? await this.readOne(postId)
       : await this.readOneByBoardAndPost(...Object.entries(postNumber));
 
-    // TODO: Check user session
+    if (!this.canDelete(post, session)) {
+      throw new ForbiddenError(`You're not allowed to delete this post`);
+    }
 
     let isThread = await this.PostService.isThreadHead(post);
     if (isThread) {
@@ -110,12 +113,16 @@ class PostBO {
     return this.PostService.deleteOne(post);
   }
 
-  async deleteMany({ postIds, postNumbers }, user) {
+  async deleteMany({ postIds, postNumbers }, session) {
     let posts = postIds?.length > 0
       ? await this.readMany(postIds)
       : await this.readManyByBoardAndPost(postNumbers);
 
-    // TODO: Check user session
+    posts = posts.filter(post => this.canDelete(post, session));
+
+    if (!posts.length) {
+      throw new ForbiddenError(`You're not allowed to delete these posts`);
+    }
 
     let headPosts = posts.filter(post => this.PostService.isThreadHead(post));
     if (headPosts?.length) {
@@ -147,6 +154,11 @@ class PostBO {
     }
 
     return post;
+  }
+
+  canDelete(post, session) {
+    // TODO: Remove any post by mods
+    return (session.key === post.sessionKey) || (session.user?.id === post.userId);
   }
 
   cleanOutput(post, hasPrivileges) {

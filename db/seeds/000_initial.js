@@ -63,6 +63,7 @@ exports.seed = async knex => {
     {
       isHead: true,
       threadId: 2,
+      userId: 1,
       number: 1,
       text: 'id 3, /test/, thread 2, post 1, OP'
     },
@@ -79,36 +80,42 @@ exports.seed = async knex => {
     {
       isHead: true,
       threadId: 3,
+      userId: 1,
       number: 4,
       text: 'id 6, /t/, thread 3, post 4, OP'
     },
     {
       isHead: true,
       threadId: 4,
+      userId: 1,
       number: 3,
       text: 'id 7, /test/, thread 4, post 3, OP'
     },
     {
       isHead: true,
       threadId: 5,
+      userId: 1,
       number: 5,
       text: 'id 8, /t/, thread 5, post 5, OP'
     },
     {
       isHead: true,
       threadId: 6,
+      userId: 1,
       number: 4,
       text: 'id 9, /test/, thread 6, post 4, OP'
     },
     {
       isHead: true,
       threadId: 7,
+      userId: 1,
       number: 6,
       text: 'id 10, /t/, thread 7, post 6, OP'
     },
     {
       isHead: true,
       threadId: 8,
+      userId: 1,
       number: 5,
       text: 'id 11, /test/, thread 8, post 5, OP'
     },

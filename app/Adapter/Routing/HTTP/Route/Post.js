@@ -109,9 +109,9 @@ class PostController extends MainController {
       let { body: query } = ctx.request;
 
       let post = this.processSelectedPost(query.selectedPost);
-      let user = ctx.session.user || null;
+      let session = ctx.session || {};
 
-      let out = await this.post.deleteOne(post, user);
+      let out = await this.post.deleteOne(post, session);
       this.success(ctx, out);
     } catch (e) {
       this.fail(ctx, e);
@@ -123,9 +123,9 @@ class PostController extends MainController {
       let { body: query } = ctx.request;
 
       let posts = this.processSelectedPosts(query.selectedPost);
-      let user = ctx.session.user || null;
+      let session = ctx.session || {};
 
-      let out = await this.post.deleteMany(posts, user);
+      let out = await this.post.deleteMany(posts, session);
       this.success(ctx, out);
     } catch (e) {
       this.fail(ctx, e);

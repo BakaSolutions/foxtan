@@ -58,39 +58,45 @@ class NotAuthorizedError extends CustomError {
   }
 }
 
-class NotFoundError extends CustomError {
+class ForbiddenError extends CustomError {
   constructor(description) {
-    super("NOT_FOUND", description || "Not found", 404);
+    super("FORBIDDEN", description || "You're not allowed to do this", 403);
+  }
+}
+
+class NotFoundError extends CustomError {
+  constructor(code, description) {
+    super(code || "NOT_FOUND", description || "Not found", 404);
   }
 }
 
 class BoardNotFoundError extends NotFoundError {
   constructor(description) {
-    super("BOARD_NOT_FOUND", description || "There is no such a board", 404);
+    super("BOARD_NOT_FOUND", description || "There is no such a board");
   }
 }
 
 class ThreadNotFoundError extends NotFoundError {
   constructor(description) {
-    super("THREAD_NOT_FOUND", description || "There is no such a thread", 404);
+    super("THREAD_NOT_FOUND", description || "There is no such a thread");
   }
 }
 
 class ThreadsNotFoundError extends NotFoundError {
   constructor(description) {
-    super("THREADS_NOT_FOUND", description || "There is no threads on such page of a board", 404);
+    super("THREADS_NOT_FOUND", description || "There is no threads on such page of a board");
   }
 }
 
 class PostNotFoundError extends NotFoundError {
   constructor(description) {
-    super("POST_NOT_FOUND", description || "There is no such a post", 404);
+    super("POST_NOT_FOUND", description || "There is no such a post");
   }
 }
 
 class PostsNotFoundError extends NotFoundError {
   constructor(description) {
-    super("POSTS_NOT_FOUND", description || "There is no such posts", 404);
+    super("POSTS_NOT_FOUND", description || "There is no such posts");
   }
 }
 
@@ -122,6 +128,8 @@ module.exports = {
   BadRequestError,
   // 401
   NotAuthorizedError,
+  // 403
+  ForbiddenError,
   // 404
   NotFoundError,
   BoardNotFoundError,
