@@ -8,6 +8,7 @@ class PostModelInterface {
   async readByThreadId(threadId, { count, page, order } = {}) {}
   async readByBoardNameAndThreadNumber(boardName, threadNumber, { count, page, order } = {}) {}
   async readByBoardName(boardName, { count, page, order } = {}) {}
+  async readByAttachmentHash(hash) {}
   async countByThreadId(threadId) {}
   async update(post) {}
   async deleteOne(post) {}

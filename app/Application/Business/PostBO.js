@@ -70,8 +70,7 @@ class PostBO {
   }
 
   async readMany(ids = []) {
-    let posts = await Promise.all(ids.map(async id => await this.readOne(id)));
-    return Tools.parallel(this.process.bind(this), posts);
+    return await Promise.all(ids.map(async id => await this.readOne(id)));
   }
 
   async readManyByBoardAndPost(postObject = {}) {
@@ -108,8 +107,12 @@ class PostBO {
     let isThread = await this.PostService.isThreadHead(post);
     if (isThread) {
       let threadPosts = await this.PostService.readOneByThreadId(post.threadId);
-      return this.PostService.deleteMany([post, ...threadPosts]);
+      let postsForDeletion = [post, ...threadPosts];
+      await this.deleteAttachments(postsForDeletion);
+      return this.PostService.deleteMany(postsForDeletion);
     }
+
+    await this.deleteAttachments(post);
     return this.PostService.deleteOne(post);
   }
 
@@ -140,7 +143,19 @@ class PostBO {
       }, headPosts);
     }
 
+    posts.map(async post => await this.deleteAttachments(post));
     return this.PostService.deleteMany(posts);
+  }
+
+  async deleteAttachments(post) {
+    if (post.attachments?.length > 0) {
+      for await (const { hash } of post.attachments) {
+        let postsWithThisFile = await this.PostService.readByAttachmentHash(hash);
+        if (postsWithThisFile < 2) { // is unique (1) or absent (0)
+          await this.FileService.delete(hash);
+        }
+      }
+    }
   }
 
   async process(post) {

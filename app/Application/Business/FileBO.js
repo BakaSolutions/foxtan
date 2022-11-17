@@ -71,13 +71,7 @@ class FileBO {
       })
 
     const fileDTO = new FileDTO({ hash, mime, name, size, width, height, modifiers });
-    await this.FileService.create(fileDTO)
-      .catch((err) => {
-        // Ignore duplicate errors
-        if ('23505' !== err.code) {
-          throw err;
-        }
-      });
+    await this.FileService.create(fileDTO);
 
     return fileDTO;
   }

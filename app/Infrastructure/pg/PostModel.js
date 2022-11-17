@@ -109,6 +109,13 @@ WHERE t."boardName" = $1`;
     return posts.map(post => PostDTO.from(post));
   }
 
+  async readByAttachmentHash(hash) {
+    const template = `SELECT * FROM post WHERE $1 = ANY("attachments")`;
+    const values = [ hash ];
+    let posts = await this.dialect.executeQuery(template, values);
+    return posts.map(post => PostDTO.from(post));
+  }
+
   async countByThreadId(threadId) {
     const template = `SELECT COUNT(id) FROM post WHERE "threadId" = $1`;
     const values = [ threadId ];

@@ -153,6 +153,14 @@ class PostService {
   }
 
   /**
+   * @param {hash} hash
+   * @returns {Promise<Array>} posts
+   */
+  async readByAttachmentHash(hash) {
+    return this._postModel.readByAttachmentHash(hash);
+  }
+
+  /**
    * @param {PostDTO} post
    * @returns {Promise<Boolean>}
    */

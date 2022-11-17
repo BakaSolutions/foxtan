@@ -17,9 +17,17 @@ class FileModelPostgre extends FileModelInterface {
       VALUES (${columns.map((c, i) => '$' + (i + 1))})
       RETURNING *
     `;
-    const values = columns.map(attr => file[attr]);
-    const query = await this.dialect.executeQuery(template, values);
-    return FileDTO.from(query[0]);
+    try {
+      const values = columns.map(attr => file[attr]);
+      const query = await this.dialect.executeQuery(template, values);
+      return FileDTO.from(query[0]);
+    } catch (e) {
+      // Ignore duplicate errors
+      if ('23505' === e.code) {
+        return FileDTO.from(file);
+      }
+      throw e;
+    }
   }
 
   async read(hashArray) {
@@ -27,6 +35,15 @@ class FileModelPostgre extends FileModelInterface {
       SELECT *
       FROM file
       WHERE hash = ANY ($1)
+    `;
+    const query = await this.dialect.executeQuery(template, [hashArray]);
+    return query.map(file => FileDTO.from(file));
+  }
+
+  async delete(hashArray) {
+    const template = `
+      DELETE FROM file
+      WHERE "hash" = ANY ($1)
     `;
     const query = await this.dialect.executeQuery(template, [hashArray]);
     return query.map(file => FileDTO.from(file));
