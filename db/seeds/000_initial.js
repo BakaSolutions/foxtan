@@ -172,7 +172,7 @@ exports.seed = async knex => {
     {
       name: 'User',
       privilegesId: 2,
-      accessId: [ ],
+      accessId: [ 2 ],
       description: 'Sample user group'
     }
   ]).into('group');
@@ -184,4 +184,18 @@ exports.seed = async knex => {
       invitedAt: new Date()
     }
   ]).into('member');
+  await knex.withSchema(schema).insert([
+    {
+      appliesToBoard: '*',
+      appliesToThread: 0,
+      access: ['view', 'post', 'moderate']
+    }
+  ]).into('access');
+  await knex.withSchema(schema).insert([
+    {
+      appliesToBoard: '*',
+      appliesToThread: 0,
+      access: ['view', 'post']
+    }
+  ]).into('access');
 };
