@@ -26,6 +26,7 @@ class DatabaseContext {
     }
 
     let out = {
+      access: require(`./${this.type}/AccessModel.js`),
       board: require(`./${this.type}/BoardModel.js`),
       file: require(`./${this.type}/FileModel.js`),
       post: require(`./${this.type}/PostModel.js`),

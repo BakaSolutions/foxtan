@@ -1,4 +1,4 @@
-class BoardModelInterface {
+class AccessModelInterface {
 
   async create(board, thread, access) {}
   async readOne(id) {}
@@ -6,4 +6,4 @@ class BoardModelInterface {
 
 }
 
-module.exports = BoardModelInterface;
+module.exports = AccessModelInterface;

@@ -14,6 +14,7 @@ class GroupDTO extends DTO {
 
     this.name = data.name;
     this.privilegesId = data.privilegesId;
+    this.accessId = data.accessId || [];
     this.description = data.description;
 
     return this;

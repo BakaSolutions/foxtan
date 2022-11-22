@@ -4,17 +4,22 @@ class UserBO {
 
   /**
    *
+   * @param {AccessService} AccessService
    * @param {GroupService} GroupService
    * @param {InviteService} InviteService
    * @param {MemberService} MemberService
    * @param {UserService} UserService
    */
   constructor({
+    AccessService,
     InviteService,
     GroupService,
     MemberService,
     UserService
   }) {
+    if (!AccessService) {
+      throw new Error('No AccessService');
+    }
     if (!GroupService) {
       throw new Error('No GroupService');
     }

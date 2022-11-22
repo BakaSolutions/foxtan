@@ -5,12 +5,14 @@ const UserService = require('../../../../Application/Service/UserService.js');
 const InviteService = require('../../../../Application/Service/InviteService.js');
 const MemberService = require('../../../../Application/Service/MemberService.js');
 const GroupService = require('../../../../Application/Service/GroupService.js');
+const AccessService = require('../../../../Application/Service/AccessService.js');
 
 class UserController extends MainController {
 
   constructor(Router, DatabaseContext) {
     super(Router);
     this.user = new UserBO({
+      AccessService: new AccessService(DatabaseContext.access),
       GroupService: new GroupService(DatabaseContext.group),
       InviteService: new InviteService(DatabaseContext.invite),
       MemberService: new MemberService(DatabaseContext.member),

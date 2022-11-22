@@ -36,7 +36,7 @@ class AccessModelPostgre extends AccessModelInterface {
     const template = `
       SELECT *
       FROM "access"
-      WHERE hash = ANY ($1)
+      WHERE "id" = ANY ($1)
     `;
     const query = await this.dialect.executeQuery(template, [ idArray ]);
     return query.map(access => AccessDTO.from(access));
