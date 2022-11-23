@@ -42,6 +42,19 @@ class AccessModelPostgre extends AccessModelInterface {
     return query.map(access => AccessDTO.from(access));
   }
 
+  async readByGroupAndBoard(group, board) {
+    const template = `
+      SELECT a.*
+      FROM "access" a
+      INNER JOIN "group" g ON a.id = ANY(g."accessId")
+      WHERE g."name" = $1
+      AND a."appliesToBoard" IN ('*', $2)
+    `;
+    const values = [ group, board ];
+    const query = await this.dialect.executeQuery(template, values);
+    return query.map(access => AccessDTO.from(access));
+  }
+
 }
 
 module.exports = AccessModelPostgre;

@@ -24,6 +24,14 @@ class AccessService {
     return this._model.readMany(accessArray);
   }
 
+  async hasPermissionForBoard(group, board, permission) {
+    let accessArray = await this._model.readByGroupAndBoard(group, board);
+    return accessArray.some(({appliesToBoard, access}) => {
+      return (appliesToBoard === board || appliesToBoard === '*')
+        && access.includes(permission);
+    })
+  }
+
 }
 
 module.exports = AccessService;
