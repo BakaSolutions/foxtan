@@ -6,6 +6,8 @@ const BoardService = require('../../../../Application/Service/BoardService.js');
 const FileService = require('../../../../Application/Service/FileService.js');
 const PostService = require('../../../../Application/Service/PostService.js');
 const ThreadService = require('../../../../Application/Service/ThreadService.js');
+const AccessService = require('../../../../Application/Service/AccessService.js');
+const MemberService = require('../../../../Application/Service/MemberService.js');
 const PostDTO = require('../../../../Domain/DTO/PostDTO.js');
 const ThreadDTO = require('../../../../Domain/DTO/ThreadDTO.js');
 
@@ -15,13 +17,22 @@ class PostController extends MainController {
 
   constructor(Router, DatabaseContext) {
     super(Router);
+    let accessService = new AccessService(DatabaseContext.access);
+    let memberService = new MemberService(DatabaseContext.member);
     let boardService = new BoardService(DatabaseContext.board);
     let fileService = new FileService(DatabaseContext.file);
     let postService = new PostService(DatabaseContext.post);
     let threadService = new ThreadService(DatabaseContext.thread);
     this.board = new BoardBO(boardService);
     this.file = new FileBO(fileService);
-    this.post = new PostBO(postService, threadService, fileService);
+    this.post = new PostBO({
+      AccessService: accessService,
+      MemberService: memberService,
+      ThreadService: threadService,
+      BoardService: boardService,
+      PostService: postService,
+      FileService: fileService,
+    });
     this.thread = new ThreadBO(threadService, postService);
 
     // Setting up POST methods

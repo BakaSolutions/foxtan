@@ -8,18 +8,36 @@ class PostBO {
    *
    * @param {PostService} PostService
    * @param {ThreadService} ThreadService
+   * @param {BoardService} BoardService
    * @param {FileService} FileService
+   * @param {AccessService} AccessService
+   * @param {MemberService} MemberService
    */
-  constructor(PostService, ThreadService, FileService) {
+  constructor({PostService, ThreadService, BoardService, FileService, AccessService, MemberService} = {}) {
     if (!PostService) {
       throw new Error('No PostService');
     }
     if (!ThreadService) {
       throw new Error('No ThreadService');
     }
+    if (!BoardService) {
+      throw new Error('No BoardService');
+    }
+    if (!FileService) {
+      throw new Error('No FileService');
+    }
+    if (!AccessService) {
+      throw new Error('No AccessService');
+    }
+    if (!MemberService) {
+      throw new Error('No MemberService');
+    }
     this.PostService = PostService;
     this.ThreadService = ThreadService;
+    this.BoardService = BoardService;
     this.FileService = FileService;
+    this.AccessService = AccessService;
+    this.MemberService = MemberService;
   }
 
   async createPreHook(postDTO, threadDTO) {
@@ -100,7 +118,7 @@ class PostBO {
       ? await this.readOne(postId)
       : await this.readOneByBoardAndPost(...Object.entries(postNumber));
 
-    if (!this.canDelete(post, session)) {
+    if (!(await this.canDelete(post, session))) {
       throw new ForbiddenError(`You're not allowed to delete this post`);
     }
 
@@ -121,9 +139,9 @@ class PostBO {
       ? await this.readMany(postIds)
       : await this.readManyByBoardAndPost(postNumbers);
 
-    posts = posts.filter(post => this.canDelete(post, session));
+    let canDelete = (await Tools.parallel(this.canDelete, posts, session)).filter(Boolean);
 
-    if (!posts.length) {
+    if (!canDelete.length) {
       throw new ForbiddenError(`You're not allowed to delete these posts`);
     }
 
@@ -171,9 +189,18 @@ class PostBO {
     return post;
   }
 
-  canDelete(post, session) {
-    // TODO: Remove any post by mods
-    return (session.key === post.sessionKey) || (session.user?.id === post.userId);
+  async canDelete(post, session) {
+    let isLoggedIn = !!session.user?.id;
+    if (!isLoggedIn) {
+      return session.key === post.sessionKey;
+    }
+
+    let Member = await this.MemberService.readOneByUserId(session.user?.id);
+    let Board = await this.BoardService.readByPostId(post.id);
+    let hasPower = await this.AccessService.hasPermissionForBoard(Member?.groupName, Board.name, 'moderate');
+    return hasPower
+      || (session.key === post.sessionKey)
+      || (post.userId > 0 && (session.user?.id === post.userId));
   }
 
   cleanOutput(post, hasPrivileges) {

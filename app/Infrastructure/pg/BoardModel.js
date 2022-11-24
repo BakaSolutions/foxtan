@@ -34,6 +34,17 @@ RETURNING *`;
     return boards.map(board => BoardDTO.from(board));
   }
 
+  async readByPostId(postId) {
+    const template = `SELECT b.*
+FROM board b 
+INNER JOIN thread t ON t."boardName" = b."name" 
+INNER JOIN post p ON p."threadId" = t.id 
+WHERE p.id = $1
+LIMIT 1;`;
+    const query = await this.dialect.executeQuery(template, [ postId ]);
+    return BoardDTO.from(query[0]);
+  }
+
   async getLastPostNumbers() {
     const template = `SELECT b.name, MAX(p.number)
 FROM board b

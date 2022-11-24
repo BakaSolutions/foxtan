@@ -24,12 +24,25 @@ class AccessService {
     return this._model.readMany(accessArray);
   }
 
-  async hasPermissionForBoard(group, board, permission) {
-    let accessArray = await this._model.readByGroupAndBoard(group, board);
-    return accessArray.some(({appliesToBoard, access}) => {
-      return (appliesToBoard === board || appliesToBoard === '*')
-        && access.includes(permission);
-    })
+  async hasPermissionForBoard(groupName, boardName, permission) {
+    let accessArray = await this._model.readByGroupAndBoard(groupName, boardName);
+    if (!accessArray.length) {
+      return false; // no permissions for this group
+    }
+
+    let localAccessArray = accessArray
+      .filter(({appliesToBoard}) => appliesToBoard === boardName);
+    if (localAccessArray.length) {
+      // has local permissions?
+      return localAccessArray
+        .some(({access}) => access.includes(permission.toLocaleLowerCase()));
+    }
+
+    let globalAccessArray = accessArray
+      .filter(({appliesToBoard}) => appliesToBoard === '*');
+    // has global permissions?
+    return globalAccessArray
+      .some(({access}) => access.includes(permission.toLocaleLowerCase()));
   }
 
 }

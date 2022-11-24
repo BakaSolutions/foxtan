@@ -44,6 +44,10 @@ class BoardService {
     return this._boardModel.readMany({ count, page, order });
   }
 
+  readByPostId(postId) {
+    return this._boardModel.readByPostId(postId);
+  }
+
   async getLastPostNumbers() {
     let query = await this._boardModel.getLastPostNumbers();
     let out = {};
