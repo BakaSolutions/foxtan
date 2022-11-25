@@ -1,13 +1,9 @@
-const GroupService = require('../../../Application/Service/GroupService.js');
 const InviteBO = require('../../../Application/Business/InviteBO.js');
-const InviteService = require('../../../Application/Service/InviteService.js');
 
 class InviteController {
 
-  constructor(DatabaseContext) {
-    let inviteService = new InviteService(DatabaseContext.invite);
-    let groupService = new GroupService(DatabaseContext.group);
-    this.invite = new InviteBO(inviteService, groupService);
+  constructor({ GroupService, InviteService }) {
+    this.invite = new InviteBO(InviteService, GroupService);
 
     return [
       {

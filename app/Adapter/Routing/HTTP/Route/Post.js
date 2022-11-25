@@ -2,12 +2,6 @@ const BoardBO = require('../../../../Application/Business/BoardBO.js');
 const FileBO = require('../../../../Application/Business/FileBO.js');
 const PostBO = require('../../../../Application/Business/PostBO.js');
 const ThreadBO = require('../../../../Application/Business/ThreadBO.js');
-const BoardService = require('../../../../Application/Service/BoardService.js');
-const FileService = require('../../../../Application/Service/FileService.js');
-const PostService = require('../../../../Application/Service/PostService.js');
-const ThreadService = require('../../../../Application/Service/ThreadService.js');
-const AccessService = require('../../../../Application/Service/AccessService.js');
-const MemberService = require('../../../../Application/Service/MemberService.js');
 const PostDTO = require('../../../../Domain/DTO/PostDTO.js');
 const ThreadDTO = require('../../../../Domain/DTO/ThreadDTO.js');
 
@@ -15,25 +9,12 @@ const MainController = require('../MainController.js');
 
 class PostController extends MainController {
 
-  constructor(Router, DatabaseContext) {
+  constructor(Router, { AccessService, BoardService, FileService, MemberService, PostService, ThreadService }) {
     super(Router);
-    let accessService = new AccessService(DatabaseContext.access);
-    let memberService = new MemberService(DatabaseContext.member);
-    let boardService = new BoardService(DatabaseContext.board);
-    let fileService = new FileService(DatabaseContext.file);
-    let postService = new PostService(DatabaseContext.post);
-    let threadService = new ThreadService(DatabaseContext.thread);
-    this.board = new BoardBO(boardService);
-    this.file = new FileBO(fileService);
-    this.post = new PostBO({
-      AccessService: accessService,
-      MemberService: memberService,
-      ThreadService: threadService,
-      BoardService: boardService,
-      PostService: postService,
-      FileService: fileService,
-    });
-    this.thread = new ThreadBO(threadService, postService);
+    this.board = new BoardBO(BoardService);
+    this.file = new FileBO(FileService);
+    this.post = new PostBO({ AccessService, BoardService, FileService, MemberService, PostService, ThreadService });
+    this.thread = new ThreadBO(ThreadService, PostService);
 
     // Setting up POST methods
     Router.post('api/createPost', this.createPost.bind(this));

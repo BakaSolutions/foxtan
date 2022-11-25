@@ -6,38 +6,20 @@ class PostBO {
 
   /**
    *
-   * @param {PostService} PostService
-   * @param {ThreadService} ThreadService
+   * @param {AccessService} AccessService
    * @param {BoardService} BoardService
    * @param {FileService} FileService
-   * @param {AccessService} AccessService
    * @param {MemberService} MemberService
+   * @param {PostService} PostService
+   * @param {ThreadService} ThreadService
    */
-  constructor({PostService, ThreadService, BoardService, FileService, AccessService, MemberService} = {}) {
-    if (!PostService) {
-      throw new Error('No PostService');
-    }
-    if (!ThreadService) {
-      throw new Error('No ThreadService');
-    }
-    if (!BoardService) {
-      throw new Error('No BoardService');
-    }
-    if (!FileService) {
-      throw new Error('No FileService');
-    }
-    if (!AccessService) {
-      throw new Error('No AccessService');
-    }
-    if (!MemberService) {
-      throw new Error('No MemberService');
-    }
-    this.PostService = PostService;
-    this.ThreadService = ThreadService;
+  constructor({ AccessService, BoardService, FileService, MemberService, PostService, ThreadService }) {
+    this.AccessService = AccessService;
     this.BoardService = BoardService;
     this.FileService = FileService;
-    this.AccessService = AccessService;
     this.MemberService = MemberService;
+    this.PostService = PostService;
+    this.ThreadService = ThreadService;
   }
 
   async createPreHook(postDTO, threadDTO) {

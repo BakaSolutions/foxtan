@@ -1,23 +1,12 @@
 const MainController = require('../MainController.js');
 
 const UserBO = require('../../../../Application/Business/UserBO.js');
-const UserService = require('../../../../Application/Service/UserService.js');
-const InviteService = require('../../../../Application/Service/InviteService.js');
-const MemberService = require('../../../../Application/Service/MemberService.js');
-const GroupService = require('../../../../Application/Service/GroupService.js');
-const AccessService = require('../../../../Application/Service/AccessService.js');
 
 class UserController extends MainController {
 
-  constructor(Router, DatabaseContext) {
+  constructor(Router, { GroupService, InviteService, MemberService, UserService }) {
     super(Router);
-    this.user = new UserBO({
-      AccessService: new AccessService(DatabaseContext.access),
-      GroupService: new GroupService(DatabaseContext.group),
-      InviteService: new InviteService(DatabaseContext.invite),
-      MemberService: new MemberService(DatabaseContext.member),
-      UserService: new UserService(DatabaseContext.user),
-    });
+    this.user = new UserBO({ GroupService, InviteService, MemberService, UserService });
     // Setting up
     Router.post('api/logOff', this.logOff.bind(this));
     Router.post('api/logOn', this.logOn.bind(this));

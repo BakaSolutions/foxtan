@@ -8,7 +8,7 @@ const WS = require('./WS.js');
 
 class Routing {
 
-  constructor(DatabaseContext) {
+  constructor(services) {
     let websocketPath = `${config.get('server.pathPrefix')}ws`;
 
     this._framework = new Koa();
@@ -17,7 +17,7 @@ class Routing {
       prefix: config.get('server.pathPrefix')
     });
     this._websocket = new WS(this._framework, this._http, websocketPath);
-    this._databaseContext = DatabaseContext;
+    this._services = services;
   }
 
   /**
@@ -58,7 +58,7 @@ class Routing {
       if (!Route) {
         continue;
       }
-      Route = new Route(this._router, this._databaseContext);
+      Route = new Route(this._router, this._services);
       app.use(Route.Router.routes());
       app.use(Route.Router.allowedMethods());
     }
@@ -71,7 +71,7 @@ class Routing {
       m = Tools.arrayify(m);
 
       for (let i = 0; i < m.length; i++) {
-        let router = new m[i](this._databaseContext);
+        let router = new m[i](this._services);
         router = Tools.arrayify(router);
         for (let j = 0; j < router.length; j++) {
           let {request, middleware} = router[j];

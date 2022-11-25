@@ -1,9 +1,10 @@
+const config = require('../../Infrastructure/Config.js');
 const Captcha = require('../../Infrastructure/Captcha/Number.js');
 // TODO: Make Captcha switchable: Cyrillic, Latin, Number...
 
 class CaptchaService {
 
-  constructor(config) {
+  constructor() {
     this.captcha = new Captcha(config.get('captcha'));
   }
 

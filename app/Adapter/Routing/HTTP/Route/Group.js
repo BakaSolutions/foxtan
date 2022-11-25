@@ -1,17 +1,12 @@
 const MainController = require('../MainController.js');
 
 const GroupBO = require('../../../../Application/Business/GroupBO.js');
-const GroupService = require('../../../../Application/Service/GroupService.js');
-const AccessService = require('../../../../Application/Service/AccessService.js');
 
 class GroupController extends MainController {
 
-  constructor(Router, DatabaseContext) {
+  constructor(Router, { AccessService, GroupService }) {
     super(Router);
-
-    let groupService = new GroupService(DatabaseContext.group);
-    let accessService = new AccessService(DatabaseContext.access);
-    this.group = new GroupBO(groupService, accessService);
+    this.group = new GroupBO(GroupService, AccessService);
     // Setting up
     Router.post('api/createGroup', this.create.bind(this));
     Router.get('api/readGroup', this.readOne.bind(this));

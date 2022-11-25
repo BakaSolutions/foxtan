@@ -1,34 +1,12 @@
 const BoardBO = require('../../../Application/Business/BoardBO.js');
-const BoardService = require('../../../Application/Service/BoardService.js');
 const ThreadBO = require('../../../Application/Business/ThreadBO.js');
-const ThreadService = require('../../../Application/Service/ThreadService.js');
-const PostBO = require('../../../Application/Business/PostBO.js');
-const PostService = require('../../../Application/Service/PostService.js');
-const AccessService = require('../../../Application/Service/AccessService.js');
-const FileService = require('../../../Application/Service/FileService.js');
-const MemberService = require('../../../Application/Service/MemberService.js');
 const { MissingParamError } = require('../../../Domain/Error/index.js');
 
 class SyncController {
 
-  constructor(DatabaseContext) {
-    let postService = new PostService(DatabaseContext.post);
-    let threadService = new ThreadService(DatabaseContext.thread);
-    let fileService = new FileService(DatabaseContext.file);
-    let accessService = new AccessService(DatabaseContext.access);
-    let boardService = new BoardService(DatabaseContext.board);
-    let memberService = new MemberService(DatabaseContext.member);
-
-    this.post = new PostBO({
-      AccessService: accessService,
-      MemberService: memberService,
-      BoardService: boardService,
-      ThreadService: threadService,
-      PostService: postService,
-      FileService: fileService,
-    });
-    this.thread = new ThreadBO(threadService, postService);
-    this.board = new BoardBO(boardService);
+  constructor({ BoardService, PostService, ThreadService }) {
+    this.thread = new ThreadBO(ThreadService, PostService);
+    this.board = new BoardBO(BoardService);
 
     return [
       {

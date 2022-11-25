@@ -4,34 +4,17 @@ class UserBO {
 
   /**
    *
-   * @param {AccessService} AccessService
    * @param {GroupService} GroupService
    * @param {InviteService} InviteService
    * @param {MemberService} MemberService
    * @param {UserService} UserService
    */
   constructor({
-    AccessService,
-    InviteService,
     GroupService,
+    InviteService,
     MemberService,
     UserService
   }) {
-    if (!AccessService) {
-      throw new Error('No AccessService');
-    }
-    if (!GroupService) {
-      throw new Error('No GroupService');
-    }
-    if (!InviteService) {
-      throw new Error('No InviteService');
-    }
-    if (!MemberService) {
-      throw new Error('No MemberService');
-    }
-    if (!UserService) {
-      throw new Error('No UserService');
-    }
     this.GroupService = GroupService;
     this.InviteService = InviteService;
     this.MemberService = MemberService;

@@ -1,19 +1,12 @@
 const MainController = require('../MainController.js');
 
 const MemberBO = require('../../../../Application/Business/MemberBO.js');
-const MemberService = require('../../../../Application/Service/MemberService.js');
-const UserService = require('../../../../Application/Service/UserService.js');
-const GroupService = require('../../../../Application/Service/GroupService.js');
 
 class MemberController extends MainController {
 
-  constructor(Router, DatabaseContext) {
+  constructor(Router, { GroupService, MemberService, UserService }) {
     super(Router);
-
-    let memberService = new MemberService(DatabaseContext.member);
-    let userService = new UserService(DatabaseContext.user);
-    let groupService = new GroupService(DatabaseContext.group);
-    this.member = new MemberBO(memberService, userService, groupService);
+    this.member = new MemberBO(MemberService, UserService, GroupService);
     // Setting up
     Router.post('api/createMember', this.create.bind(this));
     Router.get('api/readMember', this.read.bind(this));

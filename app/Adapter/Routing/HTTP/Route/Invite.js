@@ -1,19 +1,14 @@
 const MainController = require('../MainController.js');
 
-const GroupService = require('../../../../Application/Service/GroupService.js');
 const InviteBO = require('../../../../Application/Business/InviteBO.js');
-const InviteService = require('../../../../Application/Service/InviteService.js');
 
 class InviteController extends MainController {
 
   // TODO: Remove this controller after debug!
   
-  constructor(Router, DatabaseContext) {
+  constructor(Router, { GroupService, InviteService }) {
     super(Router);
-
-    let inviteService = new InviteService(DatabaseContext.invite);
-    let groupService = new GroupService(DatabaseContext.group);
-    this.invite = new InviteBO(inviteService, groupService);
+    this.invite = new InviteBO(InviteService, GroupService);
     // Setting up
     Router.post('api/createInvite', this.create.bind(this));
     Router.get('api/readInvite', this.read.bind(this));

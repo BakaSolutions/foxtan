@@ -1,15 +1,13 @@
 const MainController = require('../MainController.js');
 
 const PrivilegeBO = require('../../../../Application/Business/PrivilegeBO.js');
-const PrivilegeService = require('../../../../Application/Service/PrivilegeService.js');
 
 class PrivilegeController extends MainController {
 
-  constructor(Router, DatabaseContext) {
+  constructor(Router, { PrivilegeService }) {
     super(Router);
 
-    let privilegeService = new PrivilegeService(DatabaseContext.privilege);
-    this.privilege = new PrivilegeBO(privilegeService);
+    this.privilege = new PrivilegeBO(PrivilegeService);
     // Setting up
     Router.post('api/createPrivilege', this.create.bind(this));
     Router.get('api/readPrivilege', this.read.bind(this));

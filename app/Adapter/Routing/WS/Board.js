@@ -1,13 +1,10 @@
 const BoardBO = require('../../../Application/Business/BoardBO.js');
-const BoardService = require('../../../Application/Service/BoardService.js');
 const { MissingParamError, BoardNotFoundError, BadRequestError } = require('../../../Domain/Error/index.js');
 
 class BoardController {
 
-  constructor(DatabaseContext) {
-    let boardService = new BoardService(DatabaseContext.board);
-
-    this.board = new BoardBO(boardService);
+  constructor({ BoardService }) {
+    this.board = new BoardBO(BoardService);
 
     return [
       {

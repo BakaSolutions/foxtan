@@ -29,6 +29,7 @@ class Foxtan {
           }
         });
       await this.initDatabaseContext(config.get('db.type'));
+      await this.initServices();
       await this.launchServer();
     } catch (e) {
       this.logError(e);
@@ -42,10 +43,22 @@ class Foxtan {
     return this.database = Database;
   }
 
+  async initServices() {
+    let serviceFiles = await Tools.requireRecursive('app/Application/Service', {
+      mask: /.+Service\.js/i
+    });
+    let services = {};
+    serviceFiles.map(Service => {
+      let serviceName = Service.name.replace('Service', '').toLocaleLowerCase();
+      services[Service.name] = new Service(this.database.context[serviceName]);
+    });
+    return this.services = services;
+  }
+
   async launchServer() {
     let { output, socket, host, port, pathPrefix } = config.get('server');
 
-    this.routing = new Routing(this.database.context);
+    this.routing = new Routing(this.services);
 
     let HTTPRoutes = await Routing.load('HTTP', 'Route');
     let HTTPMiddlewares = await Routing.load('HTTP', 'Middleware');
