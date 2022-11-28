@@ -1,3 +1,5 @@
+const Tools = require('./Tools.js');
+
 class DatabaseContext {
 
   constructor(dbType) {
@@ -15,34 +17,22 @@ class DatabaseContext {
     const Connection = require(`./${this.type}/Connection.js`);
     try {
       this.connection = await new Connection();
+      await this.initContext();
     } catch (e) {
       throw new Error('Can not connect to database: ' + e.message);
     }
   }
 
-  get context() {
-    if (this._context) {
-      return this._context;
-    }
-
-    let out = {
-      access: require(`./${this.type}/AccessModel.js`),
-      board: require(`./${this.type}/BoardModel.js`),
-      file: require(`./${this.type}/FileModel.js`),
-      post: require(`./${this.type}/PostModel.js`),
-      thread: require(`./${this.type}/ThreadModel.js`),
-      user: require(`./${this.type}/UserModel.js`),
-      group: require(`./${this.type}/GroupModel.js`),
-      member: require(`./${this.type}/MemberModel.js`),
-      privilege: require(`./${this.type}/PrivilegeModel.js`),
-      invite: require(`./${this.type}/InviteModel.js`),
-    };
-
-    Object.entries(out).forEach(([key, Model]) => {
-      out[key] = new Model(this.connection);
+  async initContext() {
+    let modelFiles = await Tools.requireRecursive(`app/Infrastructure/${this.type}`, {
+      mask: /.+Model\.js/i
     });
-
-    return this._context = out;
+    let models = {};
+    modelFiles.map(Model => {
+      let modelName = Model.name.replace(/Model.*/, '').toLocaleLowerCase();
+      models[modelName] = new Model(this.connection);
+    });
+    return this.context = models;
   }
 
 }
