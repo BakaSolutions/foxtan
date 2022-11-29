@@ -1,4 +1,5 @@
 const Tools = require('../../Infrastructure/Tools.js');
+const { ForbiddenError } = require('../../Domain/Error/index.js');
 
 class ThreadBO {
 
@@ -35,7 +36,12 @@ class ThreadBO {
     return Tools.parallel(this.process.bind(this), threads);
   }
 
-  async pin({ id, priority = null} = {}) {
+  async pin({ id, priority = null} = {}, session) {
+    let thread = await this.ThreadService.readOneById(id);
+    let hasPrivileges = await this.can('moderate', thread, session);
+    if (!hasPrivileges) {
+      throw new ForbiddenError(`You're not allowed to pin this thread`);
+    }
     return this.ThreadService.pin({ id, priority });
   }
 
@@ -49,16 +55,6 @@ class ThreadBO {
     return out;
   }
 
-  /*
-  async deleteOne(thread) {
-    return this.ThreadService.deleteOne(thread);
-  }
-
-  async deleteMany(thread) {
-    return this.ThreadService.deleteMany(thread);
-  }
-  */
-
   async process(thread, posts, head) {
     if (!thread) {
       return null;
@@ -66,6 +62,24 @@ class ThreadBO {
     thread.head = head || await this.PostService.readOneByThreadId(thread.id);
     thread.posts = posts || await this.PostService.countByThreadId(thread.id);
     return thread;
+  }
+
+  async can(permission, thread, session) {
+    if (!thread || !session) {
+      return false;
+    }
+    let isLoggedIn = !!session.user?.id;
+    let head = await this.PostService.readOneByThreadId(thread.id);
+    if (!isLoggedIn) {
+      return session && session.key === head.sessionKey;
+    }
+
+    let Member = await this.MemberService.readOneByUserId(session.user?.id);
+    let Board = await this.BoardService.readByPostId(head.id);
+    let hasPrivileges = await this.AccessService.hasPermissionForBoard(Member?.groupName, Board.name, permission);
+    return hasPrivileges
+      || (session.key === head.sessionKey)
+      || (head.userId > 0 && (session.user?.id === head.userId));
   }
 
   cleanOutput(thread, hasPrivileges) {
