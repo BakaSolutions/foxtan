@@ -95,6 +95,17 @@ class PostBO {
     return Tools.parallel(this.process.bind(this), posts);
   }
 
+  async edit(postId, data, session) {
+    let post = await this.PostService.readOneById(postId);
+    let hasPrivileges = await this.can('moderate', post, session);
+    if (!hasPrivileges) {
+      throw new ForbiddenError(`You're not allowed to edit this post`);
+    }
+    // await this.PostService.update(postId, data);
+    // TODO: Post editing
+    return true;
+  }
+
   async deleteOne({ postId, postNumber }, session) {
     let post = postId > 0
       ? await this.readOne(postId)
@@ -171,18 +182,22 @@ class PostBO {
     return post;
   }
 
-  async canDelete(post, session) {
-    let isLoggedIn = !!session.user?.id;
+  async can(permission, post, session) {
+    let isLoggedIn = !!session?.user?.id;
     if (!isLoggedIn) {
-      return session.key === post.sessionKey;
+      return session && session.key === post.sessionKey;
     }
 
     let Member = await this.MemberService.readOneByUserId(session.user?.id);
     let Board = await this.BoardService.readByPostId(post.id);
-    let hasPower = await this.AccessService.hasPermissionForBoard(Member?.groupName, Board.name, 'moderate');
-    return hasPower
+    let hasPrivileges = await this.AccessService.hasPermissionForBoard(Member?.groupName, Board.name, permission);
+    return hasPrivileges
       || (session.key === post.sessionKey)
       || (post.userId > 0 && (session.user?.id === post.userId));
+  }
+
+  async canDelete(post, session) {
+    return await this.can('moderate', post, session);
   }
 
   cleanOutput(post, hasPrivileges) {

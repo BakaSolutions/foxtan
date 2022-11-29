@@ -86,6 +86,26 @@ class PostController {
           }
           return this.post.cleanOutput(post, hasPrivileges);
         }
+      },
+      {
+        request: 'postEdit',
+        middleware: async (params, ws) => {
+          try {
+            let { postId, data } = params;
+            if (!Tools.isNumber(postId)) {
+              throw new BadRequestError("postId must be a Number");
+            }
+            if (postId < 1) {
+              throw new BadRequestError("postId must not be lower than 1");
+            }
+            return await this.post.edit(postId, data, ws.session);
+          } catch (e) {
+            if (e instanceof DtoError) {
+              throw new PostNotFoundError();
+            }
+            throw e;
+          }
+        }
       }
     ];
   }
