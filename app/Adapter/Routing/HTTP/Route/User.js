@@ -4,9 +4,9 @@ const UserBO = require('../../../../Application/Business/UserBO.js');
 
 class UserController extends MainController {
 
-  constructor(Router, { GroupService, InviteService, MemberService, UserService }) {
+  constructor(Router, Services) {
     super(Router);
-    this.user = new UserBO({ GroupService, InviteService, MemberService, UserService });
+    this.user = new UserBO(Services);
     // Setting up
     Router.post('api/logOff', this.logOff.bind(this));
     Router.post('api/logOn', this.logOn.bind(this));

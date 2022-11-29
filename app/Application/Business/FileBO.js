@@ -13,10 +13,7 @@ class FileBO {
    *
    * @param {FileService} FileService
    */
-  constructor(FileService) {
-    if (!FileService) {
-      throw new Error('No FileService');
-    }
+  constructor({FileService}) {
     this.FileService = FileService;
   }
 

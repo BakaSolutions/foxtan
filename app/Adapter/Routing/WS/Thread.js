@@ -5,9 +5,9 @@ const { MissingParamError, ThreadsNotFoundError, ThreadNotFoundError, DtoError, 
 const Tools = require('../../../Infrastructure/Tools.js');
 
 class ThreadController {
-  constructor({ AccessService, BoardService, FileService, MemberService, PostService, ThreadService }) {
-    this.post = new PostBO({ AccessService, BoardService, FileService, MemberService, PostService, ThreadService });
-    this.thread = new ThreadBO(ThreadService, PostService);
+  constructor(Services) {
+    this.post = new PostBO(Services);
+    this.thread = new ThreadBO(Services);
 
     return [
       {

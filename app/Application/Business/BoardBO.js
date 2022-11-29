@@ -3,7 +3,7 @@ const EventBus = require('../../Infrastructure/EventBus.js');
 
 class BoardBO {
 
-  constructor(BoardService) {
+  constructor({BoardService}) {
     this.BoardService = BoardService;
   }
 

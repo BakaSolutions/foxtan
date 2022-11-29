@@ -5,8 +5,8 @@ const { MissingParamError, PostNotFoundError, DtoError, BadRequestError } = requ
 
 class PostController {
 
-  constructor({ AccessService, BoardService, FileService, MemberService, PostService, ThreadService }) {
-    this.post = new PostBO({ AccessService, BoardService, FileService, MemberService, PostService, ThreadService });
+  constructor(Services) {
+    this.post = new PostBO(Services);
 
     return [
       {

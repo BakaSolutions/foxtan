@@ -183,7 +183,10 @@ class PostBO {
   }
 
   async can(permission, post, session) {
-    let isLoggedIn = !!session?.user?.id;
+    if (!post || !session) {
+      return false;
+    }
+    let isLoggedIn = !!session.user?.id;
     if (!isLoggedIn) {
       return session && session.key === post.sessionKey;
     }

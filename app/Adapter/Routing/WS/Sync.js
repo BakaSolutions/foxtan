@@ -4,9 +4,9 @@ const { MissingParamError } = require('../../../Domain/Error/index.js');
 
 class SyncController {
 
-  constructor({ BoardService, PostService, ThreadService }) {
-    this.thread = new ThreadBO(ThreadService, PostService);
-    this.board = new BoardBO(BoardService);
+  constructor(Services) {
+    this.thread = new ThreadBO(Services);
+    this.board = new BoardBO(Services);
 
     return [
       {

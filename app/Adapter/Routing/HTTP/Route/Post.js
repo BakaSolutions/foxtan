@@ -9,12 +9,12 @@ const MainController = require('../MainController.js');
 
 class PostController extends MainController {
 
-  constructor(Router, { AccessService, BoardService, FileService, MemberService, PostService, ThreadService }) {
+  constructor(Router, Services) {
     super(Router);
-    this.board = new BoardBO(BoardService);
-    this.file = new FileBO(FileService);
-    this.post = new PostBO({ AccessService, BoardService, FileService, MemberService, PostService, ThreadService });
-    this.thread = new ThreadBO(ThreadService, PostService);
+    this.board = new BoardBO(Services);
+    this.file = new FileBO(Services);
+    this.post = new PostBO(Services);
+    this.thread = new ThreadBO(Services);
 
     // Setting up POST methods
     Router.post('api/createPost', this.createPost.bind(this));

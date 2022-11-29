@@ -4,10 +4,7 @@ class PrivilegeBO {
    *
    * @param {PrivilegeService} PrivilegeService
    */
-  constructor(PrivilegeService) {
-    if (!PrivilegeService) {
-      throw new Error('No PrivilegeService');
-    }
+  constructor({PrivilegeService}) {
     this.PrivilegeService = PrivilegeService;
   }
 

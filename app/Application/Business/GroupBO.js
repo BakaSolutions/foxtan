@@ -5,15 +5,9 @@ class GroupBO {
    * @param {GroupService} GroupService
    * @param {AccessService} AccessService
    */
-  constructor(GroupService, AccessService) {
-    if (!GroupService) {
-      throw new Error('No GroupService');
-    }
-    this.GroupService = GroupService;
-    if (!AccessService) {
-      throw new Error('No AccessService');
-    }
+  constructor({GroupService, AccessService}) {
     this.AccessService = AccessService;
+    this.GroupService = GroupService;
   }
 
   async create(groupObject) {

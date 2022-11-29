@@ -2,8 +2,8 @@ const InviteBO = require('../../../Application/Business/InviteBO.js');
 
 class InviteController {
 
-  constructor({ GroupService, InviteService }) {
-    this.invite = new InviteBO(InviteService, GroupService);
+  constructor(Services) {
+    this.invite = new InviteBO(Services);
 
     return [
       {

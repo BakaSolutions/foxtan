@@ -4,10 +4,10 @@ const PrivilegeBO = require('../../../../Application/Business/PrivilegeBO.js');
 
 class PrivilegeController extends MainController {
 
-  constructor(Router, { PrivilegeService }) {
+  constructor(Router, Services) {
     super(Router);
 
-    this.privilege = new PrivilegeBO(PrivilegeService);
+    this.privilege = new PrivilegeBO(Services);
     // Setting up
     Router.post('api/createPrivilege', this.create.bind(this));
     Router.get('api/readPrivilege', this.read.bind(this));

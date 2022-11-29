@@ -4,9 +4,9 @@ const GroupBO = require('../../../../Application/Business/GroupBO.js');
 
 class GroupController extends MainController {
 
-  constructor(Router, { AccessService, GroupService }) {
+  constructor(Router, Services) {
     super(Router);
-    this.group = new GroupBO(GroupService, AccessService);
+    this.group = new GroupBO(Services);
     // Setting up
     Router.post('api/createGroup', this.create.bind(this));
     Router.get('api/readGroup', this.readOne.bind(this));

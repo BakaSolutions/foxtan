@@ -3,8 +3,8 @@ const { MissingParamError, BoardNotFoundError, BadRequestError } = require('../.
 
 class BoardController {
 
-  constructor({ BoardService }) {
-    this.board = new BoardBO(BoardService);
+  constructor(Services) {
+    this.board = new BoardBO(Services);
 
     return [
       {

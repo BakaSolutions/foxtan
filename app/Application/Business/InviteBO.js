@@ -8,18 +8,12 @@ class InviteBO {
 
   /**
    *
-   * @param {InviteService} InviteService
    * @param {GroupService} GroupService
+   * @param {InviteService} InviteService
    */
-  constructor(InviteService, GroupService) {
-    if (!InviteService) {
-      throw new Error('No InviteService');
-    }
-    if (!GroupService) {
-      throw new Error('No GroupService');
-    }
-    this.InviteService = InviteService;
+  constructor({GroupService, InviteService}) {
     this.GroupService = GroupService;
+    this.InviteService = InviteService;
   }
 
   /**

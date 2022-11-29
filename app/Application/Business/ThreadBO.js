@@ -2,15 +2,12 @@ const Tools = require('../../Infrastructure/Tools.js');
 
 class ThreadBO {
 
-  constructor(ThreadService, PostService) {
-    if (!ThreadService) {
-      throw new Error('No ThreadService');
-    }
-    this.ThreadService = ThreadService;
-    if (!PostService) {
-      throw new Error('No PostService');
-    }
+  constructor({ AccessService, BoardService, MemberService, ThreadService, PostService }) {
+    this.AccessService = AccessService;
+    this.BoardService = BoardService;
+    this.MemberService = MemberService;
     this.PostService = PostService;
+    this.ThreadService = ThreadService;
   }
 
   async readOne(id) {

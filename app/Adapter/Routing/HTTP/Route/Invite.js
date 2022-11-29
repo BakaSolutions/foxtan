@@ -6,9 +6,9 @@ class InviteController extends MainController {
 
   // TODO: Remove this controller after debug!
   
-  constructor(Router, { GroupService, InviteService }) {
+  constructor(Router, Services) {
     super(Router);
-    this.invite = new InviteBO(InviteService, GroupService);
+    this.invite = new InviteBO(Services);
     // Setting up
     Router.post('api/createInvite', this.create.bind(this));
     Router.get('api/readInvite', this.read.bind(this));

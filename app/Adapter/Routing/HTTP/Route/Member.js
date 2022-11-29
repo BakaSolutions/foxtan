@@ -4,9 +4,9 @@ const MemberBO = require('../../../../Application/Business/MemberBO.js');
 
 class MemberController extends MainController {
 
-  constructor(Router, { GroupService, MemberService, UserService }) {
+  constructor(Router, Services) {
     super(Router);
-    this.member = new MemberBO(MemberService, UserService, GroupService);
+    this.member = new MemberBO(Services);
     // Setting up
     Router.post('api/createMember', this.create.bind(this));
     Router.get('api/readMember', this.read.bind(this));

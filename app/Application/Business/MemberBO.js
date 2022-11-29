@@ -6,19 +6,10 @@ class MemberBO {
    * @param {UserService} UserService
    * @param {GroupService} GroupService
    */
-  constructor(MemberService, UserService, GroupService) {
-    if (!MemberService) {
-      throw new Error('No MemberService');
-    }
-    if (!UserService) {
-      throw new Error('No UserService');
-    }
-    if (!GroupService) {
-      throw new Error('No GroupService');
-    }
+  constructor({GroupService, MemberService, UserService}) {
+    this.GroupService = GroupService;
     this.MemberService = MemberService;
     this.UserService = UserService;
-    this.GroupService = GroupService;
   }
 
   async create(member) {
