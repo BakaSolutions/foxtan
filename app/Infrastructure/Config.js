@@ -96,6 +96,7 @@ let config = {
     sessionKey: 'session',
     keys: ['my53cr37fr13nd', '0h74k3m37073r1v3r'],
     sameSite: process.env.NODE_ENV === "production" ? 'none' : false,
+    secure: process.env.NODE_ENV === "production",
     maxAge: 86400000, // in seconds
   }
 };

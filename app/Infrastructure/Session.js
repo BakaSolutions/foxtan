@@ -15,6 +15,7 @@ module.exports = session({
   }),
   cookie: ctx => ({
     sameSite: config.get('cookie.sameSite', 'none'),
+    secure: config.get('cookie.secure', true),
     maxAge: ctx.session.user ? config.get('cookie.maxAge') : 0 // 1 day or session time
   })
 });

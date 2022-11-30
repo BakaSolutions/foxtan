@@ -9,6 +9,7 @@ let middleware = app => {
   app.use(async (ctx, next) => {
     ctx.set('Access-Control-Allow-Origin', ctx.headers.origin || '*');
     ctx.set('Access-Control-Allow-Headers', 'X-Requested-With');
+    ctx.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     ctx.set('Access-Control-Allow-Credentials', 'true');
     await next();
   });
