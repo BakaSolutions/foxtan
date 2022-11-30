@@ -132,7 +132,7 @@ class PostBO {
       ? await this.readMany(postIds)
       : await this.readManyByBoardAndPost(postNumbers);
 
-    let canDelete = (await Tools.parallel(this.canDelete, posts, session)).filter(Boolean);
+    let canDelete = (await Tools.parallel(this.canDelete.bind(this), posts, session)).filter(Boolean);
 
     if (!canDelete.length) {
       throw new ForbiddenError(`You're not allowed to delete these posts`);
