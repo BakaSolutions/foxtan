@@ -32,36 +32,14 @@ class PostController extends MainController {
         threadDTO = new ThreadDTO(query),
         postDTO = new PostDTO(query);
 
-      function getModifierList(i) {
-        const strI = String(i);
-
-        if (!('fileMark' in query) || !(strI in query.fileMark)) {
-          return [];
-        }
-
-        return Object.entries(query.fileMark[strI])
-          .map(([key, value]) => {
-            if ('true' === value) {
-              return key;
-            }
-          })
-      }
-
       if ("file" in query) {
         const files = await Promise.all(Object.values(query.file)
-          .map((f, i) => (
-            this.file.create(f, getModifierList(i))
-          ))
+          .map((f, i) => this.file.create(f, this.getModifierList(query, i)))
         );
         postDTO.attachments = files.map(f => f.hash);
       }
 
-      postDTO.modifiers = Object.entries(postDTO.modifiers)
-        .map(([key, value]) => {
-          if ('true' === value) {
-            return key;
-          }
-        })
+      postDTO.modifiers = this.getModifiers(postDTO.modifiers);
 
       // This doesn't allow `sage` append to thread modifiers.
       // They're empty by default right now. If it's not, rewrite this ASAP.
@@ -94,6 +72,35 @@ class PostController extends MainController {
     } catch (e) {
       this.fail(ctx, e);
     }
+  }
+
+  /**
+   * @example Receives object params like {"sage": "on"} and transforms into ["sage"]
+   * @param {Object} query
+   * @returns {String[]}
+   */
+  getModifiers(query) {
+    return Object.entries(query)
+      .map(([key, value]) => {
+        if (typeof value === 'string') { // 'on', 'true' and so on
+          return key;
+        }
+      })
+      .filter(Boolean);
+  }
+
+  /**
+   * @example Receives query like {"fileMark": {"0": {"nsfw": "true"}}} with i = 0 and transforms into ["nsfw"]
+   * @param {Object} query
+   * @param {Number} i
+   * @returns {String[]|*[]}
+   */
+  getModifierList(query, i) {
+    const strI = String(i);
+    if (!('fileMark' in query) || !(strI in query.fileMark)) {
+      return [];
+    }
+    return this.getModifiers(query.fileMark[strI]);
   }
 
   async deletePost(ctx) {
