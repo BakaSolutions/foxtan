@@ -94,6 +94,18 @@ class ThreadService {
     }
   }
 
+  async countByBoard(boardName) {
+    try {
+      return await this._threadModel.countByBoard(boardName);
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  async countByBoards() {
+    return this._threadModel.countByBoards();
+  }
+
   /**
    *
    * @param {Number} id

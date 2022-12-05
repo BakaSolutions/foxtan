@@ -62,6 +62,29 @@ ORDER BY t.pinned DESC NULLS LAST, MAX(p.id) DESC`;
     return threads.map(thread => ThreadDTO.from(thread));
   }
 
+  async countByBoard(boardName) {
+    let template = `SELECT COUNT(*) AS "threadCount"
+FROM thread
+WHERE "boardName" = $1
+`;
+    let values = [ boardName ];
+    let query = await this.dialect.executeQuery(template, values);
+    return +query[0].threadCount || 0;
+  }
+
+  async countByBoards() {
+    let template = `SELECT "boardName", COUNT(*) AS "threadCount"
+FROM thread
+GROUP BY "boardName"
+`;
+    let values = [ ];
+    let query = await this.dialect.executeQuery(template, values);
+    return query.reduce((out, {boardName, threadCount}) => {
+      out[boardName] = +threadCount;
+      return out;
+    }, {});
+  }
+
   async readOneByBoardAndPost(boardName, postNumber) {
     const template = `SELECT t.*
 FROM thread t

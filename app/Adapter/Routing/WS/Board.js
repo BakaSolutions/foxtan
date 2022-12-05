@@ -66,7 +66,8 @@ class BoardController {
         postTotalFileSize: limitsObject.postTotalFileSize,
         postCharactersTop: limitsObject.postCharactersTop
       },
-      modifiers: boardObject.modifiers || []
+      modifiers: boardObject.modifiers || [],
+      threadCount: boardObject.threadCount || 0
     }
   }
 

@@ -5,6 +5,8 @@ class ThreadModelInterface {
   async readOneByHeadId(headId) {}
   async readMany({ count, page, order } = {}) {}
   async readAllByBoard(boardName, { count, page }) {}
+  async countByBoard(boardName) {}
+  async countByBoards() {}
   async readOneByBoardAndPost(boardName, postNumber) {}
   async update(thread) {}
   async deleteOne(thread) {}

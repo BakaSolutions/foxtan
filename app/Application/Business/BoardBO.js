@@ -3,8 +3,9 @@ const EventBus = require('../../Infrastructure/EventBus.js');
 
 class BoardBO {
 
-  constructor({BoardService}) {
+  constructor({ BoardService, ThreadService }) {
     this.BoardService = BoardService;
+    this.ThreadService = ThreadService;
   }
 
   async create(board) {
@@ -13,8 +14,10 @@ class BoardBO {
     return Board;
   }
 
-  readOne(name) {
-    return this.BoardService.readOneByName(name);
+  async readOne(boardName) {
+    let board = await this.BoardService.readOneByName(boardName);
+    board.threadCount = await this.ThreadService.countByBoard(boardName);
+    return board;
   }
 
   async readMany({ count, page, order, asObject }) {
@@ -23,9 +26,13 @@ class BoardBO {
       return boards;
     }
 
+    let boardCounts = await this.ThreadService.countByBoards();
+
     let out = {};
     for (let i = 0; i < boards.length; i++) {
-      out[boards[i].name] = boards[i];
+      let boardName = boards[i].name;
+      out[boardName] = boards[i];
+      out[boardName].threadCount = boardCounts[boardName] || 0;
     }
     return out;
   }

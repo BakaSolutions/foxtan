@@ -22,6 +22,7 @@ class BoardDTO extends DTO {
     this.deleted = data.deleted;
 
     this.threads = data.threads || [];
+    this.threadCount = data.threadCount || 0;
 
     return this;
   }
