@@ -85,8 +85,10 @@ class FileService {
     let files = await this._fileModel.read(hashArray);
     let file = files[0];
     try {
-      await fs.rm(config.get('directories.upload') + hash + '.' + Tools.mimeToFormat(file.mime));
-      await fs.rm(config.get('directories.thumb') + hash + '.' + config.get('files.thumbnail.format'));
+      if (file && file.mime) {
+        await fs.rm(config.get('directories.upload') + hash + '.' + Tools.mimeToFormat(file.mime));
+        await fs.rm(config.get('directories.thumb') + hash + '.' + config.get('files.thumbnail.format'));
+      }
     } catch (e) {
       console.log(e); // TODO: Remove after debug
     }

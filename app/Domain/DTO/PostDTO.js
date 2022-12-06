@@ -29,7 +29,9 @@ class PostDTO extends DTO {
     this.created = data.created;
     this.updated = data.updated;
     this.deleted = data.deleted;
+
     this.attachments = data.attachments || [];
+    this.canDelete = null;
 
     return this;
   }

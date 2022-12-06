@@ -111,7 +111,8 @@ class PostBO {
       ? await this.readOne(postId)
       : await this.readOneByBoardAndPost(...Object.entries(postNumber));
 
-    if (!(await this.canDelete(post, session))) {
+    let canDelete = await this.canDelete(post, session);
+    if (!canDelete) {
       throw new ForbiddenError(`You're not allowed to delete this post`);
     }
 
@@ -132,11 +133,16 @@ class PostBO {
       ? await this.readMany(postIds)
       : await this.readManyByBoardAndPost(postNumbers);
 
-    let canDelete = (await Tools.parallel(this.canDelete.bind(this), posts, session)).filter(Boolean);
-
-    if (!canDelete.length) {
+    let canDelete = await Tools.parallel(this.canDelete.bind(this), posts, session);
+    if (!(canDelete.some(can => can === true))) {
       throw new ForbiddenError(`You're not allowed to delete these posts`);
     }
+    posts = posts
+      .map((post, i) => {
+        post.canDelete = canDelete[i];
+        return post;
+      })
+      .filter(post => post.canDelete === true);
 
     let headPosts = posts.filter(post => this.PostService.isThreadHead(post));
     if (headPosts?.length) {
@@ -154,17 +160,19 @@ class PostBO {
       }, headPosts);
     }
 
-    posts.map(async post => await this.deleteAttachments(post));
+    await Tools.parallel(this.deleteAttachments.bind(this), posts);
     return this.PostService.deleteMany(posts);
   }
 
   async deleteAttachments(post) {
-    if (post.attachments?.length > 0) {
-      for await (const { hash } of post.attachments) {
-        let postsWithThisFile = await this.PostService.readByAttachmentHash(hash);
-        if (postsWithThisFile < 2) { // is unique (1) or absent (0)
-          await this.FileService.delete(hash);
-        }
+    if (!post.attachments?.length) {
+      return false;
+    }
+    for await (const { hash } of post.attachments) {
+      let postsWithThisFile = await this.PostService.readByAttachmentHash(hash);
+      if (postsWithThisFile < 2) { // is unique (1) or absent (0)
+        await this.FileService.delete(hash);
+        return true;
       }
     }
   }
@@ -186,17 +194,24 @@ class PostBO {
     if (!post || !session) {
       return false;
     }
+
+    // Without session
     let isLoggedIn = !!session.user?.id;
+    let sameSession = session && (session.key === post.sessionKey);
     if (!isLoggedIn) {
-      return session && session.key === post.sessionKey;
+      return sameSession;
     }
 
+    // With session
+    let sameUser = post.userId > 0 && (session.user?.id === post.userId);
+    if (sameSession || sameUser) { // NOTE: This condition has no DB queries
+      return sameSession || sameUser;
+    }
+
+    // Admin permissions
     let Member = await this.MemberService.readOneByUserId(session.user?.id);
     let Board = await this.BoardService.readByPostId(post.id);
-    let hasPrivileges = await this.AccessService.hasPermissionForBoard(Member?.groupName, Board.name, permission);
-    return hasPrivileges
-      || (session.key === post.sessionKey)
-      || (post.userId > 0 && (session.user?.id === post.userId));
+    return await this.AccessService.hasPermissionForBoard(Member?.groupName, Board.name, permission);
   }
 
   async canDelete(post, session) {
