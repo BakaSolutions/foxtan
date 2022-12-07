@@ -38,6 +38,16 @@ class PostBO {
    * @param {ThreadDTO} threadDTO
    */
   async create(postDTO, threadDTO) {
+    if ("file" in postDTO) {
+      let filePromises = postDTO.file.map(async (file, i) => {
+        return this.FileService.create(file, postDTO.fileMark[i])
+      });
+      let files = await Promise.all(filePromises);
+      postDTO.attachments = files.map(f => f.hash);
+      delete postDTO.file;
+      delete postDTO.fileMark;
+    }
+
     [postDTO, threadDTO] = await this.createPreHook(postDTO, threadDTO);
     let Post = await this.PostService.create(postDTO);
     return this.createPostHook(Post, threadDTO);

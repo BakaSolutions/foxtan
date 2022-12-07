@@ -48,6 +48,13 @@ class BoardBO {
     return this.BoardService.getLastPostNumber(name);
   }
 
+  incrementLastPostNumber(name) {
+    if (!name) {
+      throw new BoardNotFoundError('No board name to increment last post number!');
+    }
+    return this.BoardService.incrementLastPostNumber(name);
+  }
+
   /*
   close(boardName, closed) {
     this.BoardService.close(closed);

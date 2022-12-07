@@ -1,5 +1,4 @@
 const BoardBO = require('../../../../Application/Business/BoardBO.js');
-const FileBO = require('../../../../Application/Business/FileBO.js');
 const PostBO = require('../../../../Application/Business/PostBO.js');
 const ThreadBO = require('../../../../Application/Business/ThreadBO.js');
 const PostDTO = require('../../../../Domain/DTO/PostDTO.js');
@@ -12,7 +11,6 @@ class PostController extends MainController {
   constructor(Router, Services) {
     super(Router);
     this.board = new BoardBO(Services);
-    this.file = new FileBO(Services);
     this.post = new PostBO(Services);
     this.thread = new ThreadBO(Services);
 
@@ -33,10 +31,15 @@ class PostController extends MainController {
         postDTO = new PostDTO(query);
 
       if ("file" in query) {
-        const files = await Promise.all(Object.values(query.file)
-          .map((f, i) => this.file.create(f, this.getModifierList(query, i)))
-        );
-        postDTO.attachments = files.map(f => f.hash);
+        postDTO.file = Object.values(query.file);
+
+        let fileMark = [];
+        if ("fileMark" in query) {
+          for (let i of Object.keys(query.file)) {
+            fileMark[fileMark.length] = this.getModifiers(query.fileMark[i]);
+          }
+        }
+        postDTO.fileMark = fileMark;
       }
 
       postDTO.modifiers = this.getModifiers(postDTO.modifiers);
@@ -45,17 +48,14 @@ class PostController extends MainController {
       // They're empty by default right now. If it's not, rewrite this ASAP.
       threadDTO.modifiers = [];
 
-      /*if (isANewThread) {
+      if (!isANewThread) {
+        threadDTO = await this.thread.readOne(postDTO.threadId);
+      }/* else {
         await this.thread.validate();
       }
       await this.post.validate();*/ // TODO: Input validation
 
-      if (!isANewThread) {
-        threadDTO = await this.thread.readOne(postDTO.threadId);
-      }
-
-      let lastPostNumber = await this.board.getLastPostNumber(threadDTO.boardName);
-      postDTO.number = ++lastPostNumber;
+      postDTO.number = await this.board.incrementLastPostNumber(threadDTO.boardName);
 
       if (!isANewThread) {
         threadDTO = null;
@@ -80,6 +80,9 @@ class PostController extends MainController {
    * @returns {String[]}
    */
   getModifiers(query) {
+    if (!query || !(query instanceof Object)) {
+      return [];
+    }
     return Object.entries(query)
       .map(([key, value]) => {
         if (typeof value === 'string') { // 'on', 'true' and so on
@@ -87,20 +90,6 @@ class PostController extends MainController {
         }
       })
       .filter(Boolean);
-  }
-
-  /**
-   * @example Receives query like {"fileMark": {"0": {"nsfw": "true"}}} with i = 0 and transforms into ["nsfw"]
-   * @param {Object} query
-   * @param {Number} i
-   * @returns {String[]|*[]}
-   */
-  getModifierList(query, i) {
-    const strI = String(i);
-    if (!('fileMark' in query) || !(strI in query.fileMark)) {
-      return [];
-    }
-    return this.getModifiers(query.fileMark[strI]);
   }
 
   async deletePost(ctx) {

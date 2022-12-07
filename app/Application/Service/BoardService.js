@@ -1,7 +1,8 @@
+let lastPostNumbers = {}; // TODO: Redis caching
+
 class BoardService {
 
   /**
-   *
    * @param {BoardModelInterface} BoardModel
    */
   constructor(BoardModel) {
@@ -9,7 +10,6 @@ class BoardService {
   }
 
   /**
-   *
    * @param {BoardDTO} boardDTO
    * @returns {Promise<String>} name
    */
@@ -26,7 +26,6 @@ class BoardService {
   }
 
   /**
-   *
    * @param {String} name
    * @returns {Promise<BoardDTO>}
    */
@@ -36,7 +35,6 @@ class BoardService {
   }
 
   /**
-   *
    * @param {Object}
    * @returns {Promise<Array>}
    */
@@ -44,6 +42,10 @@ class BoardService {
     return this._boardModel.readMany({ count, page, order });
   }
 
+  /**
+   * @param {Number} postId
+   * @returns {Promise<BoardDTO>}
+   */
   readByPostId(postId) {
     return this._boardModel.readByPostId(postId);
   }
@@ -58,9 +60,18 @@ class BoardService {
     return out;
   }
 
-  async getLastPostNumber(name) {
-    let { max } = await this._boardModel.getLastPostNumber(name);
+  async getLastPostNumber(boardName) {
+    if (lastPostNumbers[boardName]) {
+      return lastPostNumbers[boardName];
+    }
+    let { max } = await this._boardModel.getLastPostNumber(boardName);
+    lastPostNumbers[boardName] = max;
     return max;
+  }
+
+  async incrementLastPostNumber(boardName) {
+    let currentLPN = await this.getLastPostNumber(boardName);
+    return lastPostNumbers[boardName] = ++currentLPN;
   }
 }
 
