@@ -26,7 +26,7 @@ class FileService {
     // TODO: Validation
     // TODO: Optimization: get file via fs.createReadStream
 
-    let hash = this.createHash(file);
+    let hash = await this.createHash(file);
     let [width, height] = await this.createThumbnail(file, {...fileObject, hash});
 
     // Move file to the destination directory
