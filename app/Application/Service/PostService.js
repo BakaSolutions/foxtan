@@ -4,12 +4,12 @@ const {
   PostsNotFoundError,
   BadRequestError
 } = require('../../Domain/Error/index.js');
+const PostDTO = require('../../Domain/DTO/PostDTO.js');
 
 
 class PostService {
 
   /**
-   *
    * @param {PostModelInterface} PostModel
    */
   constructor(PostModel) {
@@ -17,7 +17,6 @@ class PostService {
   }
 
   /**
-   *
    * @param {PostDTO} postDTO
    * @returns {Promise<PostDTO>}
    */
@@ -162,14 +161,13 @@ class PostService {
 
   /**
    * @param {PostDTO} post
-   * @returns {Promise<Boolean>}
+   * @returns {boolean}
    */
   isThreadHead(post) {
     return post?.isHead === true;
   }
 
   /**
-   *
    * @param {Number} post
    * @returns {Promise<boolean>}
    */
@@ -178,7 +176,6 @@ class PostService {
   }
 
   /**
-   *
    * @param {PostDTO[]} posts
    * @returns {Promise<Number>}
    */

@@ -3,7 +3,7 @@ const DTO = require('./DTO.js');
 class PostDTO extends DTO {
 
   get closedKeys() {
-    return ['userId', 'sessionKey', 'ipAddress'];
+    return ['userId', 'sessionKey', 'ipAddress', 'canDelete'];
   }
 
   get protectedKeys() {

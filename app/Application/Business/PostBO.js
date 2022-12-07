@@ -45,6 +45,7 @@ class PostBO {
 
   async createPostHook(Post, threadDTO) {
     Post = await this.process(Post);
+    Post = this.cleanOutput(Post);
 
     if (threadDTO) {
       EventBus.emit('broadcast', 'thread', 'created', {
@@ -76,10 +77,10 @@ class PostBO {
   async readManyByBoardAndPost(postObject = {}) {
     let boards = Object.keys(postObject);
     let posts = [];
-    boards.map(async boardName => {
+    await Tools.parallel(async boardName => {
       let portionOfPosts = await this.PostService.readMany(boardName, postObject[boardName]);
       posts = posts.concat(portionOfPosts);
-    });
+    }, boards);
     return Tools.parallel(this.process.bind(this), posts);
   }
 
@@ -120,7 +121,7 @@ class PostBO {
     if (isThread) {
       let threadPosts = await this.PostService.readOneByThreadId(post.threadId);
       let postsForDeletion = [post, ...threadPosts];
-      await this.deleteAttachments(postsForDeletion);
+      await Tools.parallel(this.deleteAttachments.bind(this), postsForDeletion);
       return this.PostService.deleteMany(postsForDeletion);
     }
 
@@ -154,6 +155,7 @@ class PostBO {
             posts = posts.concat(threadPosts.slice(1));
           }
           await this.ThreadService.deleteOne(thread);
+          EventBus.emit('broadcast', 'thread', 'deleted', thread);
         } catch (e) {
           //
         }
@@ -161,7 +163,11 @@ class PostBO {
     }
 
     await Tools.parallel(this.deleteAttachments.bind(this), posts);
-    return this.PostService.deleteMany(posts);
+    let deletedCount = await this.PostService.deleteMany(posts);
+
+    posts = await Tools.parallel(this.cleanOutput.bind(this), posts);
+    EventBus.emit('broadcast', 'post', 'deleted', posts);
+    return deletedCount;
   }
 
   async deleteAttachments(post) {
@@ -195,14 +201,14 @@ class PostBO {
       return false;
     }
 
-    // Without session
+    // Without user session
     let isLoggedIn = !!session.user?.id;
     let sameSession = session && (session.key === post.sessionKey);
     if (!isLoggedIn) {
       return sameSession;
     }
 
-    // With session
+    // With user session
     let sameUser = post.userId > 0 && (session.user?.id === post.userId);
     if (sameSession || sameUser) { // NOTE: This condition has no DB queries
       return sameSession || sameUser;
