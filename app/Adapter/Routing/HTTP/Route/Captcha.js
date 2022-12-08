@@ -3,9 +3,8 @@ const MainController = require('../MainController.js');
 
 class CaptchaController extends MainController {
 
-  constructor(Router, { CaptchaService /* , TokenService */ }) {
+  constructor(Router, { CaptchaService }) {
     super(Router);
-    //this.token = TokenService;
     this.captcha = CaptchaService;
 
     Router.post('api/checkCaptcha', this.checkCaptcha.bind(this));
@@ -59,6 +58,7 @@ class CaptchaController extends MainController {
       }
       // TODO: Set cookie with captcha id
       let image = await this.captcha.generateBuffer();
+      ctx.type = config.get('captcha.mime');
       this.success(ctx, image);
     } catch (e) {
       this.fail(ctx, e);
