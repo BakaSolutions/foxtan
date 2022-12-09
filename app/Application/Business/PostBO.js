@@ -129,14 +129,21 @@ class PostBO {
 
     let isThread = await this.PostService.isThreadHead(post);
     if (isThread) {
-      let threadPosts = await this.PostService.readOneByThreadId(post.threadId);
+      let thread = await this.ThreadService.readOneById(post.threadId);
+      await this.ThreadService.deleteOne(thread);
+      delete thread.head;
+      delete thread.posts;
+      EventBus.emit('broadcast', 'thread', 'deleted', thread);
+      let threadPosts = await this.PostService.readThreadPosts(post.threadId);
       let postsForDeletion = [post, ...threadPosts];
       await Tools.parallel(this.deleteAttachments.bind(this), postsForDeletion);
-      return this.PostService.deleteMany(postsForDeletion);
+      return await this.PostService.deleteMany(postsForDeletion);
     }
 
+    let isDeleted = await this.PostService.deleteOne(post);
     await this.deleteAttachments(post);
-    return this.PostService.deleteOne(post);
+    EventBus.emit('broadcast', 'post', 'deleted', post);
+    return isDeleted;
   }
 
   async deleteMany({ postIds, postNumbers }, session) {
@@ -160,6 +167,8 @@ class PostBO {
       await Tools.parallel(async post => {
         try {
           let thread = await this.ThreadService.readOneById(post.threadId);
+          delete thread.head;
+          delete thread.posts;
           let threadPosts = await this.PostService.readThreadPosts(post.threadId);
           if (threadPosts?.length > 1) { // if thread has answers
             posts = posts.concat(threadPosts.slice(1));
@@ -172,11 +181,15 @@ class PostBO {
       }, headPosts);
     }
 
-    await Tools.parallel(this.deleteAttachments.bind(this), posts);
     let deletedCount = await this.PostService.deleteMany(posts);
+    await Tools.parallel(this.deleteAttachments.bind(this), posts);
 
     posts = await Tools.parallel(this.cleanOutput.bind(this), posts);
-    EventBus.emit('broadcast', 'post', 'deleted', posts);
+    if (!headPosts?.length) {
+      for (let post of posts) {
+        EventBus.emit('broadcast', 'post', 'deleted', post);
+      }
+    }
     return deletedCount;
   }
 
