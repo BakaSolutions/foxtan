@@ -1,8 +1,7 @@
 # Logs
-/logs
 *.log
 npm-debug.log*
-/.nyc_output
+/.nyc_output/
 
 # Dependency directories
 /node_modules/

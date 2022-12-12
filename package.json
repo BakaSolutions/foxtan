@@ -7,6 +7,7 @@
     "coverage": "nyc pnpm test",
     "postinstall": "node scripts/postinstall.js",
     "start": "node app/Application",
+    "start:dev": "nodemon app/Application --inspect --nolazy -L --watch . -e js,json",
     "test": "node test"
   },
   "repository": {
@@ -41,6 +42,7 @@
     "node": ">=12.19.0"
   },
   "devDependencies": {
+    "nodemon": "^2.0.20",
     "nyc": "^15.1.0",
     "zunit": "^3.0.4"
   },
