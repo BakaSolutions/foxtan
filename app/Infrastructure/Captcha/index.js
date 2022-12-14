@@ -1,13 +1,17 @@
 const { createCanvas } = require('canvas');
+const { randomInt } = require('crypto');
+const config = require('../../Infrastructure/Config.js');
 
 class Captcha {
 
-  constructor(o) {
-    this.config = {
-      size: o.size
-    }
-    this.smallLetters = o.smallLetters || false;
-    this.fontPerks = o.fontPerks || false;
+  constructor(cid, o = config.get('captcha')) {
+    this.id = cid || this._random(0, Math.pow(2, 32));
+    this.sizeConfig = {
+      min: o.size?.min ?? 5,
+      max: o.size?.max ?? 7
+    };
+    this.smallLetters = o.smallLetters ?? false;
+    this.fontPerks = o.fontPerks ?? false;
     this.complexity = o.complexity || 75;
 
     this.width = o.width || 200;
@@ -29,14 +33,17 @@ class Captcha {
       this.background = [ this.background ];
     }
 
-    this.noise = !!o.noise || false;
+    this.noise = !!o.noise ?? false;
     this.mime = o.mime || 'image/png';
+    this.imageConfig = {
+      quality: o.quality || 100,
+      compressionLevel: o.compressionLevel || 9
+    }
   }
 
   configure() {
-    this.id = this._random(0, Math.pow(2, 48));
-    this.size = this.config.size || this._random(5, 7);
-    this.text = this._generate(this.size);
+    this.size = this._randomIncl(this.sizeConfig.min, this.sizeConfig.max);
+    this.code = this._generate(this.size);
   }
 
   createCanvas() {
@@ -51,21 +58,21 @@ class Captcha {
     const ctx = this.createCanvas();
     this.configure();
 
-    let background = ctx.fillStyle = this.background[this._random(0, this.background.length - 1)];
-    let color = ctx.strokeStyle = this.color[this._random(0, this.color.length - 1)];
+    let background = ctx.fillStyle = this.background[this._random(0, this.background.length)];
+    let color = ctx.strokeStyle = this.color[this._random(0, this.color.length)];
     ctx.lineJoin = 'round';
     ctx.fillRect(0, 0, this.width, this.height);
 
     this.vw = this.width / 100;
     this.vh = this.height / 100;
 
-    this._eraseLetters(ctx, 3);
+    this._eraseLetters(ctx, 4);
 
     this._renderLetters(ctx);
 
     if (this.noise) {
       this._eraseLetters(ctx, 4, background);
-      this._eraseLetters(ctx, 3, color);
+      this._eraseLetters(ctx, 4, color);
     }
 
     return new Promise((resolve, reject) => {
@@ -77,7 +84,7 @@ class Captcha {
           return reject(err);
         }
         resolve(image);
-      });
+      }, this.mime, this.imageConfig);
     });
   }
 
@@ -92,11 +99,11 @@ class Captcha {
 
     for (let i = 0; i < iterations; i++) {
       ctx.beginPath();
-      ctx.moveTo(0, this._random(0, 100*vh));
+      ctx.moveTo(0, this._randomIncl(0, 100)*vh);
       ctx.bezierCurveTo(
-        33*vw, this._random(0, 100*vh),
-        67*vw, this._random(0, 100*vh),
-        this.width, this._random(0, 100*vh)
+        33*vw, this._randomIncl(0, 100)*vh,
+        67*vw, this._randomIncl(0, 100)*vh,
+        this.width, this._randomIncl(0, 100)*vh
       );
       ctx.stroke();
       ctx.closePath();
@@ -106,8 +113,8 @@ class Captcha {
   _renderLetters(ctx) {
     let vw = this.vw;
     let vh = this.vh;
-    let offset = this._random(8*vw, (34 - this.size * this.complexity/100)*vw);
-    let height = 50*vh;
+    let offset = this._randomIncl(6*vw, (30 - this.size * this.complexity/100)*vw);
+    let height = this._randomIncl(40, 60)*vh;
 
     ctx.strokeStyle = this.color;
 
@@ -117,31 +124,53 @@ class Captcha {
       if (this.fontPerks) {
         if (Math.random() < 0.5) perks += 'italic ';
       }
-      perks += this._random(75*vh/this.size*5, 85*vh/this.size*5) + 'px ';
+      perks += this._randomIncl(75, 100)*vh/this.size*5 + 'px ';
       if (this.fontPerks && Math.random() < 0.5) {
         ctx.font = perks + 'sans-serif';
       } else {
         ctx.font = perks + 'sans';
       }
-      ctx.lineWidth = this._random(2, this.lineWidth);
+      ctx.lineWidth = this._randomIncl(2, this.lineWidth);
 
       ctx.save();
-      ctx.translate(this.complexity*vw / this.size * i + offset, height += this._random(-8*vh, 8*vh));
-      let char = ctx.measureText(this.text[i]);
-      ctx.rotate(this._random(-10, 10) * Math.PI / 180);
-      ctx.fillText(this.text[i], -char.width/2, char.actualBoundingBoxAscent/2);
-      ctx.strokeText(this.text[i], -char.width/2, char.actualBoundingBoxAscent/2);
+      ctx.translate(this.complexity*vw / this.size * i + offset, height += this._randomIncl(-10, 10) * vh);
+      let char = ctx.measureText(this.code[i]);
+      ctx.rotate(this._randomIncl(-10, 10) * Math.PI / 180);
+      //ctx.fillText(this.code[i], -char.width/2, char.actualBoundingBoxAscent/2);
+      ctx.strokeText(this.code[i], -char.width/2, char.actualBoundingBoxAscent/2);
       ctx.restore();
     }
     ctx.closePath();
   }
 
-  _random(min = 0, max = 1) {
-    return Math.floor(min + Math.random() * (max + 1 - min));
+  /**
+   * Returns an integer in [min, max)
+   * @param min
+   * @param max
+   * @returns {number}
+   * @private
+   */
+  _random(min = 0, max = 2) {
+    return randomInt(Math.floor(min), Math.floor(max));
+  }
+
+  /**
+   * Returns an integer in [min, max]
+   * @param min
+   * @param max
+   * @returns {number}
+   * @private
+   */
+  _randomIncl(min = 0, max = 1) {
+    return this._random(min, max+1);
   }
 
   _generate(length) {
-    return null;
+    throw new Error('Captcha generator is not implemented');
+  }
+
+  static _check(code, trueCode) {
+    throw new Error('Captcha checker is not implemented');
   }
 
 }

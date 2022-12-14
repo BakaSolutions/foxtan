@@ -1,24 +1,49 @@
 const config = require('../../Infrastructure/Config.js');
-const Captcha = require('../../Infrastructure/Captcha/Number.js');
-// TODO: Make Captcha switchable: Cyrillic, Latin, Number...
+const redis = require('../../Infrastructure/Redis.js');
 
 class CaptchaService {
 
   constructor() {
-    this.captcha = new Captcha(config.get('captcha'));
+    this.storage = redis();
+    this.captchaType = config.get("captcha.type", "Number");
+    this.captcha = require(`../../Infrastructure/Captcha/${this.captchaType}.js`);
   }
 
-  async check({id, code} = {}) {
-    // TODO: Captcha check
-    return true;
+  generateCID({ key, timestamp }) {
+    return `${key}:${timestamp}`;
   }
 
-  generateDataURL() {
-    return this.captcha.render('dataurl');
+  async check({key, timestamp, code} = {}) {
+    let cid = this.generateCID({key, timestamp});
+    let trueCode = await this.storage.hget(`captcha:${cid}`, 'code');
+    await this.storage.del(`captcha:${cid}`);
+    if (!trueCode) {
+      return false;
+    }
+    return this.captcha._check(code, trueCode);
   }
 
-  generateBuffer() {
-    return this.captcha.render('buffer');
+  async getCaptcha({key, timestamp}) {
+    let cid = this.generateCID({ key, timestamp });
+    let image = await this.storage.hgetBuffer(`captcha:${cid}`, 'image');
+    if (!image) {
+      let captcha = new this.captcha(cid);
+      image = await captcha.render('buffer');
+      await this.save(cid, captcha.code, image);
+    }
+    return {
+      image,
+      mime: config.get('captcha.mime')
+    }
+  }
+
+  async save(cid, code, image) {
+    let hash = {
+      code,
+      image
+    }
+    await this.storage.hset(`captcha:${cid}`, hash);
+    await this.storage.expire(`captcha:${cid}`, config.get('captcha.ttl'));
   }
 
 }

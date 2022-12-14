@@ -21,7 +21,12 @@ class IndexController extends MainController {
         width: config.get('files.thumbnail.width'),
         height: config.get('files.thumbnail.height'),
       },
-      ws: config.get('paths.ws')
+      ws: config.get('paths.ws'),
+      captcha: {
+        type: config.get('captcha.type'),
+        size: config.get('captcha.size', {min: 5, max: 7}),
+        ttl: config.get('captcha.ttl'),
+      }
     });
   }
 

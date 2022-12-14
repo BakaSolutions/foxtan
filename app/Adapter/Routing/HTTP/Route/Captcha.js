@@ -1,7 +1,10 @@
 const config = require('../../../../Infrastructure/Config.js');
 const MainController = require('../MainController.js');
+const { BadRequestError } = require('../../../../Domain/Error/index.js');
 
 class CaptchaController extends MainController {
+
+  CAPTCHA_TIMEOUT = config.get('captcha.ttl') * 1000;
 
   constructor(Router, { CaptchaService }) {
     super(Router);
@@ -13,34 +16,18 @@ class CaptchaController extends MainController {
 
   async checkCaptcha(ctx) {
     try {
-      let { body: { id, code } } = ctx.request;
+      let { body: { timestamp, code } } = ctx.request;
+      let { key } = ctx.session;
+      ctx.session.trustedPostCount ??= 0;
 
-      if (!id) {
-        id = ctx.cookies.get('captcha', {signed: config.get('cookie.signed')});
-      }
-      ctx.cookies.set('captcha', undefined);
-      /*
-      if (!token
-        || typeof token.trustedPostCount === 'undefined'
-        || token.trustedPostCount < 1) {
-        token.trustedPostCount = 0;
-      }
-      */
-      let passed = await this.captcha.check({
-        id,
-        code
-      });
-
-      /*
+      let passed = await this.captcha.check({key, timestamp, code});
       if (passed) {
-        token.trustedPostCount += config.get('captcha.postsPerCaptcha');
-        token = this.token.createToken(token);
-        this.token.setToken(ctx, token);
+        ctx.session.trustedPostCount += config.get('captcha.postsPerCaptcha', 1);
       }
-      */
+
       let out = {
         passed,
-        trustedPostCount: 1 //token.trustedPostCount
+        trustedPostCount: ctx.session?.trustedPostCount
       };
       this.success(ctx, out);
     } catch (e) {
@@ -50,15 +37,13 @@ class CaptchaController extends MainController {
 
   async getCaptcha(ctx) {
     try {
-      if (this.isAJAXRequested(ctx)) {
-        return this.success(ctx, {
-          id: 1, // TODO: Create CaptchaLogic
-          image: await this.captcha.generateDataURL()
-        })
+      let { timestamp } = ctx.query;
+      if (+new Date() - timestamp > this.CAPTCHA_TIMEOUT) {
+        throw new BadRequestError("Captcha is expired");
       }
-      // TODO: Set cookie with captcha id
-      let image = await this.captcha.generateBuffer();
-      ctx.type = config.get('captcha.mime');
+      let { key } = ctx.session;
+      let { image, mime } = await this.captcha.getCaptcha({ key, timestamp });
+      ctx.type = mime;
       this.success(ctx, image);
     } catch (e) {
       this.fail(ctx, e);

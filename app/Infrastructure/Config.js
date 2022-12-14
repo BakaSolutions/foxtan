@@ -7,6 +7,7 @@ const HOST = '127.0.0.1:6749';
 
 let config = {
   captcha: {
+    type: "Number",
     ttl: 60, // seconds
     postsPerCaptcha: 24,
 
@@ -16,12 +17,12 @@ let config = {
 
     width: 192,
     height: 64,
-    //size: 6,
-    latin: false,
-    cyrillic: false,
-    numbers: true,
+    size: {
+      min: 5,
+      max: 7,
+    },
     smallLetters: false,
-    syllable: false,
+    //syllable: false, //TODO: Syllables for Cyrillic and Latin captchas
     complexity: 66,
     fontPerks: true,
     noise: true,
