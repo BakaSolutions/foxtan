@@ -1,11 +1,17 @@
 const { createCanvas } = require('canvas');
-const { randomInt } = require('crypto');
+const { randomInt } = require('../../Infrastructure/Crypto.js');
 const config = require('../../Infrastructure/Config.js');
 
 class Captcha {
 
-  constructor(cid, o = config.get('captcha')) {
-    this.id = cid || this._random(0, Math.pow(2, 32));
+  /**
+   * @param {Number|String} [cid]
+   * @param {String} [code]
+   * @param {Object} [o]
+   */
+  constructor(cid, code, o = config.get('captcha')) {
+    this.id = cid ?? this._random(0, Math.pow(2, 32));
+    this.code = code ?? null;
     this.sizeConfig = {
       min: o.size?.min ?? 5,
       max: o.size?.max ?? 7
@@ -42,8 +48,12 @@ class Captcha {
   }
 
   configure() {
-    this.size = this._randomIncl(this.sizeConfig.min, this.sizeConfig.max);
-    this.code = this._generate(this.size);
+    if (!this.code) {
+      this.size = this._randomIncl(this.sizeConfig.min, this.sizeConfig.max);
+      this.code = this._generate(this.size);
+      return;
+    }
+    this.size = this.code.length;
   }
 
   createCanvas() {

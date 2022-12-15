@@ -10,6 +10,7 @@ let config = {
     type: "Number",
     ttl: 60, // seconds
     postsPerCaptcha: 24,
+    cacheImages: false,
 
     mime: 'image/jpeg',
     quality: 0.24, // for 'image/jpeg' [0 ... 1]
