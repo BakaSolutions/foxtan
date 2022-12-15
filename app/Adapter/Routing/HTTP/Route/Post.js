@@ -5,6 +5,7 @@ const PostDTO = require('../../../../Domain/DTO/PostDTO.js');
 const ThreadDTO = require('../../../../Domain/DTO/ThreadDTO.js');
 
 const MainController = require('../MainController.js');
+const { BadRequestError } = require("../../../../Domain/Error/index.js");
 
 class PostController extends MainController {
 
@@ -22,8 +23,13 @@ class PostController extends MainController {
 
   async createPost(ctx) {
     let { body: query } = ctx.request;
-    query.userId = ctx.session.user?.id || null;
-    query.sessionKey = ctx.session.key || null;
+    let { user, key, trustedPostCount } = ctx.session;
+    query.userId = user?.id || null;
+    query.sessionKey = key || null;
+
+    if (!trustedPostCount || trustedPostCount < 0) {
+      throw new BadRequestError('You need to solve a captcha first')
+    }
 
     try {
       let isANewThread = !(query.threadId),
@@ -68,6 +74,7 @@ class PostController extends MainController {
         threadId: post.threadId,
         number: post.number
       };
+      ctx.session.trustedPostCount -= 1;
       this.success(ctx, out);
     } catch (e) {
       this.fail(ctx, e);
