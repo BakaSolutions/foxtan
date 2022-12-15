@@ -22,29 +22,32 @@ class MainController {
   /**
    *
    * @param ctx
-   * @param {CustomError} out
+   * @param {CustomError} err
+   * @param {Object} out
    * @returns {{error: ({code}|*)}}
    */
-  fail(ctx, out) {
-    ctx.status = +out?.code || +out?.status || 500;
+  fail(ctx, err, out = {}) {
+    ctx.status = +err?.code || +err?.status || 500;
 
     if (ctx.status >= 500) {
-      Promise.reject(out); // will catch in Application/index.js:logUnexpectedErrors()
+      Promise.reject(err); // will catch in Application/index.js:logUnexpectedErrors()
       // TODO: Make a separated centralized logging system
     }
 
-    ctx.message = out.message; // goes to log
-    ctx.description = out.description; // goes to log
+    ctx.message = err.message; // goes to log
+    ctx.description = err.description; // goes to log
 
-    if (out instanceof CustomError) {
+    if (err instanceof CustomError) {
       return ctx.body = {
+        ...out,
         error: DEBUG
-          ? out.displayWithStack()
-          : out.display()
+          ? err.displayWithStack()
+          : err.display()
       };
     }
 
     ctx.body = {
+      ...out,
       error: {
         description: out.message || http.STATUS_CODES[ctx.status],
         code: ctx.status
