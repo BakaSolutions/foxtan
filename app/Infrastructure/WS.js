@@ -80,7 +80,7 @@ module.exports = class WS {
 
       try {
         let data = await WS._solveMiddlewares(sequence.slice(), params, ws);
-        return this.success(ws, params, data || null);
+        return this.success(ws, params, data ?? null);
       } catch (e) {
         message = JSON.stringify(params);
         if (e instanceof CustomError) {
