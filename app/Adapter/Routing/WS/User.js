@@ -7,6 +7,12 @@ class UserController {
         middleware: async (_, ws) => {
           return ws.session?.user || {};
         }
+      },
+      {
+        request: 'trustedpostcount',
+        middleware: async (_, ws) => {
+          return ws.session?.trustedPostCount || 0;
+        }
       }
     ];
   }
