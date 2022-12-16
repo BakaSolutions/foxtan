@@ -50,16 +50,20 @@ class PostController extends MainController {
 
       postDTO.modifiers = this.getModifiers(postDTO.modifiers);
 
-      // This doesn't allow `sage` append to thread modifiers.
+      // This doesn't allow [`sage`, `signed`, `OP`] append to thread modifiers.
       // They're empty by default right now. If it's not, rewrite this ASAP.
       threadDTO.modifiers = [];
 
       if (!isANewThread) {
         threadDTO = await this.thread.readOne(postDTO.threadId);
-      }/* else {
-        await this.thread.validate();
+        let { head } = threadDTO;
+        if ((head.sessionKey !== postDTO.sessionKey) || (head.userId !== postDTO.userId)) {
+          delete postDTO.modifiers['OP'];
+        }
+      } else {
+        //await this.thread.validate();
       }
-      await this.post.validate();*/ // TODO: Input validation
+      /*await this.post.validate();*/ // TODO: Input validation
 
       postDTO.number = await this.board.incrementLastPostNumber(threadDTO.boardName);
 
