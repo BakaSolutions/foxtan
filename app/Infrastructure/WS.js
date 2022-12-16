@@ -20,19 +20,18 @@ module.exports = class WS {
       const { pathname } = parse(request.url);
 
       if (pathname === path) {
-        let ctx = app.createContext(request);
-        Session(ctx, async () => {
-          this.instance.handleUpgrade(request, socket, head, ws => {
-            ws.session = ctx.session;
-            this.instance.emit('connection', ws, request);
-          });
+        return this.instance.handleUpgrade(request, socket, head, ws => {
+          this.instance.emit('connection', ws, request);
         });
-        return;
       }
       socket.destroy();
     });
 
-    this.instance.on('connection', ws => {
+    this.instance.on('connection', (ws, request) => {
+      ws.ctx = app.createContext(request);
+      Object.defineProperty(ws, 'session', {
+        get: () => ws.ctx.session
+      });
       ws.isAlive = true;
       ws.on('pong', () => ws.isAlive = true);
       ws.on('message', async message => await this.onMessage(message, ws));
@@ -79,6 +78,7 @@ module.exports = class WS {
       }
 
       try {
+        await Session(ws.ctx, async () => {});
         let data = await WS._solveMiddlewares(sequence.slice(), params, ws);
         return this.success(ws, params, data ?? null);
       } catch (e) {
