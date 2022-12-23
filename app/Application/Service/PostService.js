@@ -86,6 +86,17 @@ class PostService {
     }
   }
 
+  async readOneByReply(Reply) {
+    if (!Reply) {
+      throw new BadRequestError("No reply was provided");
+    }
+    try {
+      return this._postModel.readOneById(Reply.fromId);
+    } catch (e) {
+      throw new PostNotFoundError();
+    }
+  }
+
   async readMany(boardName, number) {
     if (!boardName) {
       throw new BadRequestError('boardName is required');

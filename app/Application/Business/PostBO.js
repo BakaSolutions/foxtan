@@ -10,14 +10,16 @@ class PostBO {
    * @param {BoardService} BoardService
    * @param {FileService} FileService
    * @param {MemberService} MemberService
+   * @param {ReplyService} ReplyService
    * @param {PostService} PostService
    * @param {ThreadService} ThreadService
    */
-  constructor({ AccessService, BoardService, FileService, MemberService, PostService, ThreadService }) {
+  constructor({ AccessService, BoardService, FileService, MemberService, ReplyService, PostService, ThreadService }) {
     this.AccessService = AccessService;
     this.BoardService = BoardService;
     this.FileService = FileService;
     this.MemberService = MemberService;
+    this.ReplyService = ReplyService;
     this.PostService = PostService;
     this.ThreadService = ThreadService;
   }
@@ -219,6 +221,15 @@ class PostBO {
       const attachments = await this.FileService.read(post.attachments);
       post.attachments = post.attachments.map(hash => attachments.find(a => hash === a.hash));
     }
+
+    const replies = await this.ReplyService.readPostReplies(post.id);
+    post.replies = await Tools.parallel(async reply => {
+      let { id, threadId, number } = await this.PostService.readOneByReply(reply);
+      let { name: boardName } = await this.BoardService.readByPostId(id);
+      return {
+        id, threadId, boardName, number
+      }
+    }, replies);
 
     return post;
   }

@@ -17,15 +17,6 @@ class ReplyService {
   }
 
   /**
-   * Returns Reply[] where Post with `id` refer to any posts
-   * @param id
-   * @returns {Promise<*|*[]>}
-   */
-  async readPostReferences(id) {
-    return await this._model.readPostReferences(id) || [];
-  }
-
-  /**
    * Returns Reply[] where Post with `id` has replies
    * @param id
    * @returns {Promise<*|*[]>}
@@ -33,6 +24,8 @@ class ReplyService {
   async readPostReplies(id) {
     return await this._model.readPostReplies(id) || [];
   }
+
+  // TODO: Remove replies on post deletion
 
 }
 
