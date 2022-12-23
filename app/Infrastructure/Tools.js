@@ -73,11 +73,12 @@ Tools.requireRecursive = async (directories, { mask, isFallible }) => {
 };
 
 Tools.returnPrettyError = e => {
-  let { stack } = e;
-  stack = stack.replace(Tools.ROOT, '');
-  stack = stack.replace(/\\/g, '/');
-  stack = stack.split('\n');
-  let title = stack.shift();
+  let stack = e.stack ?? e.description;
+  stack = stack
+    .replace(Tools.ROOT, '')
+    .replace(/\\/g, '/')
+    .split('\n');
+  let title = stack.shift() ?? '';
   return `[FOXTAN] \x1b[1m${title}\x1b[0m\n${stack.join('\n')}`;
 };
 

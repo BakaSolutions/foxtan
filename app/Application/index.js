@@ -1,102 +1,13 @@
-const config = require('../Infrastructure/Config.js');
-const Tools = require('../Infrastructure/Tools.js');
+const Foxtan = require('./Foxtan.js');
 
-// Web server
-const Routing = require('../Infrastructure/Routing.js');
+let foxtan = new Foxtan();
 
-// Databases
-const DatabaseContext = require('../Infrastructure/DatabaseContext.js');
-
-const fs = require('fs').promises;
-
-class Foxtan {
-
-  constructor({ logger = console } = {}) {
-    this.logger = logger;
+(async () => {
+  try {
+    await foxtan.init();
+    await foxtan.launchServer();
+  } catch (e) {
+    foxtan.logError(e);
+    process.exit(1);
   }
-
-  async init() {
-    this.logUnexpectedErrors(this.logError.bind(this));
-    try {
-      await fs.mkdir(config.get('directories.temporary'))
-        .catch((err) => {
-          switch (err.code) {
-            case 'EEXIST':
-              return;
-
-            default:
-              throw err;
-          }
-        });
-      await this.initDatabaseContext(config.get('db.type'));
-      await this.initServices();
-      await this.launchServer();
-    } catch (e) {
-      this.logError(e);
-      process.exit(1);
-    }
-  }
-
-  async initDatabaseContext(dbType) {
-    const Database = new DatabaseContext(dbType);
-    await Database.connect();
-    return this.database = Database;
-  }
-
-  async initServices() {
-    let serviceFiles = await Tools.requireRecursive('app/Application/Service', {
-      mask: /.+Service\.js/i
-    });
-    let services = {};
-    serviceFiles.map(Service => {
-      let serviceName = Service.name.replace('Service', '').toLocaleLowerCase();
-      services[Service.name] = new Service(this.database.context[serviceName]);
-    });
-    return this.services = services;
-  }
-
-  async launchServer() {
-    let { output, socket, host, port, pathPrefix } = config.get('server');
-
-    this.routing = new Routing(this.services);
-
-    let HTTPRoutes = await Routing.load('HTTP', 'Route');
-    let HTTPMiddlewares = await Routing.load('HTTP', 'Middleware');
-    this.routing.addHTTPRoutes(HTTPRoutes, HTTPMiddlewares);
-
-    let WSMiddlewares = await Routing.load('WS');
-    this.routing.addWSRoutes(WSMiddlewares);
-
-    this.routing.onListen((...args) => {
-      let address = `${host}:${port}`;
-      this.logger.log(`\x1b[32mФырк!\x1b[0m http://${address}${pathPrefix}index.xhtml for HTTP debug!`);
-      this.logger.log(`\x1b[32mФырк!\x1b[0m http://${address}${pathPrefix}debug.xhtml for WS debug!`);
-      this.logger.log(`\x1b[33m[WS]:\x1b[0m   ws://${address}${pathPrefix}ws`);
-    });
-
-    if (output === 'socket') {
-      return this.routing.listenSocket(socket);
-    }
-    return this.routing.listenPort(host, port);
-  }
-
-  logUnexpectedErrors(output) {
-    process.on('uncaughtException', output);
-    process.on('unhandledRejection', output);
-    process.on('warning', output);
-    //EventBus.on('error', output);
-  }
-
-  logError(e) {
-    if (this === process) {
-      console.warn('Missed binding for logger. It may cause process exit!');
-      return console.log(e);
-    }
-    this.logger.error(Tools.returnPrettyError(e));
-  }
-
-}
-
-new Foxtan({
-  logger: console
-}).init();
+})();
