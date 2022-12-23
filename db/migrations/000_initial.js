@@ -77,8 +77,8 @@ exports.up = knex => {
     })
     .createTable('reply', (table) => {
       table.increments('id').unsigned().primary();
-      table.integer('fromId').unsigned();
-      table.integer('toId').unsigned();
+      table.integer('fromId').unsigned().notNullable();
+      table.integer('toId').unsigned().notNullable();
 
       table.foreign('fromId').references('id').inTable(schema + '.post');
       table.foreign('toId').references('id').inTable(schema + '.post');

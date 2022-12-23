@@ -91,7 +91,7 @@ class PostService {
       throw new BadRequestError("No reply was provided");
     }
     try {
-      return this._postModel.readOneById(Reply.fromId);
+      return await this._postModel.readOneById(Reply.fromId);
     } catch (e) {
       throw new PostNotFoundError();
     }
@@ -186,6 +186,14 @@ class PostService {
    */
   isThreadHead(post) {
     return post?.isHead === true;
+  }
+
+  /**
+   * @param post
+   * @returns {Array} replies: [[wholeMatch, postNumber], ...]
+   */
+  parseReplies(post) {
+    return post?.text.matchAll(/>>([0-9]+)/g) ?? [];
   }
 
   /**

@@ -52,6 +52,10 @@ class PostBO {
 
     [postDTO, threadDTO] = await this.createPreHook(postDTO, threadDTO);
     let Post = await this.PostService.create(postDTO);
+
+    let replies = this.PostService.parseReplies(Post);
+    await this.createReplies(Post, threadDTO, replies);
+
     return this.createPostHook(Post, threadDTO);
   }
 
@@ -110,6 +114,25 @@ class PostBO {
 
   async countByBoardName(boardName) {
     return await this.PostService.countByBoardName(boardName) ?? 0;
+  }
+
+  async createReplies(post, thread, replies) {
+    if (!thread) {
+      thread = await this.ThreadService.readOneById(post.threadId);
+    }
+    let { boardName } = thread;
+    for (let [, postNumber] of replies) { // TODO: Cache replies per post (>>1 and >>/test/1 are the same)
+      try { // post.id replies to referredPost.id
+        let referredPost = await this.PostService.readOneByBoardAndPost(boardName, +postNumber);
+        let replies = await this.ReplyService.readPostReplies(referredPost.id);
+        if (replies.some(reply => reply.toId === referredPost.id)) { // is left for generateReplies.js
+          continue; // reply exists!
+        }
+        await this.ReplyService.create(post.id, referredPost.id);
+      } catch (e) {
+        //
+      }
+    }
   }
 
   async edit(postId, data, session) {
@@ -217,19 +240,23 @@ class PostBO {
       return;
     }
 
-    if (post.attachments?.length > 0) {
-      const attachments = await this.FileService.read(post.attachments);
-      post.attachments = post.attachments.map(hash => attachments.find(a => hash === a.hash));
-    }
-
-    const replies = await this.ReplyService.readPostReplies(post.id);
-    post.replies = await Tools.parallel(async reply => {
-      let { id, threadId, number } = await this.PostService.readOneByReply(reply);
-      let { name: boardName } = await this.BoardService.readByPostId(id);
-      return {
-        id, threadId, boardName, number
+    try {
+      if (post.attachments?.length > 0) {
+        const attachments = await this.FileService.read(post.attachments);
+        post.attachments = post.attachments.map(hash => attachments.find(a => hash === a.hash));
       }
-    }, replies);
+
+      const replies = await this.ReplyService.readPostReplies(post.id);
+      post.replies = await Tools.parallel(async reply => {
+        let {id, threadId, number} = await this.PostService.readOneByReply(reply) ?? {};
+        let {name: boardName} = await this.BoardService.readByPostId(id) ?? {};
+        return {
+          id, threadId, boardName, number
+        }
+      }, replies).catch(/*  */);
+    } catch (e) {
+      //
+    }
 
     return post;
   }

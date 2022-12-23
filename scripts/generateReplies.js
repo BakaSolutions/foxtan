@@ -28,8 +28,9 @@ const postsPerPage = 50;
         });
         for (let post of posts) {
           //console.log(`Processing post #${post.id}...`);
-          let postNumbers = post.text.matchAll(/>>([0-9]+)/g) ?? [];
-          for (let [, postNumber] of postNumbers) {
+          let replies = Post.parseReplies(post);
+          // TODO: Use internal Foxtan functions
+          for (let [, postNumber] of replies) {
             try {
               let referredPost = await Post.readOneByBoardAndPost(boardName, +postNumber);
               //console.log(post.id, 'replies to', referredPost.id);
