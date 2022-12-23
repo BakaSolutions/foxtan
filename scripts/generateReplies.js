@@ -1,8 +1,5 @@
 #!/usr/bin/env node
 const Foxtan = require('../app/Application/Foxtan.js');
-const BoardBO = require('../app/Application/Business/BoardBO.js');
-const PostBO = require('../app/Application/Business/PostBO.js');
-
 const postsPerPage = 50;
 
 (async () => {
@@ -10,9 +7,11 @@ const postsPerPage = 50;
   try {
     await foxtan.init();
 
-    // TODO: Use services instead of business objects
-    let Post = new PostBO(foxtan.services);
-    let Board = new BoardBO(foxtan.services);
+    let {
+      BoardService: Board,
+      PostService: Post,
+      ReplyService: Reply
+    } = foxtan.services;
 
     let boards = await Board.readMany();
     for (let { name: boardName } of boards) {
@@ -33,10 +32,18 @@ const postsPerPage = 50;
           for (let [, postNumber] of postNumbers) {
             try {
               let referredPost = await Post.readOneByBoardAndPost(boardName, +postNumber);
-              console.log(post.id, 'replies to', referredPost.id);
-              // TODO: Add replies to DB table
+              //console.log(post.id, 'replies to', referredPost.id);
+              let replies = await Reply.readPostReplies(referredPost.id);
+              if (replies.some(reply => reply.toId === referredPost.id)) {
+                console.log(`[${post.id} => ${referredPost.id}] Reply exists. Skipping...`);
+                continue;
+              }
+              console.log(`[${post.id} => ${referredPost.id}] Storing the reply...`);
+              await Reply.create(post.id, referredPost.id);
             } catch (e) {
-              //
+              if (!e.code || e.code !== 404) {
+                console.log(e);
+              }
             }
           }
         }
