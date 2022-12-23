@@ -101,9 +101,13 @@ class PostBO {
     return Tools.parallel(this.process.bind(this), posts);
   }
 
-  async readBoardFeed(boardName, { count, page } = {}) {
-    let posts = await this.PostService.readBoardFeed(boardName, { count, page });
+  async readBoardFeed(boardName, { count, page, order } = {}) {
+    let posts = await this.PostService.readBoardFeed(boardName, { count, page, order });
     return Tools.parallel(this.process.bind(this), posts);
+  }
+
+  async countByBoardName(boardName) {
+    return await this.PostService.countByBoardName(boardName) ?? 0;
   }
 
   async edit(postId, data, session) {

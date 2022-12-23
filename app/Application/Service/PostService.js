@@ -133,11 +133,13 @@ class PostService {
    * @param {String} boardName
    * @param {Number} count
    * @param {Number} page
+   * @param {String} order
    * @returns {Promise<Array>} posts
    */
-  async readBoardFeed(boardName, { count, page } = {}) {
+  async readBoardFeed(boardName, { count, page, order } = {}) {
     try {
-      return await this._postModel.readByBoardName(boardName, { count, page, order: 'desc' });
+      order ??= 'desc';
+      return await this._postModel.readByBoardName(boardName, { count, page, order });
     } catch (e) {
       throw new PostNotFoundError();
     }
@@ -149,6 +151,14 @@ class PostService {
    */
   async countByThreadId(threadId) {
     return this._postModel.countByThreadId(threadId);
+  }
+
+  /**
+   * @param {String} boardName
+   * @returns {Promise<Number>}
+   */
+  async countByBoardName(boardName) {
+    return this._postModel.countByBoardName(boardName);
   }
 
   /**

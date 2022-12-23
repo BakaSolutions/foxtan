@@ -123,6 +123,16 @@ WHERE t."boardName" = $1`;
     return +query[0].count;
   }
 
+  async countByBoardName(boardName) {
+    const template = `SELECT COUNT(p.*)
+FROM post p
+INNER JOIN thread t ON p."threadId" = t.id
+WHERE t."boardName" = $1`;
+    const values = [ boardName ];
+    const query = await this.dialect.executeQuery(template, values);
+    return +query[0].count;
+  }
+
   async update(post) {
     throw new Error();
   }
