@@ -120,9 +120,9 @@ class PostBO {
     if (!thread) {
       thread = await this.ThreadService.readOneById(post.threadId);
     }
-    let { boardName } = thread;
-    for (let [, postNumber] of replies) { // TODO: Cache replies per post (>>1 and >>/test/1 are the same)
+    for (let [, boardName, postNumber] of replies) { // TODO: Cache replies per post (>>1 and >>/test/1 are the same)
       try { // post.id replies to referredPost.id
+        boardName ??= thread.boardName;
         let referredPost = await this.PostService.readOneByBoardAndPost(boardName, +postNumber);
         let replies = await this.ReplyService.readPostReplies(referredPost.id);
         if (replies.some(reply => reply.toId === referredPost.id)) { // is left for generateReplies.js

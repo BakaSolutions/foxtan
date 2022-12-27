@@ -190,10 +190,10 @@ class PostService {
 
   /**
    * @param post
-   * @returns {Array} replies: [[wholeMatch, postNumber], ...]
+   * @returns {Array} replies: [[wholeMatch, boardName, postNumber], ...]
    */
   parseReplies(post) {
-    return post?.text.matchAll(/>>([0-9]+)/g) ?? [];
+    return post?.text.matchAll(/>>(?:\/?(.+)\/)?([0-9]+)/g) ?? [];
   }
 
   /**

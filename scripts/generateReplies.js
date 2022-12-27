@@ -30,9 +30,10 @@ const postsPerPage = 50;
           //console.log(`Processing post #${post.id}...`);
           let replies = Post.parseReplies(post);
           // TODO: Use internal Foxtan functions
-          for (let [, postNumber] of replies) {
+          for (let [, replyBoardName, postNumber] of replies) {
             try {
-              let referredPost = await Post.readOneByBoardAndPost(boardName, +postNumber);
+              replyBoardName ??= boardName;
+              let referredPost = await Post.readOneByBoardAndPost(replyBoardName, +postNumber);
               //console.log(post.id, 'replies to', referredPost.id);
               let replies = await Reply.readPostReplies(referredPost.id);
               if (replies.some(reply => reply.toId === referredPost.id)) {
