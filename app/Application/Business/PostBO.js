@@ -171,6 +171,7 @@ class PostBO {
 
     let isDeleted = await this.PostService.deleteOne(post);
     await this.deleteAttachments(post);
+    await this.ReplyService.deleteRepliesByPostId(post.id);
     EventBus.emit('broadcast', 'post', 'deleted', post);
     return isDeleted;
   }
@@ -212,6 +213,7 @@ class PostBO {
 
     let deletedCount = await this.PostService.deleteMany(posts);
     await Tools.parallel(this.deleteAttachments.bind(this), posts);
+    await Tools.parallel(async post => await this.ReplyService.deleteRepliesByPostId(post.id), posts);
 
     posts = await Tools.parallel(this.cleanOutput.bind(this), posts);
     if (!headPosts?.length) {

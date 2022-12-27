@@ -48,6 +48,17 @@ class ReplyModelPostgre extends ReplyModelInterface {
     return replies.map(reply => ReplyDTO.from(reply));
   }
 
+  async deleteRepliesByPostId(postId) {
+    try {
+      const template = `DELETE FROM "reply" WHERE "fromId" = $1 OR "toId" = $2`;
+      const values = [ postId, postId ]; // No time to check if multiple $1 usage is possible.
+      await this.dialect.executeQuery(template, values, {raw: true});
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
 }
 
 module.exports = ReplyModelPostgre;

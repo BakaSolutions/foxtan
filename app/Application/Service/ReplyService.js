@@ -1,3 +1,5 @@
+const { BadRequestError } = require("../../Domain/Error");
+
 class ReplyService {
 
   /**
@@ -25,7 +27,12 @@ class ReplyService {
     return await this._model.readPostReplies(id) || [];
   }
 
-  // TODO: Remove replies on post deletion
+  async deleteRepliesByPostId(id) {
+    if (!id) {
+      throw new BadRequestError('Provide id to delete the reply');
+    }
+    return await this._model.deleteRepliesByPostId(id);
+  }
 
 }
 
