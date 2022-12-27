@@ -20,7 +20,7 @@ class BoardBO {
     return board;
   }
 
-  async readMany({ count, page, order, asObject }) {
+  async readMany({ count, page, order, asObject } = {}) {
     let boards = await this.BoardService.readMany({ count, page, order });
     if (!asObject) {
       return boards;

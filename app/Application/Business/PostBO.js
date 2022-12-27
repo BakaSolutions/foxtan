@@ -10,14 +10,16 @@ class PostBO {
    * @param {BoardService} BoardService
    * @param {FileService} FileService
    * @param {MemberService} MemberService
+   * @param {ReplyService} ReplyService
    * @param {PostService} PostService
    * @param {ThreadService} ThreadService
    */
-  constructor({ AccessService, BoardService, FileService, MemberService, PostService, ThreadService }) {
+  constructor({ AccessService, BoardService, FileService, MemberService, ReplyService, PostService, ThreadService }) {
     this.AccessService = AccessService;
     this.BoardService = BoardService;
     this.FileService = FileService;
     this.MemberService = MemberService;
+    this.ReplyService = ReplyService;
     this.PostService = PostService;
     this.ThreadService = ThreadService;
   }
@@ -50,6 +52,10 @@ class PostBO {
 
     [postDTO, threadDTO] = await this.createPreHook(postDTO, threadDTO);
     let Post = await this.PostService.create(postDTO);
+
+    let replies = this.PostService.parseReplies(Post);
+    await this.createReplies(Post, threadDTO, replies);
+
     return this.createPostHook(Post, threadDTO);
   }
 
@@ -101,9 +107,32 @@ class PostBO {
     return Tools.parallel(this.process.bind(this), posts);
   }
 
-  async readBoardFeed(boardName, { count, page } = {}) {
-    let posts = await this.PostService.readBoardFeed(boardName, { count, page });
+  async readBoardFeed(boardName, { count, page, order } = {}) {
+    let posts = await this.PostService.readBoardFeed(boardName, { count, page, order });
     return Tools.parallel(this.process.bind(this), posts);
+  }
+
+  async countByBoardName(boardName) {
+    return await this.PostService.countByBoardName(boardName) ?? 0;
+  }
+
+  async createReplies(post, thread, replies) {
+    if (!thread) {
+      thread = await this.ThreadService.readOneById(post.threadId);
+    }
+    for (let [, boardName, postNumber] of replies) { // TODO: Cache replies per post (>>1 and >>/test/1 are the same)
+      try { // post.id replies to referredPost.id
+        boardName ??= thread.boardName;
+        let referredPost = await this.PostService.readOneByBoardAndPost(boardName, +postNumber);
+        let replies = await this.ReplyService.readPostReplies(referredPost.id);
+        if (replies.some(reply => reply.toId === referredPost.id)) { // is left for generateReplies.js
+          continue; // reply exists!
+        }
+        await this.ReplyService.create(post.id, referredPost.id);
+      } catch (e) {
+        //
+      }
+    }
   }
 
   async edit(postId, data, session) {
@@ -136,10 +165,14 @@ class PostBO {
       EventBus.emit('broadcast', 'thread', 'deleted', thread);
       let threadPosts = await this.PostService.readThreadPosts(post.threadId);
       let postsForDeletion = [post, ...threadPosts];
-      await Tools.parallel(this.deleteAttachments.bind(this), postsForDeletion);
+      await Tools.parallel(async post => {
+        await this.deleteAttachments(post);
+        await this.ReplyService.deleteRepliesByPostId(post.id);
+      }, postsForDeletion);
       return await this.PostService.deleteMany(postsForDeletion);
     }
 
+    await this.ReplyService.deleteRepliesByPostId(post.id);
     let isDeleted = await this.PostService.deleteOne(post);
     await this.deleteAttachments(post);
     EventBus.emit('broadcast', 'post', 'deleted', post);
@@ -181,8 +214,12 @@ class PostBO {
       }, headPosts);
     }
 
+
+    await Tools.parallel(async post => {
+      await this.deleteAttachments(post);
+      await this.ReplyService.deleteRepliesByPostId(post.id);
+    }, posts);
     let deletedCount = await this.PostService.deleteMany(posts);
-    await Tools.parallel(this.deleteAttachments.bind(this), posts);
 
     posts = await Tools.parallel(this.cleanOutput.bind(this), posts);
     if (!headPosts?.length) {
@@ -211,9 +248,22 @@ class PostBO {
       return;
     }
 
-    if (post.attachments?.length > 0) {
-      const attachments = await this.FileService.read(post.attachments);
-      post.attachments = post.attachments.map(hash => attachments.find(a => hash === a.hash));
+    try {
+      if (post.attachments?.length > 0) {
+        const attachments = await this.FileService.read(post.attachments);
+        post.attachments = post.attachments.map(hash => attachments.find(a => hash === a.hash));
+      }
+
+      const replies = await this.ReplyService.readPostReplies(post.id);
+      post.replies = await Tools.parallel(async reply => {
+        let {id, threadId, number} = await this.PostService.readOneByReply(reply) ?? {};
+        let {name: boardName} = await this.BoardService.readByPostId(id) ?? {};
+        return {
+          id, threadId, boardName, number
+        }
+      }, replies).catch(/*  */);
+    } catch (e) {
+      //
     }
 
     return post;

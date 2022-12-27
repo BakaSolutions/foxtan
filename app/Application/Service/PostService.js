@@ -86,6 +86,17 @@ class PostService {
     }
   }
 
+  async readOneByReply(Reply) {
+    if (!Reply) {
+      throw new BadRequestError("No reply was provided");
+    }
+    try {
+      return await this._postModel.readOneById(Reply.fromId);
+    } catch (e) {
+      throw new PostNotFoundError();
+    }
+  }
+
   async readMany(boardName, number) {
     if (!boardName) {
       throw new BadRequestError('boardName is required');
@@ -133,11 +144,13 @@ class PostService {
    * @param {String} boardName
    * @param {Number} count
    * @param {Number} page
+   * @param {String} order
    * @returns {Promise<Array>} posts
    */
-  async readBoardFeed(boardName, { count, page } = {}) {
+  async readBoardFeed(boardName, { count, page, order } = {}) {
     try {
-      return await this._postModel.readByBoardName(boardName, { count, page, order: 'desc' });
+      order ??= 'desc';
+      return await this._postModel.readByBoardName(boardName, { count, page, order });
     } catch (e) {
       throw new PostNotFoundError();
     }
@@ -149,6 +162,14 @@ class PostService {
    */
   async countByThreadId(threadId) {
     return this._postModel.countByThreadId(threadId);
+  }
+
+  /**
+   * @param {String} boardName
+   * @returns {Promise<Number>}
+   */
+  async countByBoardName(boardName) {
+    return this._postModel.countByBoardName(boardName);
   }
 
   /**
@@ -165,6 +186,14 @@ class PostService {
    */
   isThreadHead(post) {
     return post?.isHead === true;
+  }
+
+  /**
+   * @param post
+   * @returns {Array} replies: [[wholeMatch, boardName, postNumber], ...]
+   */
+  parseReplies(post) {
+    return post?.text.matchAll(/>>(?:\/?(.+)\/)?([0-9]+)/g) ?? [];
   }
 
   /**
