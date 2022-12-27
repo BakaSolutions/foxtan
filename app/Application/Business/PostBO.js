@@ -165,13 +165,16 @@ class PostBO {
       EventBus.emit('broadcast', 'thread', 'deleted', thread);
       let threadPosts = await this.PostService.readThreadPosts(post.threadId);
       let postsForDeletion = [post, ...threadPosts];
-      await Tools.parallel(this.deleteAttachments.bind(this), postsForDeletion);
+      await Tools.parallel(async post => {
+        await this.deleteAttachments(post);
+        await this.ReplyService.deleteRepliesByPostId(post.id);
+      }, postsForDeletion);
       return await this.PostService.deleteMany(postsForDeletion);
     }
 
+    await this.ReplyService.deleteRepliesByPostId(post.id);
     let isDeleted = await this.PostService.deleteOne(post);
     await this.deleteAttachments(post);
-    await this.ReplyService.deleteRepliesByPostId(post.id);
     EventBus.emit('broadcast', 'post', 'deleted', post);
     return isDeleted;
   }
@@ -211,9 +214,12 @@ class PostBO {
       }, headPosts);
     }
 
+
+    await Tools.parallel(async post => {
+      await this.deleteAttachments(post);
+      await this.ReplyService.deleteRepliesByPostId(post.id);
+    }, posts);
     let deletedCount = await this.PostService.deleteMany(posts);
-    await Tools.parallel(this.deleteAttachments.bind(this), posts);
-    await Tools.parallel(async post => await this.ReplyService.deleteRepliesByPostId(post.id), posts);
 
     posts = await Tools.parallel(this.cleanOutput.bind(this), posts);
     if (!headPosts?.length) {
