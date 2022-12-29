@@ -125,7 +125,9 @@ class PostBO {
         boardName ??= thread.boardName;
         let referredPost = await this.PostService.readOneByBoardAndPost(boardName, +postNumber);
         let replies = await this.ReplyService.readPostReplies(referredPost.id);
-        if (replies.some(reply => reply.toId === referredPost.id)) { // is left for generateReplies.js
+        if (replies.some(reply =>
+          reply.fromId === post.id
+          && reply.toId === referredPost.id)) { // is left for generateReplies.js
           continue; // reply exists!
         }
         await this.ReplyService.create(post.id, referredPost.id);

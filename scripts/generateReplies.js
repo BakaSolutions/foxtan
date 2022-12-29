@@ -36,7 +36,10 @@ const postsPerPage = 50;
               let referredPost = await Post.readOneByBoardAndPost(replyBoardName, +postNumber);
               //console.log(post.id, 'replies to', referredPost.id);
               let replies = await Reply.readPostReplies(referredPost.id);
-              if (replies.some(reply => reply.toId === referredPost.id)) {
+              if (replies.some(reply =>
+                reply.fromId === post.id
+                && reply.toId === referredPost.id
+              )) {
                 console.log(`[${post.id} => ${referredPost.id}] Reply exists. Skipping...`);
                 continue;
               }
