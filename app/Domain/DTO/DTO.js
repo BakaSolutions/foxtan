@@ -48,6 +48,10 @@ class DTO {
     }, {});
   }
 
+  cleanOutput(hasPrivileges) {
+    return this.toObject(hasPrivileges);
+  }
+
   static from(data) {
     return new this(data);
   }

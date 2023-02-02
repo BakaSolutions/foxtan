@@ -14,8 +14,8 @@ class ReplyService {
   }
 
   async create(fromId, toId) {
-    let privilege = await this._model.create({fromId, toId});
-    return privilege.toObject();
+    let reply = await this._model.create({fromId, toId});
+    return reply.toObject();
   }
 
   /**

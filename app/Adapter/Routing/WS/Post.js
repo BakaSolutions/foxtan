@@ -44,7 +44,7 @@ class PostController {
             throw new PostNotFoundError();
           }
 
-          return this.post.cleanOutput(posts, hasPrivileges);
+          return posts.map(post => post.cleanOutput(hasPrivileges));
         }
       }, {
         request: 'post',
@@ -84,7 +84,7 @@ class PostController {
             }
             throw e;
           }
-          return this.post.cleanOutput(post, hasPrivileges);
+          return post.cleanOutput(hasPrivileges);
         }
       },
       {

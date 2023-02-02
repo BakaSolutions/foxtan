@@ -40,7 +40,7 @@ class ThreadController {
             return thread;
           }, threads);
 
-          return this.thread.cleanOutput(threads, hasPrivileges);
+          return threads.map(thread => thread.cleanOutput(hasPrivileges));
         }
      }, {
         request: 'thread',
@@ -84,7 +84,7 @@ class ThreadController {
           
           thread.head = await this.post.process(thread.head);
 
-          return this.thread.cleanOutput(thread, hasPrivileges);
+          return thread.cleanOutput(hasPrivileges);
         }
       }, {
         request: 'pinThread',

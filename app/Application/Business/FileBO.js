@@ -8,11 +8,6 @@ class FileBO {
     this.FileService = FileService;
   }
 
-  // TODO: Remove this proxy
-  async create(fileObject, modifiers) {
-    return await this.FileService.create(fileObject, modifiers);
-  }
-
   // TODO: File addition
   // TODO: File deletion
 

@@ -82,15 +82,6 @@ class ThreadBO {
       || (head.userId > 0 && (session.user?.id === head.userId));
   }
 
-  cleanOutput(thread, hasPrivileges) {
-    if (Array.isArray(thread)) {
-      return thread.map(t => this.cleanOutput(t, hasPrivileges));
-    }
-    thread.head = thread.head.toObject(hasPrivileges);
-    return thread.toObject(hasPrivileges);
-  }
-
-
 }
 
 module.exports = ThreadBO;

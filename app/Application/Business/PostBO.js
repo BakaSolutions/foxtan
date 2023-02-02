@@ -24,15 +24,8 @@ class PostBO {
     this.ThreadService = ThreadService;
   }
 
-  async createPreHook(postDTO, threadDTO) {
-    if (!threadDTO) {
-      return [postDTO, undefined];
-    }
-
-    const thread = await this.ThreadService.create(threadDTO);
-    postDTO.threadId = thread.id;
-    postDTO.isHead = true;
-    return [postDTO, thread]
+  async _createPreHook(postDTO, threadDTO) {
+    // TODO: add pre-hooks
   }
 
   /**
@@ -40,28 +33,39 @@ class PostBO {
    * @param {ThreadDTO} threadDTO
    */
   async create(postDTO, threadDTO) {
-    if ("file" in postDTO) {
-      let filePromises = postDTO.file.map(async (file, i) => {
-        return this.FileService.create(file, postDTO.fileMark[i])
-      });
-      let files = await Promise.all(filePromises);
-      postDTO.attachments = files.map(f => f.hash);
-      delete postDTO.file;
-      delete postDTO.fileMark;
+    try {
+      if ("file" in postDTO) {
+        let filePromises = postDTO.file.map(async (file, i) => {
+          return this.FileService.create(file, postDTO.fileMark[i])
+        });
+        let files = await Promise.all(filePromises);
+        postDTO.attachments = files.map(f => f.hash);
+        delete postDTO.file;
+        delete postDTO.fileMark;
+      }
+
+      let Thread;
+      if (threadDTO) {
+        Thread = await this.ThreadService.create(threadDTO);
+        postDTO.threadId = Thread.id;
+        postDTO.isHead = true;
+      }
+      [postDTO, Thread] = await this._createPreHook(postDTO, Thread);
+      let Post = await this.PostService.create(postDTO);
+      await this.createReplies(Post, Thread);
+      return this.createPostHook(Post, Thread);
+    } catch (e) {
+      if (threadDTO) {
+        await this.ThreadService.deleteOne(threadDTO);
+      }
+      throw e;
     }
-
-    [postDTO, threadDTO] = await this.createPreHook(postDTO, threadDTO);
-    let Post = await this.PostService.create(postDTO);
-
-    let replies = this.PostService.parseReplies(Post);
-    await this.createReplies(Post, threadDTO, replies);
-
-    return this.createPostHook(Post, threadDTO);
   }
 
   async createPostHook(Post, threadDTO) {
+    EventBus.emit('post.created', Post);
     Post = await this.process(Post);
-    Post = this.cleanOutput(Post);
+    Post = Post.cleanOutput();
 
     if (threadDTO) {
       EventBus.emit('broadcast', 'thread', 'created', {
@@ -116,10 +120,11 @@ class PostBO {
     return await this.PostService.countByBoardName(boardName) ?? 0;
   }
 
-  async createReplies(post, thread, replies) {
+  async createReplies(post, thread) {
     if (!thread) {
       thread = await this.ThreadService.readOneById(post.threadId);
     }
+    let replies = this.PostService.parseReplies(post);
     for (let [, boardName, postNumber] of replies) { // TODO: Cache replies per post (>>1 and >>/test/1 are the same)
       try { // post.id replies to referredPost.id
         boardName ??= thread.boardName;
@@ -139,7 +144,7 @@ class PostBO {
 
   async edit(postId, data, session) {
     let post = await this.PostService.readOneById(postId);
-    let hasPrivileges = await this.can('moderate', post, session);
+    let hasPrivileges = await this.canEdit(post, session);
     if (!hasPrivileges) {
       throw new ForbiddenError(`You're not allowed to edit this post`);
     }
@@ -187,15 +192,15 @@ class PostBO {
       : await this.readManyByBoardAndPost(postNumbers);
 
     let canDelete = await Tools.parallel(this.canDelete.bind(this), posts, session);
-    if (!(canDelete.some(can => can === true))) {
-      throw new ForbiddenError(`You're not allowed to delete these posts`);
-    }
     posts = posts
       .map((post, i) => {
         post.canDelete = canDelete[i];
         return post;
       })
       .filter(post => post.canDelete === true);
+    if (!posts.length) {
+      throw new ForbiddenError(`You're not allowed to delete these posts`);
+    }
 
     let headPosts = posts.filter(post => this.PostService.isThreadHead(post));
     if (headPosts?.length) {
@@ -222,11 +227,9 @@ class PostBO {
       await this.ReplyService.deleteRepliesByPostId(post.id);
     }, posts);
     let deletedCount = await this.PostService.deleteMany(posts);
-
-    posts = await Tools.parallel(this.cleanOutput.bind(this), posts);
     if (!headPosts?.length) {
       for (let post of posts) {
-        EventBus.emit('broadcast', 'post', 'deleted', post);
+        EventBus.emit('broadcast', 'post', 'deleted', post.cleanOutput());
       }
     }
     return deletedCount;
@@ -295,15 +298,16 @@ class PostBO {
     return await this.AccessService.hasPermissionForBoard(Member?.groupName, Board.name, permission);
   }
 
-  async canDelete(post, session) {
+  async canCreate(post, session) { // TODO: Permissions for anonymous session
+    return await this.can('post', post, session);
+  }
+
+  async canEdit(post, session) {
     return await this.can('moderate', post, session);
   }
 
-  cleanOutput(post, hasPrivileges) {
-    if (Array.isArray(post)) {
-      return post.map(p => this.cleanOutput(p, hasPrivileges));
-    }
-    return post.toObject(hasPrivileges);
+  async canDelete(post, session) {
+    return await this.can('moderate', post, session);
   }
 
 }
