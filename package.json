@@ -23,12 +23,12 @@
   "dependencies": {
     "@rngnrs/figurecon": "^1.2.0",
     "busboy": "^1.6.0",
-    "canvas": "^2.9.3",
+    "canvas": "^2.11.2",
     "email-validator": "^2.0.4",
     "eventemitter3": "^4.0.7",
     "file-type": "~16.5.4",
     "ioredis": "^4.28.5",
-    "koa": "^2.13.4",
+    "koa": "^2.14.2",
     "koa-redis": "^4.0.1",
     "koa-router": "^10.1.1",
     "koa-session-minimal": "^4.0.3",
@@ -46,9 +46,9 @@
     "zunit": "^3.0.4"
   },
   "optionalDependencies": {
-    "knex": "^2.2.0",
+    "knex": "^2.5.0",
     "koa-mount": "^4.0.0",
     "koa-static": "^5.0.0",
-    "pg": "^8.7.3"
+    "pg": "^8.11.1"
   }
 }
